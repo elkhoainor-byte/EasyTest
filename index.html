@@ -117,18 +117,15 @@
           <input type="file" id="file-input" accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation" multiple>
         </div>
         <div id="upload-status" class="text-sm"></div>
-
         <div class="form-group mt-2">
           <label>Texto extraído (editable)</label>
-          <textarea id="topic-text" rows="10" placeholder="El texto aparecerá aquí..."></textarea>
+          <textarea id="topic-text" rows="12" placeholder="El texto aparecerá aquí después de subir los archivos..."></textarea>
         </div>
-
         <div class="form-group">
           <label>Imágenes extraídas</label>
           <div id="images-preview" class="img-gallery"></div>
           <p class="text-sm text-muted" id="images-count"></p>
         </div>
-
         <div class="flex">
           <button class="btn btn-primary" onclick="saveTopic()">Guardar tema</button>
           <button class="btn btn-secondary" onclick="backToSubject()">Cancelar</button>
@@ -187,7 +184,7 @@
     let db = null;
     let currentSubjectId = null;
     let currentTopicId = null;
-    let currentImages = []; // imágenes temporales al editar tema
+    let currentImages = [];
     let examState = { questions: [], selectedTopicIds: [], numQ: 10, types: {} };
 
     function openDB() {
@@ -410,19 +407,22 @@
       renderImagesPreview();
     }
 
-    // ========== EXTRACCIÓN TEXTO + IMÁGENES ==========
+    // ========== EXTRACCIÓN DE TEXTO + IMÁGENES ==========
     document.getElementById('file-input').addEventListener('change', async (e) => {
       const files = Array.from(e.target.files);
       if (!files.length) return;
+
       const status = document.getElementById('upload-status');
       const textarea = document.getElementById('topic-text');
       let allText = textarea.value ? textarea.value + '\n\n' : '';
-      status.innerHTML = '<div class="progress"><div class="progress-bar" style="width:0%"></div></div> Procesando...';
+
+      status.innerHTML = '<div class="progress"><div class="progress-bar" style="width:0%"></div></div> Procesando archivos...';
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const pct = Math.round((i / files.length) * 100);
-        status.innerHTML = `<div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div> Extrayendo: ${file.name}`;
+        const pct = Math.round(((i) / files.length) * 100);
+        status.innerHTML = `<div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div> Extrayendo texto e imágenes: <strong>${escapeHtml(file.name)}</strong>`;
+
         try {
           if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
             const result = await extractPdfFull(file);
@@ -433,34 +433,99 @@
             allText += `=== ${file.name} ===\n${result.text}\n\n`;
             result.images.forEach(img => currentImages.push(img));
           } else {
-            status.innerHTML += `<br><span style="color:var(--warning)">Tipo no soportado: ${file.name}</span>`;
+            status.innerHTML += `<br><span style="color:var(--warning)">Tipo no soportado: ${escapeHtml(file.name)}</span>`;
           }
         } catch (err) {
           console.error(err);
-          status.innerHTML += `<br><span style="color:var(--danger)">Error en ${file.name}: ${err.message}</span>`;
+          status.innerHTML += `<br><span style="color:var(--danger)">Error en ${escapeHtml(file.name)}: ${err.message}</span>`;
         }
       }
+
       textarea.value = allText.trim();
       renderImagesPreview();
-      status.innerHTML = `<span style="color:var(--success)">✓ Extracción completada (texto + imágenes). Revisa y guarda el tema.</span>`;
+      status.innerHTML = `<span style="color:var(--success)">✓ Extracción completada. Revisa el texto y las imágenes, luego guarda el tema.</span>`;
     });
 
-    // ----- PDF: texto + imágenes embebidas + páginas renderizadas -----
+    // Espera a que pdf.js esté disponible
+    async function waitForPdfJs(timeout = 8000) {
+      const start = Date.now();
+      while (!window.pdfjsLib) {
+        if (Date.now() - start > timeout) throw new Error('pdf.js no se cargó a tiempo');
+        await new Promise(r => setTimeout(r, 50));
+      }
+      return window.pdfjsLib;
+    }
+
+    // ----- Extracción mejorada de texto de PDF (respeta líneas) -----
+    function extractTextFromContent(content) {
+      if (!content || !content.items || !content.items.length) return '';
+
+      // Convertir items a objetos con posición
+      const items = content.items
+        .filter(it => it.str && it.str.trim())
+        .map(it => ({
+          str: it.str,
+          x: it.transform[4],
+          y: it.transform[5],
+          height: Math.abs(it.transform[0]) || 12, // aproximación de altura
+          width: it.width || 0
+        }));
+
+      if (!items.length) return '';
+
+      // Ordenar: de arriba hacia abajo (Y decreciente), luego de izquierda a derecha
+      items.sort((a, b) => {
+        const yDiff = Math.abs(a.y - b.y);
+        // Si están aproximadamente en la misma línea
+        if (yDiff < Math.max(a.height, b.height) * 0.5) {
+          return a.x - b.x;
+        }
+        return b.y - a.y; // mayor Y primero (arriba)
+      });
+
+      // Agrupar en líneas
+      const lines = [];
+      let currentLine = [];
+      let lastY = null;
+
+      for (const item of items) {
+        if (lastY === null || Math.abs(item.y - lastY) < item.height * 0.6) {
+          currentLine.push(item);
+        } else {
+          if (currentLine.length) {
+            lines.push(currentLine.map(i => i.str).join(' ').replace(/\s+/g, ' ').trim());
+          }
+          currentLine = [item];
+        }
+        lastY = item.y;
+      }
+      if (currentLine.length) {
+        lines.push(currentLine.map(i => i.str).join(' ').replace(/\s+/g, ' ').trim());
+      }
+
+      return lines.filter(l => l.length > 0).join('\n');
+    }
+
+    // ----- PDF completo: texto mejorado + imágenes -----
     async function extractPdfFull(file) {
-      if (!window.pdfjsLib) throw new Error('pdf.js no cargado todavía');
+      const pdfjsLib = await waitForPdfJs();
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
       let fullText = '';
       const images = [];
 
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
 
-        // Texto
+        // 1. Texto con reconstrucción de líneas
         const content = await page.getTextContent();
-        fullText += content.items.map(it => it.str).join(' ') + '\n\n';
+        const pageText = extractTextFromContent(content);
+        if (pageText) {
+          fullText += pageText + '\n\n';
+        }
 
-        // Intentar imágenes embebidas
+        // 2. Intentar extraer imágenes embebidas
         try {
           const ops = await page.getOperatorList();
           const OPS = pdfjsLib.OPS;
@@ -477,26 +542,31 @@
                   canvas.height = imgData.height;
                   const ctx = canvas.getContext('2d');
                   const imageData = ctx.createImageData(imgData.width, imgData.height);
-                  // Convertir según el formato de pdf.js
+
                   if (imgData.data instanceof Uint8ClampedArray || imgData.data instanceof Uint8Array) {
-                    imageData.data.set(imgData.data);
-                    ctx.putImageData(imageData, 0, 0);
-                    const dataUrl = canvas.toDataURL('image/png');
-                    images.push({
-                      id: uid(),
-                      name: `${file.name}_p${pageNum}_img${images.length + 1}.png`,
-                      dataUrl,
-                      source: file.name,
-                      page: pageNum
-                    });
+                    // Intentar copiar (funciona en muchos casos)
+                    try {
+                      imageData.data.set(imgData.data);
+                      ctx.putImageData(imageData, 0, 0);
+                      const dataUrl = canvas.toDataURL('image/png');
+                      images.push({
+                        id: uid(),
+                        name: `${file.name}_p${pageNum}_img${images.length + 1}.png`,
+                        dataUrl,
+                        source: file.name,
+                        page: pageNum
+                      });
+                    } catch (e) { /* formato no compatible */ }
                   }
                 }
               } catch (e) { /* imagen no resoluble */ }
             }
           }
-        } catch (e) { console.warn('No se pudieron extraer imágenes embebidas de la página', pageNum); }
+        } catch (e) {
+          console.warn('No se pudieron extraer imágenes embebidas de la página', pageNum);
+        }
 
-        // Renderizar la página completa como imagen (siempre)
+        // 3. Siempre renderizar la página completa como imagen
         const viewport = page.getViewport({ scale: 1.5 });
         const canvas = document.createElement('canvas');
         canvas.width = viewport.width;
@@ -513,10 +583,11 @@
           isPageRender: true
         });
       }
+
       return { text: fullText.trim(), images };
     }
 
-    // ----- PPTX: texto + todas las imágenes de media/ -----
+    // ----- PPTX: texto + imágenes -----
     async function extractPptxFull(file) {
       const arrayBuffer = await file.arrayBuffer();
       const zip = await JSZip.loadAsync(arrayBuffer);
@@ -533,14 +604,18 @@
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlStr, 'application/xml');
         const textNodes = xmlDoc.getElementsByTagNameNS(aNamespace, 't');
+        const slideTexts = [];
         for (let i = 0; i < textNodes.length; i++) {
-          text += textNodes[i].textContent + ' ';
+          const t = textNodes[i].textContent.trim();
+          if (t) slideTexts.push(t);
         }
-        text += '\n\n';
+        if (slideTexts.length) {
+          text += slideTexts.join(' ') + '\n\n';
+        }
         slideIndex++;
       }
 
-      // Notas
+      // Notas del presentador
       slideIndex = 1;
       while (true) {
         const notesFile = zip.file(`ppt/notesSlides/notesSlide${slideIndex}.xml`);
@@ -550,13 +625,14 @@
         const xmlDoc = parser.parseFromString(xmlStr, 'application/xml');
         const textNodes = xmlDoc.getElementsByTagNameNS(aNamespace, 't');
         for (let i = 0; i < textNodes.length; i++) {
-          text += textNodes[i].textContent + ' ';
+          const t = textNodes[i].textContent.trim();
+          if (t) text += t + ' ';
         }
         text += '\n';
         slideIndex++;
       }
 
-      // Imágenes originales
+      // Imágenes de media/
       const mediaFolder = zip.folder('ppt/media');
       if (mediaFolder) {
         const mediaFiles = [];
@@ -588,7 +664,7 @@
       });
     }
 
-    // ========== EXAMEN (igual que antes) ==========
+    // ========== EXAMEN ==========
     async function startExamFromSubject() {
       const subjects = await getAllSubjects();
       const s = subjects.find(x => x.id === currentSubjectId);
@@ -634,7 +710,7 @@
 
       const sentences = extractSentences(allText);
       if (sentences.length < 5) {
-        alert('No hay suficiente texto útil. Sube más material.');
+        alert('No hay suficiente texto útil. Sube más material o revisa el texto extraído.');
         return;
       }
 
@@ -793,15 +869,3 @@
     }
 
     function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    // Inicio
-    openDB().then(showHome).catch(err => {
-      console.error(err);
-      alert('Error al abrir IndexedDB. Usa Chrome, Firefox o Edge actualizado.');
-    });
-  </script>
-</body>
-</html>
