@@ -597,7 +597,6 @@
       list.innerHTML = '';
       s.topics.forEach(t => {
         const words = (t.text || '').split(/\s+/).filter(Boolean).length;
-        if (words < 20) return;
         const label = document.createElement('label');
         label.style.display = 'block';
         label.innerHTML = `<input type="checkbox" value="${t.id}" checked> ${escapeHtml(t.name)} <span class="text-sm text-muted">(${words} palabras · ${(t.images||[]).length} imgs)</span>`;
