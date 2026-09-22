@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EasyTest – Texto + Imágenes de PDF y PowerPoint</title>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script>
   <script type="module">
-    import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs';
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
+    import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
     window.pdfjsLib = pdfjsLib;
+    console.log('pdf.js cargado correctamente');
   </script>
   <style>
     :root {
@@ -459,51 +461,11 @@
     // ----- Extracción mejorada de texto de PDF (respeta líneas) -----
     function extractTextFromContent(content) {
       if (!content || !content.items || !content.items.length) return '';
-
-      // Convertir items a objetos con posición
-      const items = content.items
-        .filter(it => it.str && it.str.trim())
-        .map(it => ({
-          str: it.str,
-          x: it.transform[4],
-          y: it.transform[5],
-          height: Math.abs(it.transform[0]) || 12, // aproximación de altura
-          width: it.width || 0
-        }));
-
-      if (!items.length) return '';
-
-      // Ordenar: de arriba hacia abajo (Y decreciente), luego de izquierda a derecha
-      items.sort((a, b) => {
-        const yDiff = Math.abs(a.y - b.y);
-        // Si están aproximadamente en la misma línea
-        if (yDiff < Math.max(a.height, b.height) * 0.5) {
-          return a.x - b.x;
-        }
-        return b.y - a.y; // mayor Y primero (arriba)
-      });
-
-      // Agrupar en líneas
-      const lines = [];
-      let currentLine = [];
-      let lastY = null;
-
-      for (const item of items) {
-        if (lastY === null || Math.abs(item.y - lastY) < item.height * 0.6) {
-          currentLine.push(item);
-        } else {
-          if (currentLine.length) {
-            lines.push(currentLine.map(i => i.str).join(' ').replace(/\s+/g, ' ').trim());
-          }
-          currentLine = [item];
-        }
-        lastY = item.y;
-      }
-      if (currentLine.length) {
-        lines.push(currentLine.map(i => i.str).join(' ').replace(/\s+/g, ' ').trim());
-      }
-
-      return lines.filter(l => l.length > 0).join('\n');
+      return content.items
+        .map(item => item.str || '')
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
     }
 
     // ----- PDF completo: texto mejorado + imágenes -----
@@ -511,77 +473,40 @@
       const pdfjsLib = await waitForPdfJs();
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
       let fullText = '';
       const images = [];
+
+      console.log(`PDF tiene ${pdf.numPages} páginas`);
 
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
 
-        // 1. Texto con reconstrucción de líneas
         const content = await page.getTextContent();
         const pageText = extractTextFromContent(content);
+        console.log(`Página ${pageNum}: ${pageText.length} caracteres de texto`);
         if (pageText) {
           fullText += pageText + '\n\n';
         }
 
-        // 2. Intentar extraer imágenes embebidas
         try {
-          const ops = await page.getOperatorList();
-          const OPS = pdfjsLib.OPS;
-          for (let i = 0; i < ops.fnArray.length; i++) {
-            if (ops.fnArray[i] === OPS.paintImageXObject || ops.fnArray[i] === OPS.paintJpegXObject) {
-              const imgName = ops.argsArray[i][0];
-              try {
-                const imgData = await new Promise(resolve => {
-                  page.objs.get(imgName, resolve);
-                });
-                if (imgData && imgData.width && imgData.data) {
-                  const canvas = document.createElement('canvas');
-                  canvas.width = imgData.width;
-                  canvas.height = imgData.height;
-                  const ctx = canvas.getContext('2d');
-                  const imageData = ctx.createImageData(imgData.width, imgData.height);
-
-                  if (imgData.data instanceof Uint8ClampedArray || imgData.data instanceof Uint8Array) {
-                    // Intentar copiar (funciona en muchos casos)
-                    try {
-                      imageData.data.set(imgData.data);
-                      ctx.putImageData(imageData, 0, 0);
-                      const dataUrl = canvas.toDataURL('image/png');
-                      images.push({
-                        id: uid(),
-                        name: `${file.name}_p${pageNum}_img${images.length + 1}.png`,
-                        dataUrl,
-                        source: file.name,
-                        page: pageNum
-                      });
-                    } catch (e) { /* formato no compatible */ }
-                  }
-                }
-              } catch (e) { /* imagen no resoluble */ }
-            }
-          }
+          const viewport = page.getViewport({ scale: 1.5 });
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const ctx = canvas.getContext('2d');
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          const dataUrl = canvas.toDataURL('image/png');
+          images.push({
+            id: uid(),
+            name: `${file.name}_página_${pageNum}.png`,
+            dataUrl,
+            source: file.name,
+            page: pageNum,
+            isPageRender: true
+          });
         } catch (e) {
-          console.warn('No se pudieron extraer imágenes embebidas de la página', pageNum);
+          console.warn('No se pudo renderizar página', pageNum, e);
         }
-
-        // 3. Siempre renderizar la página completa como imagen
-        const viewport = page.getViewport({ scale: 1.5 });
-        const canvas = document.createElement('canvas');
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        const ctx = canvas.getContext('2d');
-        await page.render({ canvasContext: ctx, viewport }).promise;
-        const dataUrl = canvas.toDataURL('image/png');
-        images.push({
-          id: uid(),
-          name: `${file.name}_página_${pageNum}.png`,
-          dataUrl,
-          source: file.name,
-          page: pageNum,
-          isPageRender: true
-        });
       }
 
       return { text: fullText.trim(), images };
@@ -603,7 +528,9 @@
         const xmlStr = await slideFile.async('text');
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlStr, 'application/xml');
-        const textNodes = xmlDoc.getElementsByTagNameNS(aNamespace, 't');
+        const textNodes = xmlDoc.getElementsByTagNameNS(aNamespace, 't') 
+          || xmlDoc.getElementsByTagName('a:t') 
+          || xmlDoc.getElementsByTagName('t');
         const slideTexts = [];
         for (let i = 0; i < textNodes.length; i++) {
           const t = textNodes[i].textContent.trim();
