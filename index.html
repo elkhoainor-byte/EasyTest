@@ -162,20 +162,16 @@
 
     <!-- VISTA DEL EXAMEN -->
     <div id="view-exam" class="hidden">
-      <div class="flex mb-2" style="justify-content:space-between;align-items:center">
-        <h2>Examen</h2>
-        <div class="flex">
-          <button class="btn btn-primary" onclick="generateExam(true)">🔄 Generar examen aleatorio</button>
-          <button class="btn btn-secondary" onclick="showHome()">Menú principal</button>
-        </div>
-      </div>
-      <div id="exam-container"></div>
-      <div class="flex mt-2">
-        <button class="btn btn-success" onclick="checkExam()">Comprobar respuestas</button>
-        <button class="btn btn-primary" onclick="generateExam(true)">Generar otro examen aleatorio</button>
-      </div>
-      <div id="exam-results" class="hidden mt-2"></div>
+  <div class="flex mb-2" style="justify-content:space-between;align-items:center">
+    <h2>Examen</h2>
+    <div class="flex">
+      <button class="btn btn-secondary btn-sm" onclick="generateExam(true)">🔄 Nuevo examen</button>
+      <button class="btn btn-secondary btn-sm" onclick="showHome()">Menú principal</button>
     </div>
+  </div>
+  <div id="exam-container"></div>
+  <div id="exam-results" class="hidden mt-2"></div>
+</div>
 
     <footer>EasyTest · Texto + Imágenes de PDF y PPTX · Todo local en tu navegador</footer>
   </div>
@@ -592,184 +588,344 @@
     }
 
     // ========== EXAMEN ==========
-    async function startExamFromSubject() {
-      const subjects = await getAllSubjects();
-      const s = subjects.find(x => x.id === currentSubjectId);
-      if (!s || !s.topics.length) return alert('Añade al menos un tema con contenido');
-      const list = document.getElementById('exam-topics-list');
-      list.innerHTML = '';
-      s.topics.forEach(t => {
-        const words = (t.text || '').split(/\s+/).filter(Boolean).length;
-        const label = document.createElement('label');
-        label.style.display = 'block';
-        label.innerHTML = `<input type="checkbox" value="${t.id}" checked> ${escapeHtml(t.name)} <span class="text-sm text-muted">(${words} palabras · ${(t.images||[]).length} imgs)</span>`;
-        list.appendChild(label);
-      });
-      show('exam-setup');
+async function startExamFromSubject() {
+  const subjects = await getAllSubjects();
+  const s = subjects.find(x => x.id === currentSubjectId);
+  if (!s || !s.topics.length) return alert('Añade al menos un tema con contenido');
+  const list = document.getElementById('exam-topics-list');
+  list.innerHTML = '';
+  s.topics.forEach(t => {
+    const words = (t.text || '').split(/\s+/).filter(Boolean).length;
+    const label = document.createElement('label');
+    label.style.display = 'block';
+    label.innerHTML = `<input type="checkbox" value="${t.id}" checked> ${escapeHtml(t.name)} <span class="text-sm text-muted">(${words} palabras · ${(t.images||[]).length} imgs)</span>`;
+    list.appendChild(label);
+  });
+  show('exam-setup');
+}
+
+async function generateExam(fromExamView = false) {
+  let selectedIds, numQ, types;
+  if (fromExamView) {
+    selectedIds = examState.selectedTopicIds;
+    numQ = examState.numQ;
+    types = examState.types;
+  } else {
+    selectedIds = Array.from(document.querySelectorAll('#exam-topics-list input:checked')).map(c => c.value);
+    numQ = parseInt(document.getElementById('num-questions').value) || 10;
+    types = {
+      cloze: document.getElementById('type-cloze').checked,
+      tf: document.getElementById('type-tf').checked,
+      open: document.getElementById('type-open').checked
+    };
+    if (!selectedIds.length) return alert('Selecciona al menos un tema');
+    if (!types.cloze && !types.tf && !types.open) return alert('Selecciona al menos un tipo');
+    examState = { selectedTopicIds: selectedIds, numQ, types, questions: [], currentIndex: 0, score: 0, answered: 0 };
+  }
+
+  const subjects = await getAllSubjects();
+  const s = subjects.find(x => x.id === currentSubjectId);
+  let allText = '';
+  selectedIds.forEach(tid => {
+    const t = s.topics.find(x => x.id === tid);
+    if (t && t.text) allText += t.text + '\n\n';
+  });
+
+  const sentences = extractSentences(allText);
+  if (sentences.length < 5) {
+    alert('No hay suficiente texto útil. Sube más material o revisa el texto extraído.');
+    return;
+  }
+
+  const questions = [];
+  const used = new Set();
+  const availableTypes = [];
+  if (types.cloze) availableTypes.push('cloze');
+  if (types.tf) availableTypes.push('tf');
+  if (types.open) availableTypes.push('open');
+
+  let attempts = 0;
+  while (questions.length < numQ && attempts < numQ * 15) {
+    attempts++;
+    const sent = sentences[Math.floor(Math.random() * sentences.length)];
+    if (used.has(sent) || sent.split(/\s+/).length < 8) continue;
+    used.add(sent);
+
+    const type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+    let q = null;
+    if (type === 'cloze') q = makeCloze(sent);
+    else if (type === 'tf') q = makeTrueFalse(sent);
+    else q = makeOpen(sent);
+    if (q) questions.push(q);
+  }
+
+  examState.questions = questions;
+  examState.currentIndex = 0;
+  examState.score = 0;
+  examState.answered = 0;
+
+  show('exam');
+  document.getElementById('exam-results').classList.add('hidden');
+  renderCurrentQuestion();
+}
+
+function extractSentences(text) {
+  return text
+    .replace(/\s+/g, ' ')
+    .split(/(?<=[.!?])\s+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 50 && s.length < 320 && /[a-záéíóúñ]/i.test(s));
+}
+
+function makeCloze(sentence) {
+  const words = sentence.split(/\s+/);
+  const stopWords = new Set(['el','la','los','las','un','una','unos','unas','de','del','al','a','en','con','por','para','que','y','o','pero','si','no','es','son','está','están','ser','haber','tiene','tienen','se','su','sus','este','esta','estos','estas','aquel','aquella','como','más','muy','ya','también','solo','sólo']);
+  
+  const candidates = [];
+  words.forEach((w, i) => {
+    const clean = w.replace(/[.,;:!?()«»""']/g, '').toLowerCase();
+    if (clean.length >= 5 && !stopWords.has(clean) && !/^\d+$/.test(clean)) {
+      candidates.push(i);
     }
+  });
+  if (candidates.length < 1) return null;
 
-    async function generateExam(fromExamView = false) {
-      let selectedIds, numQ, types;
-      if (fromExamView) {
-        selectedIds = examState.selectedTopicIds;
-        numQ = examState.numQ;
-        types = examState.types;
-      } else {
-        selectedIds = Array.from(document.querySelectorAll('#exam-topics-list input:checked')).map(c => c.value);
-        numQ = parseInt(document.getElementById('num-questions').value) || 10;
-        types = {
-          cloze: document.getElementById('type-cloze').checked,
-          tf: document.getElementById('type-tf').checked,
-          open: document.getElementById('type-open').checked
-        };
-        if (!selectedIds.length) return alert('Selecciona al menos un tema');
-        if (!types.cloze && !types.tf && !types.open) return alert('Selecciona al menos un tipo');
-        examState = { selectedTopicIds: selectedIds, numQ, types };
-      }
+  const idx = candidates[Math.floor(Math.random() * candidates.length)];
+  const answer = words[idx].replace(/[.,;:!?()«»""']/g, '');
+  const blanked = words.map((w, i) => i === idx ? '________' : w).join(' ');
 
-      const subjects = await getAllSubjects();
-      const s = subjects.find(x => x.id === currentSubjectId);
-      let allText = '';
-      selectedIds.forEach(tid => {
-        const t = s.topics.find(x => x.id === tid);
-        if (t && t.text) allText += t.text + '\n\n';
-      });
+  return {
+    type: 'cloze',
+    question: 'Completa la siguiente frase con la palabra que falta:',
+    text: blanked,
+    answer: answer.toLowerCase(),
+    original: sentence,
+    explanation: `La frase completa es: «${sentence}»`
+  };
+}
 
-      const sentences = extractSentences(allText);
-      if (sentences.length < 5) {
-        alert('No hay suficiente texto útil. Sube más material o revisa el texto extraído.');
-        return;
-      }
+function makeTrueFalse(sentence) {
+  const isTrue = Math.random() > 0.4;
+  let statement = sentence;
+  let explanation = '';
 
-      const questions = [];
-      const used = new Set();
-      const availableTypes = [];
-      if (types.cloze) availableTypes.push('cloze');
-      if (types.tf) availableTypes.push('tf');
-      if (types.open) availableTypes.push('open');
-
-      let attempts = 0;
-      while (questions.length < numQ && attempts < numQ * 10) {
-        attempts++;
-        const sent = sentences[Math.floor(Math.random() * sentences.length)];
-        if (used.has(sent) || sent.split(' ').length < 6) continue;
-        used.add(sent);
-        const type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
-        let q = null;
-        if (type === 'cloze') q = makeCloze(sent);
-        else if (type === 'tf') q = makeTrueFalse(sent);
-        else q = makeOpen(sent);
-        if (q) questions.push(q);
-      }
-
-      examState.questions = questions;
-      renderExam(questions);
-      show('exam');
-      document.getElementById('exam-results').classList.add('hidden');
+  if (!isTrue) {
+    // Crear una versión falsa más natural
+    if (/\bes\b/i.test(sentence)) {
+      statement = sentence.replace(/\bes\b/i, 'no es');
+      explanation = `La afirmación es falsa. La versión correcta es: «${sentence}»`;
+    } else if (/\bson\b/i.test(sentence)) {
+      statement = sentence.replace(/\bson\b/i, 'no son');
+      explanation = `La afirmación es falsa. La versión correcta es: «${sentence}»`;
+    } else if (/\btiene\b/i.test(sentence)) {
+      statement = sentence.replace(/\btiene\b/i, 'no tiene');
+      explanation = `La afirmación es falsa. La versión correcta es: «${sentence}»`;
+    } else {
+      statement = 'No es correcto afirmar que: ' + sentence;
+      explanation = `La afirmación es falsa. El texto original dice: «${sentence}»`;
     }
+  } else {
+    explanation = `La afirmación es verdadera. Coincide con el material: «${sentence}»`;
+  }
 
-    function extractSentences(text) {
-      return text.replace(/\s+/g, ' ').split(/(?<=[.!?])\s+/).map(s => s.trim())
-        .filter(s => s.length > 40 && s.length < 280 && /[a-záéíóúñ]/i.test(s));
+  return {
+    type: 'tf',
+    question: 'Indica si la siguiente afirmación es Verdadera o Falsa:',
+    text: statement,
+    answer: isTrue,
+    original: sentence,
+    explanation
+  };
+}
+
+function makeOpen(sentence) {
+  // Crear una pregunta más natural a partir de la frase
+  let questionText = '';
+  const lower = sentence.toLowerCase();
+
+  if (lower.includes('es ') || lower.includes('son ')) {
+    questionText = 'Según el material, ¿qué se afirma en el siguiente fragmento?';
+  } else if (lower.includes('porque') || lower.includes('debido')) {
+    questionText = 'Explica la causa o motivo según el material:';
+  } else if (lower.includes('se denomina') || lower.includes('se llama') || lower.includes('conocido como')) {
+    questionText = '¿Cómo se denomina o se conoce según el texto?';
+  } else {
+    questionText = 'Completa o explica la siguiente idea según el material estudiado:';
+  }
+
+  // Mostrar solo el principio de la frase como pista
+  const hint = sentence.length > 90 ? sentence.substring(0, 90) + '...' : sentence;
+
+  return {
+    type: 'open',
+    question: questionText,
+    text: hint,
+    answer: sentence,
+    original: sentence,
+    explanation: `Respuesta modelo según el material:\n«${sentence}»`
+  };
+}
+
+function renderCurrentQuestion() {
+  const container = document.getElementById('exam-container');
+  const results = document.getElementById('exam-results');
+  results.classList.add('hidden');
+  results.innerHTML = '';
+
+  const q = examState.questions[examState.currentIndex];
+  if (!q) {
+    showFinalScore();
+    return;
+  }
+
+  const total = examState.questions.length;
+  const current = examState.currentIndex + 1;
+
+  let body = `
+    <div class="card question-card" id="current-question">
+      <div class="text-sm text-muted mb-2">Pregunta ${current} de ${total}</div>
+      <p><strong>${q.question}</strong></p>
+      <p class="mt-2" style="font-size:1.05rem; line-height:1.6">${escapeHtml(q.text)}</p>
+  `;
+
+  if (q.type === 'cloze') {
+    body += `
+      <div class="form-group mt-2">
+        <label>Escribe la palabra que falta:</label>
+        <input type="text" id="user-answer" class="user-answer" placeholder="Tu respuesta..." autocomplete="off">
+      </div>
+      <button class="btn btn-primary mt-1" onclick="checkCurrentQuestion()">Comprobar respuesta</button>
+    `;
+  } else if (q.type === 'tf') {
+    body += `
+      <div class="options mt-2">
+        <label><input type="radio" name="tf-answer" value="true"> Verdadero</label>
+        <label><input type="radio" name="tf-answer" value="false"> Falso</label>
+      </div>
+      <button class="btn btn-primary mt-2" onclick="checkCurrentQuestion()">Comprobar respuesta</button>
+    `;
+  } else {
+    body += `
+      <div class="form-group mt-2">
+        <label>Tu respuesta:</label>
+        <textarea id="user-answer" class="user-answer" rows="4" placeholder="Escribe tu respuesta aquí..."></textarea>
+      </div>
+      <button class="btn btn-primary mt-1" onclick="checkCurrentQuestion()">Comprobar respuesta</button>
+    `;
+  }
+
+  body += `</div>`;
+  container.innerHTML = body;
+
+  // Enfocar el input si existe
+  setTimeout(() => {
+    const input = document.getElementById('user-answer');
+    if (input) input.focus();
+  }, 100);
+}
+
+function checkCurrentQuestion() {
+  const q = examState.questions[examState.currentIndex];
+  const card = document.getElementById('current-question');
+  if (!card) return;
+
+  let isCorrect = false;
+  let userAnswer = '';
+
+  if (q.type === 'cloze') {
+    const input = document.getElementById('user-answer');
+    userAnswer = (input.value || '').trim().toLowerCase();
+    isCorrect = userAnswer === q.answer || 
+                userAnswer.includes(q.answer) || 
+                q.answer.includes(userAnswer);
+  } else if (q.type === 'tf') {
+    const selected = document.querySelector('input[name="tf-answer"]:checked');
+    if (!selected) {
+      alert('Selecciona Verdadero o Falso');
+      return;
     }
+    userAnswer = selected.value === 'true';
+    isCorrect = userAnswer === q.answer;
+  } else {
+    // Pregunta abierta: no se autocorrige, siempre se muestra la explicación
+    isCorrect = null; // no puntúa automáticamente
+  }
 
-    function makeCloze(sentence) {
-      const words = sentence.split(/\s+/);
-      const candidates = [];
-      words.forEach((w, i) => {
-        const clean = w.replace(/[.,;:!?()«»""]/g, '');
-        if (clean.length >= 5 && !/^\d+$/.test(clean)) candidates.push(i);
-      });
-      if (!candidates.length) return null;
-      const idx = candidates[Math.floor(Math.random() * candidates.length)];
-      const answer = words[idx].replace(/[.,;:!?()«»""]/g, '');
-      const blanked = words.map((w, i) => i === idx ? '______' : w).join(' ');
-      return { type: 'cloze', question: 'Completa el hueco:', text: blanked, answer: answer.toLowerCase(), original: sentence };
+  // Deshabilitar controles
+  card.querySelectorAll('input, textarea, button').forEach(el => el.disabled = true);
+
+  // Mostrar resultado + explicación
+  let feedback = '';
+  if (q.type === 'open') {
+    feedback = `
+      <div class="mt-2 p-3" style="background:#0f172a; border-radius:0.5rem; border-left:4px solid var(--primary)">
+        <strong>Explicación / Respuesta modelo:</strong><br>
+        <div class="mt-1" style="white-space:pre-wrap">${escapeHtml(q.explanation)}</div>
+      </div>
+    `;
+  } else {
+    examState.answered++;
+    if (isCorrect) {
+      examState.score++;
+      feedback = `
+        <div class="mt-2 p-3" style="background:#052e16; border-radius:0.5rem; border-left:4px solid var(--success)">
+          <strong style="color:var(--success)">✓ ¡Correcto!</strong><br>
+          <div class="mt-1">${escapeHtml(q.explanation)}</div>
+        </div>
+      `;
+      card.classList.add('correct');
+    } else {
+      feedback = `
+        <div class="mt-2 p-3" style="background:#450a0a; border-radius:0.5rem; border-left:4px solid var(--danger)">
+          <strong style="color:var(--danger)">✗ Incorrecto</strong><br>
+          <div class="mt-1">${escapeHtml(q.explanation)}</div>
+        </div>
+      `;
+      card.classList.add('incorrect');
     }
+  }
 
-    function makeTrueFalse(sentence) {
-      const isTrue = Math.random() > 0.45;
-      let statement = sentence;
-      if (!isTrue) {
-        if (/\bes\b/i.test(sentence)) statement = sentence.replace(/\bes\b/i, 'no es');
-        else if (/\bson\b/i.test(sentence)) statement = sentence.replace(/\bson\b/i, 'no son');
-        else statement = 'No es cierto que: ' + sentence;
-      }
-      return { type: 'tf', question: 'Verdadero o Falso:', text: statement, answer: isTrue, original: sentence };
-    }
+  card.insertAdjacentHTML('beforeend', feedback);
 
-    function makeOpen(sentence) {
-      return { type: 'open', question: 'Según el material:', text: sentence.substring(0, Math.min(80, sentence.length)) + (sentence.length > 80 ? '...' : ''), answer: sentence, original: sentence };
-    }
+  // Botón siguiente
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'btn btn-primary mt-2';
+  nextBtn.textContent = examState.currentIndex + 1 < examState.questions.length 
+    ? 'Siguiente pregunta →' 
+    : 'Ver resultado final';
+  nextBtn.onclick = () => {
+    examState.currentIndex++;
+    renderCurrentQuestion();
+  };
+  card.appendChild(nextBtn);
+}
 
-    function renderExam(questions) {
-      const container = document.getElementById('exam-container');
-      container.innerHTML = '';
-      questions.forEach((q, i) => {
-        const div = document.createElement('div');
-        div.className = 'card question-card';
-        div.dataset.index = i;
-        let body = '';
-        if (q.type === 'cloze') {
-          body = `<p><strong>${i+1}. ${q.question}</strong></p><p class="mt-1">${escapeHtml(q.text)}</p>
-            <div class="form-group mt-1"><input type="text" class="user-answer" placeholder="Palabra que falta" data-index="${i}"></div>`;
-        } else if (q.type === 'tf') {
-          body = `<p><strong>${i+1}. ${q.question}</strong></p><p class="mt-1">${escapeHtml(q.text)}</p>
-            <div class="options mt-1">
-              <label><input type="radio" name="q${i}" value="true"> Verdadero</label>
-              <label><input type="radio" name="q${i}" value="false"> Falso</label>
-            </div>`;
-        } else {
-          body = `<p><strong>${i+1}. ${q.question}</strong></p><p class="mt-1 text-muted">${escapeHtml(q.text)}</p>
-            <div class="form-group mt-1"><textarea class="user-answer" rows="3" placeholder="Tu respuesta..." data-index="${i}"></textarea></div>`;
-        }
-        div.innerHTML = body;
-        container.appendChild(div);
-      });
-    }
+function showFinalScore() {
+  const container = document.getElementById('exam-container');
+  const results = document.getElementById('exam-results');
+  
+  const totalAuto = examState.answered;
+  const correct = examState.score;
+  const pct = totalAuto ? Math.round((correct / totalAuto) * 100) : 0;
 
-    function checkExam() {
-      const questions = examState.questions;
-      let correct = 0, totalAuto = 0;
-      const results = document.getElementById('exam-results');
-      results.innerHTML = '';
-      results.classList.remove('hidden');
+  container.innerHTML = `
+    <div class="score-box">
+      <div class="big">${correct} / ${totalAuto}</div>
+      <div>${pct}% de acierto</div>
+      <p class="text-muted mt-2">Preguntas abiertas no se puntúan automáticamente</p>
+    </div>
+  `;
 
-      questions.forEach((q, i) => {
-        const card = document.querySelector(`.question-card[data-index="${i}"]`);
-        if (q.type === 'cloze') {
-          totalAuto++;
-          const input = card.querySelector('.user-answer');
-          const userAns = (input.value || '').trim().toLowerCase();
-          const isCorrect = userAns === q.answer || userAns.includes(q.answer) || q.answer.includes(userAns);
-          if (isCorrect) correct++;
-          card.classList.add(isCorrect ? 'correct' : 'incorrect');
-          card.insertAdjacentHTML('beforeend', isCorrect
-            ? `<div class="text-sm mt-1" style="color:var(--success)">✓ Correcto</div>`
-            : `<div class="text-sm mt-1" style="color:var(--danger)">✗ Correcta: <strong>${escapeHtml(q.answer)}</strong></div>`);
-        } else if (q.type === 'tf') {
-          totalAuto++;
-          const selected = card.querySelector(`input[name="q${i}"]:checked`);
-          const userAns = selected ? selected.value === 'true' : null;
-          const isCorrect = userAns === q.answer;
-          if (isCorrect) correct++;
-          card.classList.add(isCorrect ? 'correct' : 'incorrect');
-          card.insertAdjacentHTML('beforeend', isCorrect
-            ? `<div class="text-sm mt-1" style="color:var(--success)">✓ Correcto</div>`
-            : `<div class="text-sm mt-1" style="color:var(--danger)">✗ Era ${q.answer ? 'Verdadero' : 'Falso'}</div>`);
-        } else {
-          card.insertAdjacentHTML('beforeend', `<div class="text-sm mt-1 text-muted">Respuesta modelo: ${escapeHtml(q.answer)}</div>`);
-        }
-      });
+  results.classList.remove('hidden');
+  results.innerHTML = `
+    <div class="flex" style="justify-content:center; gap:1rem">
+      <button class="btn btn-primary" onclick="generateExam(true)">🔄 Generar otro examen</button>
+      <button class="btn btn-secondary" onclick="showHome()">Menú principal</button>
+    </div>
+  `;
+}
 
-      const pct = totalAuto ? Math.round((correct / totalAuto) * 100) : 0;
-      results.innerHTML = `
-        <div class="score-box">
-          <div class="big">${correct} / ${totalAuto}</div>
-          <div>${pct}% de acierto (preguntas autocorregibles)</div>
-        </div>`;
-    }
-
+// Ya no se usa la antigua checkExam ni renderExam de todas las preguntas a la vez
     // ========== EXPORT / IMPORT ==========
     async function exportData() {
       const subjects = await getAllSubjects();
