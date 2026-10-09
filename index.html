@@ -1,972 +1,626 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EasyTest – Texto + Imágenes de PDF y PowerPoint</title>
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script>
-  <script type="module">
-    import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs';
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
-    window.pdfjsLib = pdfjsLib;
-    console.log('pdf.js cargado correctamente');
-  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestor de Atributos de Jugadores</title>
   <style>
     :root {
-      --bg: #0f172a; --card: #1e293b; --border: #334155;
-      --text: #f1f5f9; --muted: #94a3b8; --primary: #3b82f6;
-      --primary-hover: #2563eb; --success: #22c55e; --danger: #ef4444; --warning: #f59e0b;
+      --bg: #1a1a1a;
+      --card: #2a2a2a;
+      --border: #3a3a3a;
+      --text: #e0e0e0;
+      --accent: #4a9eff;
+      --green: #2d5a3d;
+      --blue: #1e3a5f;
+      --orange: #8b5a00;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100vh; }
-    .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
-    h1 { font-size: 1.8rem; font-weight: 700; } h1 span { color: var(--primary); }
-    .btn { display: inline-flex; align-items: center; gap: .4rem; padding: .55rem 1rem; border-radius: .5rem; border: none; font-weight: 600; cursor: pointer; font-size: .95rem; transition: background .15s; }
-    .btn-primary { background: var(--primary); color: white; } .btn-primary:hover { background: var(--primary-hover); }
-    .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); } .btn-secondary:hover { background: #334155; }
-    .btn-danger { background: var(--danger); color: white; } .btn-success { background: var(--success); color: white; }
-    .btn-sm { padding: .35rem .7rem; font-size: .85rem; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: .75rem; padding: 1.25rem; margin-bottom: 1rem; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
-    input, select, textarea { width: 100%; padding: .6rem .8rem; border-radius: .5rem; border: 1px solid var(--border); background: #0f172a; color: var(--text); font-size: .95rem; }
-    label { display: block; margin-bottom: .3rem; font-size: .9rem; color: var(--muted); }
-    .form-group { margin-bottom: 1rem; }
-    .hidden { display: none !important; }
-    .badge { display: inline-block; padding: .15rem .5rem; border-radius: 999px; font-size: .75rem; background: #1e40af; color: #bfdbfe; }
-    .progress { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: .5rem 0; }
-    .progress-bar { height: 100%; background: var(--primary); transition: width .3s; }
-    .question-card { margin-bottom: 1.5rem; }
-    .question-card .options label { display: flex; align-items: center; gap: .5rem; padding: .5rem; border-radius: .4rem; cursor: pointer; margin-bottom: .3rem; }
-    .question-card .options label:hover { background: #334155; }
-    .correct { border-left: 4px solid var(--success); } .incorrect { border-left: 4px solid var(--danger); }
-    .score-box { text-align: center; padding: 1.5rem; background: #0f172a; border-radius: .75rem; margin-bottom: 1.5rem; }
-    .score-box .big { font-size: 2.5rem; font-weight: 700; }
-    footer { text-align: center; margin-top: 3rem; color: var(--muted); font-size: .85rem; }
-    .flex { display: flex; gap: .5rem; flex-wrap: wrap; }
-    .mt-1 { margin-top: .5rem; } .mt-2 { margin-top: 1rem; } .mb-2 { margin-bottom: 1rem; }
-    .text-muted { color: var(--muted); } .text-sm { font-size: .875rem; }
-    .img-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .75rem; margin-top: 1rem; }
-    .img-gallery img { width: 100%; height: 120px; object-fit: cover; border-radius: .5rem; border: 1px solid var(--border); cursor: pointer; }
-    .img-gallery .img-card { position: relative; }
-    .img-gallery .img-card button { position: absolute; top: 4px; right: 4px; padding: 2px 6px; font-size: .7rem; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 1.8rem;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .form-section {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 30px;
+      border: 1px solid var(--border);
+    }
+
+    .form-section h2 {
+      margin-bottom: 16px;
+      font-size: 1.3rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .basic-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .basic-info label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .basic-info input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #222;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .attrs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .attrs-grid {
+        grid-template-columns: 1fr;
+      }
+      .basic-info {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .attr-column {
+      background: #222;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .attr-column h3 {
+      text-align: center;
+      margin-bottom: 14px;
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #aaa;
+    }
+
+    .attr-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      margin-bottom: 4px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+
+    .attr-row:hover {
+      background: #2f2f2f;
+    }
+
+    .attr-row label {
+      flex: 1;
+      font-size: 0.95rem;
+    }
+
+    .attr-row input {
+      width: 60px;
+      padding: 6px 8px;
+      text-align: center;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #1a1a1a;
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .attr-row input:focus {
+      outline: 2px solid var(--accent);
+      border-color: transparent;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+      justify-content: center;
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #3a8eef;
+    }
+
+    .btn-secondary {
+      background: #444;
+      color: #fff;
+    }
+
+    .btn-secondary:hover {
+      background: #555;
+    }
+
+    .btn-danger {
+      background: #c0392b;
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #e74c3c;
+    }
+
+    .btn-success {
+      background: #27ae60;
+      color: #fff;
+    }
+
+    .btn-success:hover {
+      background: #2ecc71;
+    }
+
+    .players-list {
+      margin-top: 40px;
+    }
+
+    .players-list h2 {
+      margin-bottom: 16px;
+    }
+
+    .player-card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .player-header h3 {
+      font-size: 1.4rem;
+      color: #fff;
+    }
+
+    .player-header .pos {
+      color: #aaa;
+      font-size: 0.95rem;
+    }
+
+    .player-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .player-actions button {
+      padding: 8px 14px;
+      font-size: 0.9rem;
+    }
+
+    .view-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 800px) {
+      .view-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .view-column {
+      background: #222;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .view-column h4 {
+      background: #333;
+      padding: 8px;
+      text-align: center;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #bbb;
+    }
+
+    .view-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 12px;
+      border-bottom: 1px solid #2a2a2a;
+      font-size: 0.92rem;
+    }
+
+    .view-row:last-child {
+      border-bottom: none;
+    }
+
+    .view-row .value {
+      font-weight: 700;
+      min-width: 28px;
+      text-align: right;
+    }
+
+    /* Colores según valor (opcional, estilo FM) */
+    .high { color: #4ade80; }
+    .mid  { color: #fbbf24; }
+    .low  { color: #f87171; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #888;
+      font-size: 1.1rem;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .status {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 0.9rem;
+      color: #4ade80;
+      min-height: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>Easy<span>Test</span></h1>
-      <div class="flex">
-        <button class="btn btn-secondary btn-sm" onclick="exportData()">Exportar datos</button>
-        <label class="btn btn-secondary btn-sm" style="cursor:pointer">
-          Importar <input type="file" accept=".json" hidden onchange="importData(event)">
-        </label>
-      </div>
-    </header>
+    <h1>⚽ Gestor de Atributos de Jugadores</h1>
 
-    <!-- VISTA PRINCIPAL -->
-    <div id="view-home">
-      <div class="flex mb-2" style="justify-content:space-between;align-items:center">
-        <h2>Mis asignaturas</h2>
-        <button class="btn btn-primary" onclick="showCreateSubject()">+ Nueva asignatura</button>
-      </div>
-      <div id="subjects-list" class="grid"></div>
-      <div id="empty-subjects" class="card text-muted text-center hidden">Aún no hay asignaturas. Crea la primera para empezar.</div>
-    </div>
+    <div class="form-section">
+      <h2 id="form-title">Nuevo jugador</h2>
 
-    <!-- CREAR / EDITAR ASIGNATURA -->
-    <div id="view-subject-form" class="hidden">
-      <button class="btn btn-secondary btn-sm mb-2" onclick="showHome()">← Volver</button>
-      <div class="card">
-        <h2 id="subject-form-title">Nueva asignatura</h2>
-        <div class="form-group">
-          <label>Nombre de la asignatura</label>
-          <input type="text" id="subject-name" placeholder="Ej: Matemáticas, Historia...">
+      <div class="basic-info">
+        <div>
+          <label for="nombre">Nombre de jugador</label>
+          <input type="text" id="nombre" placeholder="Ej: Lionel Messi" required>
         </div>
-        <div class="flex">
-          <button class="btn btn-primary" onclick="saveSubject()">Guardar</button>
-          <button class="btn btn-secondary" onclick="showHome()">Cancelar</button>
+        <div>
+          <label for="posiciones">Posición/es</label>
+          <input type="text" id="posiciones" placeholder="Ej: MC, MCO, ED">
         </div>
       </div>
-    </div>
 
-    <!-- DETALLE DE ASIGNATURA -->
-    <div id="view-subject" class="hidden">
-      <button class="btn btn-secondary btn-sm mb-2" onclick="showHome()">← Volver</button>
-      <div class="flex mb-2" style="justify-content:space-between;align-items:center">
-        <h2 id="subject-title"></h2>
-        <div class="flex">
-          <button class="btn btn-primary btn-sm" onclick="showCreateTopic()">+ Nuevo tema</button>
-          <button class="btn btn-secondary btn-sm" onclick="startExamFromSubject()">Generar examen</button>
+      <div class="attrs-grid">
+        <!-- TÉCNICO -->
+        <div class="attr-column">
+          <h3>Técnico</h3>
+          <div class="attr-row"><label>Cabeceo</label><input type="number" id="cabeceo" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Centros</label><input type="number" id="centros" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Control</label><input type="number" id="control" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Entradas</label><input type="number" id="entradas" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Marcaje</label><input type="number" id="marcaje" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Pases</label><input type="number" id="pases" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Penaltis</label><input type="number" id="penaltis" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Regate</label><input type="number" id="regate" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Remate</label><input type="number" id="remate" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Saques de esquina</label><input type="number" id="saques_esquina" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Saques largos</label><input type="number" id="saques_largos" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Técnica</label><input type="number" id="tecnica" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Tiros lejanos</label><input type="number" id="tiros_lejanos" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Tiros libres</label><input type="number" id="tiros_libres" min="1" max="20" value="10"></div>
+        </div>
+
+        <!-- MENTAL -->
+        <div class="attr-column">
+          <h3>Mental</h3>
+          <div class="attr-row"><label>Agresividad</label><input type="number" id="agresividad" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Anticipación</label><input type="number" id="anticipacion" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Colocación</label><input type="number" id="colocacion" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Concentración</label><input type="number" id="concentracion" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Decisiones</label><input type="number" id="decisiones" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Desmarques</label><input type="number" id="desmarques" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Determinación</label><input type="number" id="determinacion" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Juego en equipo</label><input type="number" id="juego_equipo" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Liderazgo</label><input type="number" id="liderazgo" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Sacrificio</label><input type="number" id="sacrificio" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Serenidad</label><input type="number" id="serenidad" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Talento</label><input type="number" id="talento" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Valentía</label><input type="number" id="valentia" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Visión</label><input type="number" id="vision" min="1" max="20" value="10"></div>
+        </div>
+
+        <!-- FÍSICO -->
+        <div class="attr-column">
+          <h3>Físico</h3>
+          <div class="attr-row"><label>Aceleración</label><input type="number" id="aceleracion" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Agilidad</label><input type="number" id="agilidad" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Alcance de salto</label><input type="number" id="alcance_salto" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Equilibrio</label><input type="number" id="equilibrio" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Fuerza</label><input type="number" id="fuerza" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Recuperación física</label><input type="number" id="recuperacion" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Resistencia</label><input type="number" id="resistencia" min="1" max="20" value="10"></div>
+          <div class="attr-row"><label>Velocidad</label><input type="number" id="velocidad" min="1" max="20" value="10"></div>
         </div>
       </div>
-      <div id="topics-list"></div>
-      <div id="empty-topics" class="card text-muted text-center hidden">Esta asignatura aún no tiene temas.</div>
+
+      <div class="buttons">
+        <button class="btn-primary" onclick="guardarJugador()">💾 Guardar jugador</button>
+        <button class="btn-secondary" onclick="limpiarFormulario()">🗑️ Limpiar</button>
+        <button class="btn-success" onclick="exportarJSON()">📥 Exportar JSON</button>
+        <button class="btn-secondary" onclick="document.getElementById('importFile').click()">📤 Importar JSON</button>
+        <input type="file" id="importFile" class="file-input" accept=".json" onchange="importarJSON(event)">
+      </div>
+      <div class="status" id="status"></div>
     </div>
 
-    <!-- CREAR / EDITAR TEMA + SUBIR ARCHIVOS -->
-    <div id="view-topic-form" class="hidden">
-      <button class="btn btn-secondary btn-sm mb-2" onclick="backToSubject()">← Volver</button>
-      <div class="card">
-        <h2 id="topic-form-title">Nuevo tema</h2>
-        <div class="form-group">
-          <label>Nombre del tema</label>
-          <input type="text" id="topic-name" placeholder="Ej: Ecuaciones de segundo grado">
-        </div>
-        <div class="form-group">
-          <label>Subir material (PDF o PowerPoint) – se extrae texto + imágenes</label>
-          <input type="file" id="file-input" accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation" multiple>
-        </div>
-        <div id="upload-status" class="text-sm"></div>
-        <div class="form-group mt-2">
-          <label>Texto extraído (editable)</label>
-          <textarea id="topic-text" rows="12" placeholder="El texto aparecerá aquí después de subir los archivos..."></textarea>
-        </div>
-        <div class="form-group">
-          <label>Imágenes extraídas</label>
-          <div id="images-preview" class="img-gallery"></div>
-          <p class="text-sm text-muted" id="images-count"></p>
-        </div>
-        <div class="flex">
-          <button class="btn btn-primary" onclick="saveTopic()">Guardar tema</button>
-          <button class="btn btn-secondary" onclick="backToSubject()">Cancelar</button>
-        </div>
+    <div class="players-list">
+      <h2>Jugadores guardados (<span id="count">0</span>)</h2>
+      <div id="playersContainer">
+        <div class="empty-state">No hay jugadores guardados todavía.</div>
       </div>
     </div>
-
-    <!-- GENERAR EXAMEN -->
-    <div id="view-exam-setup" class="hidden">
-      <button class="btn btn-secondary btn-sm mb-2" onclick="showHome()">← Volver</button>
-      <div class="card">
-        <h2>Configurar examen</h2>
-        <div class="form-group">
-          <label>Número de preguntas</label>
-          <input type="number" id="num-questions" value="10" min="3" max="50">
-        </div>
-        <div class="form-group">
-          <label>Tipos de pregunta</label>
-          <div class="flex">
-            <label><input type="checkbox" id="type-cloze" checked> Completar huecos</label>
-            <label><input type="checkbox" id="type-tf" checked> Verdadero / Falso</label>
-            <label><input type="checkbox" id="type-open" checked> Abiertas</label>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Temas a incluir</label>
-          <div id="exam-topics-list"></div>
-        </div>
-        <button class="btn btn-primary" onclick="generateExam()">Generar examen</button>
-      </div>
-    </div>
-
-    <!-- VISTA DEL EXAMEN -->
-    <div id="view-exam" class="hidden">
-  <div class="flex mb-2" style="justify-content:space-between;align-items:center">
-    <h2>Examen</h2>
-    <div class="flex">
-      <button class="btn btn-secondary btn-sm" onclick="generateExam(true)">🔄 Nuevo examen</button>
-      <button class="btn btn-secondary btn-sm" onclick="showHome()">Menú principal</button>
-    </div>
-  </div>
-  <div id="exam-container"></div>
-  <div id="exam-results" class="hidden mt-2"></div>
-</div>
-
-    <footer>EasyTest · Texto + Imágenes de PDF y PPTX · Todo local en tu navegador</footer>
   </div>
 
   <script>
-    const DB_NAME = 'EasyTestDB';
-    const DB_VERSION = 2;
-    let db = null;
-    let currentSubjectId = null;
-    let currentTopicId = null;
-    let currentImages = [];
-    let examState = { questions: [], selectedTopicIds: [], numQ: 10, types: {} };
-
-    function openDB() {
-      return new Promise((resolve, reject) => {
-        const req = indexedDB.open(DB_NAME, DB_VERSION);
-        req.onupgradeneeded = (e) => {
-          const database = e.target.result;
-          if (!database.objectStoreNames.contains('subjects')) {
-            database.createObjectStore('subjects', { keyPath: 'id' });
-          }
-        };
-        req.onsuccess = (e) => { db = e.target.result; resolve(db); };
-        req.onerror = (e) => reject(e.target.error);
-      });
-    }
-
-    function getAllSubjects() {
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction('subjects', 'readonly');
-        const req = tx.objectStore('subjects').getAll();
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => reject(req.error);
-      });
-    }
-
-    function saveSubjectToDB(subject) {
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction('subjects', 'readwrite');
-        tx.objectStore('subjects').put(subject);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
-      });
-    }
-
-    function deleteSubjectFromDB(id) {
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction('subjects', 'readwrite');
-        tx.objectStore('subjects').delete(id);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
-      });
-    }
-
-    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 9); }
-
-    function show(viewId) {
-      ['home', 'subject-form', 'subject', 'topic-form', 'exam-setup', 'exam'].forEach(v => {
-        document.getElementById('view-' + v).classList.add('hidden');
-      });
-      document.getElementById('view-' + viewId).classList.remove('hidden');
-    }
-
-    // ========== VISTAS ==========
-    async function showHome() {
-      show('home');
-      const subjects = await getAllSubjects();
-      const list = document.getElementById('subjects-list');
-      const empty = document.getElementById('empty-subjects');
-      list.innerHTML = '';
-      if (!subjects.length) { empty.classList.remove('hidden'); return; }
-      empty.classList.add('hidden');
-      subjects.forEach(s => {
-        const topicsCount = (s.topics || []).length;
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `
-          <h3 style="margin-bottom:.5rem">${escapeHtml(s.name)}</h3>
-          <p class="text-sm text-muted">${topicsCount} tema${topicsCount !== 1 ? 's' : ''}</p>
-          <div class="flex mt-2">
-            <button class="btn btn-primary btn-sm" onclick="openSubject('${s.id}')">Abrir</button>
-            <button class="btn btn-secondary btn-sm" onclick="editSubject('${s.id}')">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteSubject('${s.id}')">Eliminar</button>
-          </div>`;
-        list.appendChild(div);
-      });
-    }
-
-    function showCreateSubject() {
-      currentSubjectId = null;
-      document.getElementById('subject-form-title').textContent = 'Nueva asignatura';
-      document.getElementById('subject-name').value = '';
-      show('subject-form');
-    }
-
-    async function editSubject(id) {
-      const subjects = await getAllSubjects();
-      const s = subjects.find(x => x.id === id);
-      if (!s) return;
-      currentSubjectId = id;
-      document.getElementById('subject-form-title').textContent = 'Editar asignatura';
-      document.getElementById('subject-name').value = s.name;
-      show('subject-form');
-    }
-
-    async function saveSubject() {
-      const name = document.getElementById('subject-name').value.trim();
-      if (!name) return alert('Escribe un nombre');
-      if (currentSubjectId) {
-        const subjects = await getAllSubjects();
-        const s = subjects.find(x => x.id === currentSubjectId);
-        s.name = name;
-        await saveSubjectToDB(s);
-      } else {
-        await saveSubjectToDB({ id: uid(), name, topics: [] });
-      }
-      showHome();
-    }
-
-    async function deleteSubject(id) {
-      if (!confirm('¿Eliminar esta asignatura y todos sus temas?')) return;
-      await deleteSubjectFromDB(id);
-      showHome();
-    }
-
-    async function openSubject(id) {
-      currentSubjectId = id;
-      const subjects = await getAllSubjects();
-      const s = subjects.find(x => x.id === id);
-      if (!s) return;
-      document.getElementById('subject-title').textContent = s.name;
-      const list = document.getElementById('topics-list');
-      const empty = document.getElementById('empty-topics');
-      list.innerHTML = '';
-      if (!s.topics || !s.topics.length) {
-        empty.classList.remove('hidden');
-      } else {
-        empty.classList.add('hidden');
-        s.topics.forEach(t => {
-          const words = (t.text || '').split(/\s+/).filter(Boolean).length;
-          const imgs = (t.images || []).length;
-          const div = document.createElement('div');
-          div.className = 'card';
-          div.innerHTML = `
-            <strong>${escapeHtml(t.name)}</strong>
-            <div class="text-sm text-muted">${words} palabras · ${imgs} imagen${imgs !== 1 ? 'es' : ''}</div>
-            <div class="flex mt-2">
-              <button class="btn btn-secondary btn-sm" onclick="editTopic('${t.id}')">Editar</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteTopic('${t.id}')">Eliminar</button>
-            </div>`;
-          list.appendChild(div);
-        });
-      }
-      show('subject');
-    }
-
-    function backToSubject() { openSubject(currentSubjectId); }
-
-    function showCreateTopic() {
-      currentTopicId = null;
-      currentImages = [];
-      document.getElementById('topic-form-title').textContent = 'Nuevo tema';
-      document.getElementById('topic-name').value = '';
-      document.getElementById('topic-text').value = '';
-      document.getElementById('file-input').value = '';
-      document.getElementById('upload-status').innerHTML = '';
-      renderImagesPreview();
-      show('topic-form');
-    }
-
-    async function editTopic(topicId) {
-      const subjects = await getAllSubjects();
-      const s = subjects.find(x => x.id === currentSubjectId);
-      const t = s.topics.find(x => x.id === topicId);
-      if (!t) return;
-      currentTopicId = topicId;
-      currentImages = t.images ? JSON.parse(JSON.stringify(t.images)) : [];
-      document.getElementById('topic-form-title').textContent = 'Editar tema';
-      document.getElementById('topic-name').value = t.name;
-      document.getElementById('topic-text').value = t.text || '';
-      document.getElementById('file-input').value = '';
-      document.getElementById('upload-status').innerHTML = '';
-      renderImagesPreview();
-      show('topic-form');
-    }
-
-    async function saveTopic() {
-      const name = document.getElementById('topic-name').value.trim();
-      const text = document.getElementById('topic-text').value.trim();
-      if (!name) return alert('Escribe un nombre para el tema');
-      const subjects = await getAllSubjects();
-      const s = subjects.find(x => x.id === currentSubjectId);
-      if (currentTopicId) {
-        const t = s.topics.find(x => x.id === currentTopicId);
-        t.name = name;
-        t.text = text;
-        t.images = currentImages;
-      } else {
-        s.topics.push({ id: uid(), name, text, images: currentImages, files: [] });
-      }
-      await saveSubjectToDB(s);
-      openSubject(currentSubjectId);
-    }
-
-    async function deleteTopic(topicId) {
-      if (!confirm('¿Eliminar este tema?')) return;
-      const subjects = await getAllSubjects();
-      const s = subjects.find(x => x.id === currentSubjectId);
-      s.topics = s.topics.filter(t => t.id !== topicId);
-      await saveSubjectToDB(s);
-      openSubject(currentSubjectId);
-    }
-
-    function renderImagesPreview() {
-      const gallery = document.getElementById('images-preview');
-      const count = document.getElementById('images-count');
-      gallery.innerHTML = '';
-      currentImages.forEach((img, idx) => {
-        const card = document.createElement('div');
-        card.className = 'img-card';
-        card.innerHTML = `
-          <img src="${img.dataUrl}" alt="${escapeHtml(img.name)}" title="${escapeHtml(img.name)}" onclick="window.open('${img.dataUrl}')">
-          <button class="btn btn-danger btn-sm" onclick="removeImage(${idx})">×</button>`;
-        gallery.appendChild(card);
-      });
-      count.textContent = currentImages.length ? `${currentImages.length} imagen(es) extraída(s)` : 'Ninguna imagen todavía';
-    }
-
-    function removeImage(idx) {
-      currentImages.splice(idx, 1);
-      renderImagesPreview();
-    }
-
-    // ========== EXTRACCIÓN DE TEXTO + IMÁGENES ==========
-    document.getElementById('file-input').addEventListener('change', async (e) => {
-      const files = Array.from(e.target.files);
-      if (!files.length) return;
-
-      const status = document.getElementById('upload-status');
-      const textarea = document.getElementById('topic-text');
-      let allText = textarea.value ? textarea.value + '\n\n' : '';
-
-      status.innerHTML = '<div class="progress"><div class="progress-bar" style="width:0%"></div></div> Procesando archivos...';
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const pct = Math.round(((i) / files.length) * 100);
-        status.innerHTML = `<div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div> Extrayendo texto e imágenes: <strong>${escapeHtml(file.name)}</strong>`;
-
-        try {
-          if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
-            const result = await extractPdfFull(file);
-            allText += `=== ${file.name} ===\n${result.text}\n\n`;
-            result.images.forEach(img => currentImages.push(img));
-          } else if (file.name.toLowerCase().endsWith('.pptx')) {
-            const result = await extractPptxFull(file);
-            allText += `=== ${file.name} ===\n${result.text}\n\n`;
-            result.images.forEach(img => currentImages.push(img));
-          } else {
-            status.innerHTML += `<br><span style="color:var(--warning)">Tipo no soportado: ${escapeHtml(file.name)}</span>`;
-          }
-        } catch (err) {
-          console.error(err);
-          status.innerHTML += `<br><span style="color:var(--danger)">Error en ${escapeHtml(file.name)}: ${err.message}</span>`;
-        }
-      }
-
-      textarea.value = allText.trim();
-      renderImagesPreview();
-      status.innerHTML = `<span style="color:var(--success)">✓ Extracción completada. Revisa el texto y las imágenes, luego guarda el tema.</span>`;
-    });
-
-    // Espera a que pdf.js esté disponible
-    async function waitForPdfJs(timeout = 8000) {
-      const start = Date.now();
-      while (!window.pdfjsLib) {
-        if (Date.now() - start > timeout) throw new Error('pdf.js no se cargó a tiempo');
-        await new Promise(r => setTimeout(r, 50));
-      }
-      return window.pdfjsLib;
-    }
-
-    // ----- Extracción mejorada de texto de PDF (respeta líneas) -----
-    function extractTextFromContent(content) {
-      if (!content || !content.items || !content.items.length) return '';
-      return content.items
-        .map(item => item.str || '')
-        .join(' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-    }
-
-    // ----- PDF completo: texto mejorado + imágenes -----
-    async function extractPdfFull(file) {
-      const pdfjsLib = await waitForPdfJs();
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let fullText = '';
-      const images = [];
-
-      console.log(`PDF tiene ${pdf.numPages} páginas`);
-
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-
-        const content = await page.getTextContent();
-        const pageText = extractTextFromContent(content);
-        console.log(`Página ${pageNum}: ${pageText.length} caracteres de texto`);
-        if (pageText) {
-          fullText += pageText + '\n\n';
-        }
-
-        try {
-          const viewport = page.getViewport({ scale: 1.5 });
-          const canvas = document.createElement('canvas');
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          const ctx = canvas.getContext('2d');
-          await page.render({ canvasContext: ctx, viewport }).promise;
-          const dataUrl = canvas.toDataURL('image/png');
-          images.push({
-            id: uid(),
-            name: `${file.name}_página_${pageNum}.png`,
-            dataUrl,
-            source: file.name,
-            page: pageNum,
-            isPageRender: true
-          });
-        } catch (e) {
-          console.warn('No se pudo renderizar página', pageNum, e);
-        }
-      }
-
-      return { text: fullText.trim(), images };
-    }
-
-    // ----- PPTX: texto + imágenes -----
-    async function extractPptxFull(file) {
-      const arrayBuffer = await file.arrayBuffer();
-      const zip = await JSZip.loadAsync(arrayBuffer);
-      const aNamespace = 'http://schemas.openxmlformats.org/drawingml/2006/main';
-      let text = '';
-      const images = [];
-
-      // Texto de diapositivas
-      let slideIndex = 1;
-      while (true) {
-        const slideFile = zip.file(`ppt/slides/slide${slideIndex}.xml`);
-        if (!slideFile) break;
-        const xmlStr = await slideFile.async('text');
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlStr, 'application/xml');
-        const textNodes = xmlDoc.getElementsByTagNameNS(aNamespace, 't') 
-          || xmlDoc.getElementsByTagName('a:t') 
-          || xmlDoc.getElementsByTagName('t');
-        const slideTexts = [];
-        for (let i = 0; i < textNodes.length; i++) {
-          const t = textNodes[i].textContent.trim();
-          if (t) slideTexts.push(t);
-        }
-        if (slideTexts.length) {
-          text += slideTexts.join(' ') + '\n\n';
-        }
-        slideIndex++;
-      }
-
-      // Notas del presentador
-      slideIndex = 1;
-      while (true) {
-        const notesFile = zip.file(`ppt/notesSlides/notesSlide${slideIndex}.xml`);
-        if (!notesFile) break;
-        const xmlStr = await notesFile.async('text');
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlStr, 'application/xml');
-        const textNodes = xmlDoc.getElementsByTagNameNS(aNamespace, 't');
-        for (let i = 0; i < textNodes.length; i++) {
-          const t = textNodes[i].textContent.trim();
-          if (t) text += t + ' ';
-        }
-        text += '\n';
-        slideIndex++;
-      }
-
-      // Imágenes de media/
-      const mediaFolder = zip.folder('ppt/media');
-      if (mediaFolder) {
-        const mediaFiles = [];
-        mediaFolder.forEach((relativePath, file) => {
-          if (!file.dir) mediaFiles.push({ path: relativePath, file });
-        });
-        for (const { path, file } of mediaFiles) {
-          const blob = await file.async('blob');
-          const dataUrl = await blobToDataURL(blob);
-          const ext = path.split('.').pop().toLowerCase();
-          images.push({
-            id: uid(),
-            name: path,
-            dataUrl,
-            source: file.name || path,
-            type: blob.type || `image/${ext}`
-          });
-        }
-      }
-
-      return { text: text.trim(), images };
-    }
-
-    function blobToDataURL(blob) {
-      return new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(blob);
-      });
-    }
-
-    // ========== EXAMEN ==========
-async function startExamFromSubject() {
-  const subjects = await getAllSubjects();
-  const s = subjects.find(x => x.id === currentSubjectId);
-  if (!s || !s.topics.length) return alert('Añade al menos un tema con contenido');
-  const list = document.getElementById('exam-topics-list');
-  list.innerHTML = '';
-  s.topics.forEach(t => {
-    const words = (t.text || '').split(/\s+/).filter(Boolean).length;
-    const label = document.createElement('label');
-    label.style.display = 'block';
-    label.innerHTML = `<input type="checkbox" value="${t.id}" checked> ${escapeHtml(t.name)} <span class="text-sm text-muted">(${words} palabras · ${(t.images||[]).length} imgs)</span>`;
-    list.appendChild(label);
-  });
-  show('exam-setup');
-}
-
-async function generateExam(fromExamView = false) {
-  let selectedIds, numQ, types;
-  if (fromExamView) {
-    selectedIds = examState.selectedTopicIds;
-    numQ = examState.numQ;
-    types = examState.types;
-  } else {
-    selectedIds = Array.from(document.querySelectorAll('#exam-topics-list input:checked')).map(c => c.value);
-    numQ = parseInt(document.getElementById('num-questions').value) || 10;
-    types = {
-      cloze: document.getElementById('type-cloze').checked,
-      tf: document.getElementById('type-tf').checked,
-      open: document.getElementById('type-open').checked
+    // Claves de atributos en el orden de la imagen
+    const ATTRS = {
+      tecnico: [
+        'cabeceo', 'centros', 'control', 'entradas', 'marcaje', 'pases',
+        'penaltis', 'regate', 'remate', 'saques_esquina', 'saques_largos',
+        'tecnica', 'tiros_lejanos', 'tiros_libres'
+      ],
+      mental: [
+        'agresividad', 'anticipacion', 'colocacion', 'concentracion', 'decisiones',
+        'desmarques', 'determinacion', 'juego_equipo', 'liderazgo', 'sacrificio',
+        'serenidad', 'talento', 'valentia', 'vision'
+      ],
+      fisico: [
+        'aceleracion', 'agilidad', 'alcance_salto', 'equilibrio',
+        'fuerza', 'recuperacion', 'resistencia', 'velocidad'
+      ]
     };
-    if (!selectedIds.length) return alert('Selecciona al menos un tema');
-    if (!types.cloze && !types.tf && !types.open) return alert('Selecciona al menos un tipo');
-    examState = { selectedTopicIds: selectedIds, numQ, types, questions: [], currentIndex: 0, score: 0, answered: 0 };
-  }
 
-  const subjects = await getAllSubjects();
-  const s = subjects.find(x => x.id === currentSubjectId);
-  let allText = '';
-  selectedIds.forEach(tid => {
-    const t = s.topics.find(x => x.id === tid);
-    if (t && t.text) allText += t.text + '\n\n';
-  });
+    const LABELS = {
+      cabeceo: 'Cabeceo', centros: 'Centros', control: 'Control',
+      entradas: 'Entradas', marcaje: 'Marcaje', pases: 'Pases',
+      penaltis: 'Penaltis', regate: 'Regate', remate: 'Remate',
+      saques_esquina: 'Saques de esquina', saques_largos: 'Saques largos',
+      tecnica: 'Técnica', tiros_lejanos: 'Tiros lejanos', tiros_libres: 'Tiros libres',
+      agresividad: 'Agresividad', anticipacion: 'Anticipación', colocacion: 'Colocación',
+      concentracion: 'Concentración', decisiones: 'Decisiones', desmarques: 'Desmarques',
+      determinacion: 'Determinación', juego_equipo: 'Juego en equipo', liderazgo: 'Liderazgo',
+      sacrificio: 'Sacrificio', serenidad: 'Serenidad', talento: 'Talento',
+      valentia: 'Valentía', vision: 'Visión',
+      aceleracion: 'Aceleración', agilidad: 'Agilidad', alcance_salto: 'Alcance de salto',
+      equilibrio: 'Equilibrio', fuerza: 'Fuerza', recuperacion: 'Recuperación física',
+      resistencia: 'Resistencia', velocidad: 'Velocidad'
+    };
 
-  const sentences = extractSentences(allText);
-  if (sentences.length < 5) {
-    alert('No hay suficiente texto útil. Sube más material o revisa el texto extraído.');
-    return;
-  }
+    let jugadores = JSON.parse(localStorage.getItem('jugadoresFM') || '[]');
+    let editandoId = null;
 
-  const questions = [];
-  const used = new Set();
-  const availableTypes = [];
-  if (types.cloze) availableTypes.push('cloze');
-  if (types.tf) availableTypes.push('tf');
-  if (types.open) availableTypes.push('open');
-
-  let attempts = 0;
-  while (questions.length < numQ && attempts < numQ * 15) {
-    attempts++;
-    const sent = sentences[Math.floor(Math.random() * sentences.length)];
-    if (used.has(sent) || sent.split(/\s+/).length < 8) continue;
-    used.add(sent);
-
-    const type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
-    let q = null;
-    if (type === 'cloze') q = makeCloze(sent);
-    else if (type === 'tf') q = makeTrueFalse(sent);
-    else q = makeOpen(sent);
-    if (q) questions.push(q);
-  }
-
-  examState.questions = questions;
-  examState.currentIndex = 0;
-  examState.score = 0;
-  examState.answered = 0;
-
-  show('exam');
-  document.getElementById('exam-results').classList.add('hidden');
-  renderCurrentQuestion();
-}
-
-function extractSentences(text) {
-  return text
-    .replace(/\s+/g, ' ')
-    .split(/(?<=[.!?])\s+/)
-    .map(s => s.trim())
-    .filter(s => s.length > 50 && s.length < 320 && /[a-záéíóúñ]/i.test(s));
-}
-
-function makeCloze(sentence) {
-  const words = sentence.split(/\s+/);
-  const stopWords = new Set(['el','la','los','las','un','una','unos','unas','de','del','al','a','en','con','por','para','que','y','o','pero','si','no','es','son','está','están','ser','haber','tiene','tienen','se','su','sus','este','esta','estos','estas','aquel','aquella','como','más','muy','ya','también','solo','sólo']);
-  
-  const candidates = [];
-  words.forEach((w, i) => {
-    const clean = w.replace(/[.,;:!?()«»""']/g, '').toLowerCase();
-    if (clean.length >= 5 && !stopWords.has(clean) && !/^\d+$/.test(clean)) {
-      candidates.push(i);
-    }
-  });
-  if (candidates.length < 1) return null;
-
-  const idx = candidates[Math.floor(Math.random() * candidates.length)];
-  const answer = words[idx].replace(/[.,;:!?()«»""']/g, '');
-  const blanked = words.map((w, i) => i === idx ? '________' : w).join(' ');
-
-  return {
-    type: 'cloze',
-    question: 'Completa la siguiente frase con la palabra que falta:',
-    text: blanked,
-    answer: answer.toLowerCase(),
-    original: sentence,
-    explanation: `La frase completa es: «${sentence}»`
-  };
-}
-
-function makeTrueFalse(sentence) {
-  const isTrue = Math.random() > 0.4;
-  let statement = sentence;
-  let explanation = '';
-
-  if (!isTrue) {
-    // Crear una versión falsa más natural
-    if (/\bes\b/i.test(sentence)) {
-      statement = sentence.replace(/\bes\b/i, 'no es');
-      explanation = `La afirmación es falsa. La versión correcta es: «${sentence}»`;
-    } else if (/\bson\b/i.test(sentence)) {
-      statement = sentence.replace(/\bson\b/i, 'no son');
-      explanation = `La afirmación es falsa. La versión correcta es: «${sentence}»`;
-    } else if (/\btiene\b/i.test(sentence)) {
-      statement = sentence.replace(/\btiene\b/i, 'no tiene');
-      explanation = `La afirmación es falsa. La versión correcta es: «${sentence}»`;
-    } else {
-      statement = 'No es correcto afirmar que: ' + sentence;
-      explanation = `La afirmación es falsa. El texto original dice: «${sentence}»`;
-    }
-  } else {
-    explanation = `La afirmación es verdadera. Coincide con el material: «${sentence}»`;
-  }
-
-  return {
-    type: 'tf',
-    question: 'Indica si la siguiente afirmación es Verdadera o Falsa:',
-    text: statement,
-    answer: isTrue,
-    original: sentence,
-    explanation
-  };
-}
-
-function makeOpen(sentence) {
-  // Crear una pregunta más natural a partir de la frase
-  let questionText = '';
-  const lower = sentence.toLowerCase();
-
-  if (lower.includes('es ') || lower.includes('son ')) {
-    questionText = 'Según el material, ¿qué se afirma en el siguiente fragmento?';
-  } else if (lower.includes('porque') || lower.includes('debido')) {
-    questionText = 'Explica la causa o motivo según el material:';
-  } else if (lower.includes('se denomina') || lower.includes('se llama') || lower.includes('conocido como')) {
-    questionText = '¿Cómo se denomina o se conoce según el texto?';
-  } else {
-    questionText = 'Completa o explica la siguiente idea según el material estudiado:';
-  }
-
-  // Mostrar solo el principio de la frase como pista
-  const hint = sentence.length > 90 ? sentence.substring(0, 90) + '...' : sentence;
-
-  return {
-    type: 'open',
-    question: questionText,
-    text: hint,
-    answer: sentence,
-    original: sentence,
-    explanation: `Respuesta modelo según el material:\n«${sentence}»`
-  };
-}
-
-function renderCurrentQuestion() {
-  const container = document.getElementById('exam-container');
-  const results = document.getElementById('exam-results');
-  results.classList.add('hidden');
-  results.innerHTML = '';
-
-  const q = examState.questions[examState.currentIndex];
-  if (!q) {
-    showFinalScore();
-    return;
-  }
-
-  const total = examState.questions.length;
-  const current = examState.currentIndex + 1;
-
-  let body = `
-    <div class="card question-card" id="current-question">
-      <div class="text-sm text-muted mb-2">Pregunta ${current} de ${total}</div>
-      <p><strong>${q.question}</strong></p>
-      <p class="mt-2" style="font-size:1.05rem; line-height:1.6">${escapeHtml(q.text)}</p>
-  `;
-
-  if (q.type === 'cloze') {
-    body += `
-      <div class="form-group mt-2">
-        <label>Escribe la palabra que falta:</label>
-        <input type="text" id="user-answer" class="user-answer" placeholder="Tu respuesta..." autocomplete="off">
-      </div>
-      <button class="btn btn-primary mt-1" onclick="checkCurrentQuestion()">Comprobar respuesta</button>
-    `;
-  } else if (q.type === 'tf') {
-    body += `
-      <div class="options mt-2">
-        <label><input type="radio" name="tf-answer" value="true"> Verdadero</label>
-        <label><input type="radio" name="tf-answer" value="false"> Falso</label>
-      </div>
-      <button class="btn btn-primary mt-2" onclick="checkCurrentQuestion()">Comprobar respuesta</button>
-    `;
-  } else {
-    body += `
-      <div class="form-group mt-2">
-        <label>Tu respuesta:</label>
-        <textarea id="user-answer" class="user-answer" rows="4" placeholder="Escribe tu respuesta aquí..."></textarea>
-      </div>
-      <button class="btn btn-primary mt-1" onclick="checkCurrentQuestion()">Comprobar respuesta</button>
-    `;
-  }
-
-  body += `</div>`;
-  container.innerHTML = body;
-
-  // Enfocar el input si existe
-  setTimeout(() => {
-    const input = document.getElementById('user-answer');
-    if (input) input.focus();
-  }, 100);
-}
-
-function checkCurrentQuestion() {
-  const q = examState.questions[examState.currentIndex];
-  const card = document.getElementById('current-question');
-  if (!card) return;
-
-  let isCorrect = false;
-  let userAnswer = '';
-
-  if (q.type === 'cloze') {
-    const input = document.getElementById('user-answer');
-    userAnswer = (input.value || '').trim().toLowerCase();
-    isCorrect = userAnswer === q.answer || 
-                userAnswer.includes(q.answer) || 
-                q.answer.includes(userAnswer);
-  } else if (q.type === 'tf') {
-    const selected = document.querySelector('input[name="tf-answer"]:checked');
-    if (!selected) {
-      alert('Selecciona Verdadero o Falso');
-      return;
-    }
-    userAnswer = selected.value === 'true';
-    isCorrect = userAnswer === q.answer;
-  } else {
-    // Pregunta abierta: no se autocorrige, siempre se muestra la explicación
-    isCorrect = null; // no puntúa automáticamente
-  }
-
-  // Deshabilitar controles
-  card.querySelectorAll('input, textarea, button').forEach(el => el.disabled = true);
-
-  // Mostrar resultado + explicación
-  let feedback = '';
-  if (q.type === 'open') {
-    feedback = `
-      <div class="mt-2 p-3" style="background:#0f172a; border-radius:0.5rem; border-left:4px solid var(--primary)">
-        <strong>Explicación / Respuesta modelo:</strong><br>
-        <div class="mt-1" style="white-space:pre-wrap">${escapeHtml(q.explanation)}</div>
-      </div>
-    `;
-  } else {
-    examState.answered++;
-    if (isCorrect) {
-      examState.score++;
-      feedback = `
-        <div class="mt-2 p-3" style="background:#052e16; border-radius:0.5rem; border-left:4px solid var(--success)">
-          <strong style="color:var(--success)">✓ ¡Correcto!</strong><br>
-          <div class="mt-1">${escapeHtml(q.explanation)}</div>
-        </div>
-      `;
-      card.classList.add('correct');
-    } else {
-      feedback = `
-        <div class="mt-2 p-3" style="background:#450a0a; border-radius:0.5rem; border-left:4px solid var(--danger)">
-          <strong style="color:var(--danger)">✗ Incorrecto</strong><br>
-          <div class="mt-1">${escapeHtml(q.explanation)}</div>
-        </div>
-      `;
-      card.classList.add('incorrect');
-    }
-  }
-
-  card.insertAdjacentHTML('beforeend', feedback);
-
-  // Botón siguiente
-  const nextBtn = document.createElement('button');
-  nextBtn.className = 'btn btn-primary mt-2';
-  nextBtn.textContent = examState.currentIndex + 1 < examState.questions.length 
-    ? 'Siguiente pregunta →' 
-    : 'Ver resultado final';
-  nextBtn.onclick = () => {
-    examState.currentIndex++;
-    renderCurrentQuestion();
-  };
-  card.appendChild(nextBtn);
-}
-
-function showFinalScore() {
-  const container = document.getElementById('exam-container');
-  const results = document.getElementById('exam-results');
-  
-  const totalAuto = examState.answered;
-  const correct = examState.score;
-  const pct = totalAuto ? Math.round((correct / totalAuto) * 100) : 0;
-
-  container.innerHTML = `
-    <div class="score-box">
-      <div class="big">${correct} / ${totalAuto}</div>
-      <div>${pct}% de acierto</div>
-      <p class="text-muted mt-2">Preguntas abiertas no se puntúan automáticamente</p>
-    </div>
-  `;
-
-  results.classList.remove('hidden');
-  results.innerHTML = `
-    <div class="flex" style="justify-content:center; gap:1rem">
-      <button class="btn btn-primary" onclick="generateExam(true)">🔄 Generar otro examen</button>
-      <button class="btn btn-secondary" onclick="showHome()">Menú principal</button>
-    </div>
-  `;
-}
-
-// Ya no se usa la antigua checkExam ni renderExam de todas las preguntas a la vez
-    // ========== EXPORT / IMPORT ==========
-    async function exportData() {
-      const subjects = await getAllSubjects();
-      const blob = new Blob([JSON.stringify(subjects, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `easytest-backup-${new Date().toISOString().slice(0,10)}.json`;
-      a.click();
+    function mostrarStatus(msg, tiempo = 2500) {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      setTimeout(() => el.textContent = '', tiempo);
     }
 
-    async function importData(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      try {
-        const data = JSON.parse(await file.text());
-        if (!Array.isArray(data)) throw new Error('Formato incorrecto');
-        for (const s of data) await saveSubjectToDB(s);
-        alert('Datos importados');
-        showHome();
-      } catch (err) {
-        alert('Error al importar: ' + err.message);
+    function obtenerDatosFormulario() {
+      const data = {
+        id: editandoId || Date.now(),
+        nombre: document.getElementById('nombre').value.trim(),
+        posiciones: document.getElementById('posiciones').value.trim()
+      };
+
+      [...ATTRS.tecnico, ...ATTRS.mental, ...ATTRS.fisico].forEach(attr => {
+        data[attr] = parseInt(document.getElementById(attr).value) || 1;
+      });
+
+      return data;
+    }
+
+    function guardarJugador() {
+      const data = obtenerDatosFormulario();
+      if (!data.nombre) {
+        alert('El nombre del jugador es obligatorio.');
+        return;
       }
-      e.target.value = '';
+
+      if (editandoId) {
+        const idx = jugadores.findIndex(j => j.id === editandoId);
+        if (idx !== -1) jugadores[idx] = data;
+        mostrarStatus('✅ Jugador actualizado');
+      } else {
+        jugadores.push(data);
+        mostrarStatus('✅ Jugador guardado');
+      }
+
+      localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+      editandoId = null;
+      document.getElementById('form-title').textContent = 'Nuevo jugador';
+      limpiarFormulario();
+      renderizarJugadores();
     }
 
-        function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-// ========== INICIO DE LA APLICACIÓN ==========
-openDB()
-  .then(() => showHome())
-  .catch(err => {
-    console.error('Error al abrir la base de datos:', err);
-    alert('No se pudo iniciar EasyTest. Revisa la consola.');
-  });
+    function limpiarFormulario() {
+      document.getElementById('nombre').value = '';
+      document.getElementById('posiciones').value = '';
+      [...ATTRS.tecnico, ...ATTRS.mental, ...ATTRS.fisico].forEach(attr => {
+        document.getElementById(attr).value = 10;
+      });
+      editandoId = null;
+      document.getElementById('form-title').textContent = 'Nuevo jugador';
+    }
+
+    function editarJugador(id) {
+      const j = jugadores.find(p => p.id === id);
+      if (!j) return;
+
+      editandoId = id;
+      document.getElementById('form-title').textContent = 'Editando: ' + j.nombre;
+      document.getElementById('nombre').value = j.nombre;
+      document.getElementById('posiciones').value = j.posiciones || '';
+
+      [...ATTRS.tecnico, ...ATTRS.mental, ...ATTRS.fisico].forEach(attr => {
+        document.getElementById(attr).value = j[attr] ?? 10;
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function eliminarJugador(id) {
+      if (!confirm('¿Eliminar este jugador?')) return;
+      jugadores = jugadores.filter(j => j.id !== id);
+      localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+      mostrarStatus('🗑️ Jugador eliminado');
+      renderizarJugadores();
+    }
+
+    function colorValor(v) {
+      if (v >= 15) return 'high';
+      if (v >= 10) return 'mid';
+      return 'low';
+    }
+
+    function renderizarJugadores() {
+      const container = document.getElementById('playersContainer');
+      document.getElementById('count').textContent = jugadores.length;
+
+      if (jugadores.length === 0) {
+        container.innerHTML = '<div class="empty-state">No hay jugadores guardados todavía.</div>';
+        return;
+      }
+
+      container.innerHTML = jugadores.map(j => `
+        <div class="player-card">
+          <div class="player-header">
+            <div>
+              <h3>${j.nombre}</h3>
+              <div class="pos">${j.posiciones || 'Sin posición'}</div>
+            </div>
+            <div class="player-actions">
+              <button class="btn-secondary" onclick="editarJugador(${j.id})">✏️ Editar</button>
+              <button class="btn-danger" onclick="eliminarJugador(${j.id})">🗑️ Eliminar</button>
+            </div>
+          </div>
+          <div class="view-grid">
+            <div class="view-column">
+              <h4>Técnico</h4>
+              ${ATTRS.tecnico.map(a => `
+                <div class="view-row">
+                  <span>${LABELS[a]}</span>
+                  <span class="value ${colorValor(j[a])}">${j[a]}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="view-column">
+              <h4>Mental</h4>
+              ${ATTRS.mental.map(a => `
+                <div class="view-row">
+                  <span>${LABELS[a]}</span>
+                  <span class="value ${colorValor(j[a])}">${j[a]}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="view-column">
+              <h4>Físico</h4>
+              ${ATTRS.fisico.map(a => `
+                <div class="view-row">
+                  <span>${LABELS[a]}</span>
+                  <span class="value ${colorValor(j[a])}">${j[a]}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function exportarJSON() {
+      if (jugadores.length === 0) {
+        alert('No hay jugadores para exportar.');
+        return;
+      }
+      const blob = new Blob([JSON.stringify(jugadores, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'jugadores_atributos.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      mostrarStatus('📥 JSON exportado');
+    }
+
+    function importarJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!Array.isArray(data)) throw new Error('Formato incorrecto');
+          jugadores = data;
+          localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+          renderizarJugadores();
+          mostrarStatus('✅ JSON importado correctamente');
+        } catch (err) {
+          alert('Error al importar el archivo JSON.');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    // Inicializar
+    renderizarJugadores();
   </script>
 </body>
 </html>
