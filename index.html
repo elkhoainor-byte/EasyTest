@@ -141,7 +141,6 @@
     }
 
     .attr-row:hover { background: #2f2f2f; }
-
     .attr-row label { flex: 1; font-size: 0.95rem; }
 
     .attr-row input {
@@ -255,6 +254,60 @@
     .mid  { color: #fbbf24; }
     .low  { color: #f87171; }
 
+    /* ===== ROLES ===== */
+    .roles-section {
+      margin-top: 20px;
+      background: #1e1e1e;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .roles-section h4 {
+      background: #333;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #bbb;
+    }
+
+    .roles-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 0;
+    }
+
+    .role-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 14px;
+      border-bottom: 1px solid #2a2a2a;
+      border-right: 1px solid #2a2a2a;
+      font-size: 0.92rem;
+    }
+
+    .role-item .role-name { flex: 1; }
+    .role-item .role-score {
+      font-weight: 700;
+      min-width: 48px;
+      text-align: right;
+      font-size: 1rem;
+    }
+
+    .score-excellent { color: #4ade80; }
+    .score-good      { color: #a3e635; }
+    .score-average   { color: #fbbf24; }
+    .score-poor      { color: #f87171; }
+
+    .no-roles {
+      padding: 16px;
+      text-align: center;
+      color: #888;
+      font-size: 0.9rem;
+    }
+
     .empty-state {
       text-align: center;
       padding: 40px;
@@ -364,6 +417,9 @@
   </div>
 
   <script>
+    /* ============================================================
+       POSICIONES
+       ============================================================ */
     const POSICIONES = [
       "Portero",
       "Lateral derecho",
@@ -381,6 +437,9 @@
       "Delantero centro"
     ];
 
+    /* ============================================================
+       ATRIBUTOS
+       ============================================================ */
     const ATTRS = {
       tecnico: [
         'cabeceo', 'centros', 'control', 'entradas', 'marcaje', 'pases',
@@ -416,10 +475,155 @@
 
     const ALL_ATTRS = [...ATTRS.tecnico, ...ATTRS.mental, ...ATTRS.fisico];
 
+    /* ============================================================
+       ROLES POR POSICIÓN
+       ----------------------------------------------------------
+       AQUÍ AÑADES TÚ LOS ROLES MANUALMENTE.
+
+       Estructura de cada rol:
+         { nombre: "Nombre del rol", atributos: ["attr1", "attr2", ...] }
+
+       Los nombres de atributos deben coincidir exactamente con
+       los de ALL_ATTRS (ej: "regate", "aceleracion", "vision"...).
+
+       Cuando todos los atributos del rol están a 20 → valoración = 100.
+       ============================================================ */
+    const ROLES_POR_POSICION = {
+
+      "Extremo derecho": [
+        { nombre: "Extremo - Ap",                    atributos: [] },
+        { nombre: "Extremo - At",                    atributos: [] },
+        { nombre: "Delantero interior - Ap",         atributos: [] },
+        { nombre: "Delantero interior - At",         atributos: [] },
+        { nombre: "Extremo inverso - Ap",            atributos: [] },
+        { nombre: "Extremo inverso - At",            atributos: [] },
+        { nombre: "Organizador adelantado - Ap",     atributos: [] },
+        { nombre: "Organizador adelantado - At",     atributos: [] },
+        { nombre: "Delantero objetivo escorado - Ap",atributos: [] },
+        { nombre: "Delantero objetivo escorado - At",atributos: [] },
+        { nombre: "Trequartista - At",               atributos: [] },
+        { nombre: "Buscador de espacios - At",       atributos: [] }
+      ],
+
+      "Extremo izquierdo": [
+        // Copia y adapta los roles que necesites
+      ],
+
+      "Delantero centro": [
+        // Añade aquí los roles de delantero centro
+      ],
+
+      "Mediapunta": [
+        // Añade aquí los roles de mediapunta
+      ],
+
+      "Mediocentro": [
+        // Añade aquí los roles de mediocentro
+      ],
+
+      "Medio derecho": [],
+      "Medio izquierdo": [],
+      "Centrocampista": [],
+      "Carrilero derecho": [],
+      "Carrilero izquierdo": [],
+      "Lateral derecho": [],
+      "Lateral izquierdo": [],
+      "Central": [],
+      "Portero": []
+    };
+
+    /* ============================================================
+       LÓGICA DE VALORACIÓN DE ROLES
+       ============================================================ */
+    function calcularValoracionRol(jugador, atributosRol) {
+      if (!atributosRol || atributosRol.length === 0) return 0;
+
+      let suma = 0;
+      let contador = 0;
+
+      atributosRol.forEach(attr => {
+        if (jugador[attr] !== undefined) {
+          suma += Number(jugador[attr]) || 0;
+          contador++;
+        }
+      });
+
+      if (contador === 0) return 0;
+
+      // Media sobre 20 → escala a 100
+      const media = suma / contador;
+      return (media / 20) * 100;
+    }
+
+    function obtenerRolesDelJugador(jugador) {
+      let posiciones = jugador.posiciones || [];
+      if (typeof posiciones === 'string') {
+        posiciones = posiciones.split(/[,·|]/).map(s => s.trim()).filter(Boolean);
+      }
+      if (!Array.isArray(posiciones)) posiciones = [];
+
+      // Recoger roles únicos (por nombre)
+      const rolesMap = new Map();
+
+      posiciones.forEach(pos => {
+        const rolesDePos = ROLES_POR_POSICION[pos] || [];
+        rolesDePos.forEach(rol => {
+          if (!rolesMap.has(rol.nombre)) {
+            const valoracion = calcularValoracionRol(jugador, rol.atributos);
+            rolesMap.set(rol.nombre, {
+              nombre: rol.nombre,
+              valoracion: valoracion,
+              atributos: rol.atributos
+            });
+          }
+        });
+      });
+
+      // Convertir a array y ordenar de mayor a menor valoración
+      return Array.from(rolesMap.values())
+                  .sort((a, b) => b.valoracion - a.valoracion);
+    }
+
+    function colorScore(score) {
+      if (score >= 80) return 'score-excellent';
+      if (score >= 65) return 'score-good';
+      if (score >= 50) return 'score-average';
+      return 'score-poor';
+    }
+
+    function renderRolesHTML(jugador) {
+      const roles = obtenerRolesDelJugador(jugador);
+
+      if (roles.length === 0) {
+        return `
+          <div class="roles-section">
+            <h4>Roles aplicables</h4>
+            <div class="no-roles">No hay roles definidos para las posiciones seleccionadas (o los roles no tienen atributos todavía).</div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="roles-section">
+          <h4>Roles aplicables (ordenados por valoración)</h4>
+          <div class="roles-list">
+            ${roles.map(r => `
+              <div class="role-item">
+                <span class="role-name">${r.nombre}</span>
+                <span class="role-score ${colorScore(r.valoracion)}">${r.valoracion.toFixed(1)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    /* ============================================================
+       RESTO DE LA APLICACIÓN (sin cambios grandes)
+       ============================================================ */
     let jugadores = [];
     let editandoId = null;
 
-    // ========== FIX 1: Forzar valor entre 1 y 20 ==========
     function clampValor(input) {
       let v = parseInt(input.value);
       if (isNaN(v) || v < 1) v = 1;
@@ -431,17 +635,12 @@
       ALL_ATTRS.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
-
-        // Al escribir
         el.addEventListener('input', () => clampValor(el));
-        // Al salir del campo
         el.addEventListener('blur', () => clampValor(el));
-        // Al cambiar con flechas
         el.addEventListener('change', () => clampValor(el));
       });
     }
 
-    // ========== Posiciones ==========
     function crearCheckboxesPosiciones() {
       const container = document.getElementById('posicionesContainer');
       container.innerHTML = POSICIONES.map((pos, i) => `
@@ -459,14 +658,11 @@
 
     function marcarPosiciones(posiciones) {
       document.querySelectorAll('input[name="posicion"]').forEach(c => c.checked = false);
-
-      // Compatibilidad: si viene como string antiguo → convertir a array
       let lista = posiciones;
       if (typeof posiciones === 'string') {
         lista = posiciones.split(/[,·|]/).map(s => s.trim()).filter(Boolean);
       }
       if (!Array.isArray(lista)) lista = [];
-
       lista.forEach(pos => {
         const checkbox = document.querySelector(`input[name="posicion"][value="${pos}"]`);
         if (checkbox) checkbox.checked = true;
@@ -480,7 +676,6 @@
     }
 
     function obtenerDatosFormulario() {
-      // Forzar clamp de todos los inputs antes de leer
       ALL_ATTRS.forEach(id => {
         const el = document.getElementById(id);
         if (el) clampValor(el);
@@ -564,7 +759,6 @@
       return 'low';
     }
 
-    // ========== FIX 2: Renderizado robusto ==========
     function renderizarJugadores() {
       const container = document.getElementById('playersContainer');
       document.getElementById('count').textContent = jugadores.length;
@@ -576,7 +770,6 @@
 
       try {
         container.innerHTML = jugadores.map(j => {
-          // Compatibilidad posiciones (string antiguo o array)
           let posTexto = 'Sin posición';
           if (Array.isArray(j.posiciones) && j.posiciones.length > 0) {
             posTexto = j.posiciones.join(' · ');
@@ -596,6 +789,7 @@
                   <button class="btn-danger" onclick="eliminarJugador(${j.id})">🗑️ Eliminar</button>
                 </div>
               </div>
+
               <div class="view-grid">
                 <div class="view-column">
                   <h4>Técnico</h4>
@@ -625,12 +819,14 @@
                   `).join('')}
                 </div>
               </div>
+
+              ${renderRolesHTML(j)}
             </div>
           `;
         }).join('');
       } catch (err) {
         console.error('Error al renderizar:', err);
-        container.innerHTML = '<div class="empty-state">Error al mostrar jugadores. Prueba a exportar y luego borrar datos del navegador.</div>';
+        container.innerHTML = '<div class="empty-state">Error al mostrar jugadores.</div>';
       }
     }
 
@@ -670,9 +866,7 @@
       event.target.value = '';
     }
 
-    // ========== Inicialización ==========
     function init() {
-      // Cargar datos
       try {
         jugadores = JSON.parse(localStorage.getItem('jugadoresFM') || '[]');
         if (!Array.isArray(jugadores)) jugadores = [];
@@ -681,11 +875,10 @@
       }
 
       crearCheckboxesPosiciones();
-      activarClampEnInputs();   // ← activa el límite 1-20
+      activarClampEnInputs();
       renderizarJugadores();
     }
 
-    // Esperar a que el DOM esté listo
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);
     } else {
