@@ -219,6 +219,39 @@
     .btn-warning { background: #d97706; color: #fff; }
     .btn-warning:hover { background: #f59e0b; }
 
+    /* ===== ORDENACIÓN ===== */
+    .sort-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 20px;
+      background: var(--card);
+      padding: 14px 18px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .sort-bar label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    .sort-bar select {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #222;
+      color: var(--text);
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .sort-bar select:focus {
+      outline: 2px solid var(--accent);
+    }
+
     .players-list h2 { margin-bottom: 16px; }
 
     .player-card {
@@ -487,6 +520,17 @@
       text-transform: uppercase;
       letter-spacing: 1px;
     }
+
+    /* Placeholder Hacer 11 */
+    .placeholder-11 {
+      text-align: center;
+      padding: 60px 20px;
+      color: #888;
+      font-size: 1.2rem;
+      background: var(--card);
+      border-radius: 10px;
+      border: 1px dashed var(--border);
+    }
   </style>
 </head>
 <body>
@@ -497,19 +541,37 @@
       <button class="nav-btn active" onclick="mostrarTab('equipo')">Equipo</button>
       <button class="nav-btn" onclick="mostrarTab('anadir-jugador')">Añadir jugador</button>
       <button class="nav-btn" onclick="mostrarTab('anadir-rol')">Añadir rol</button>
+      <button class="nav-btn" onclick="mostrarTab('hacer-11')">Hacer 11</button>
     </div>
 
-    <!-- TAB EQUIPO -->
+    <!-- ==================== TAB: EQUIPO ==================== -->
     <div id="tab-equipo" class="tab-content active">
       <div class="players-list">
         <h2>Equipo (<span id="count">0</span> jugadores)</h2>
+
+        <!-- BARRA DE ORDENACIÓN -->
+        <div class="sort-bar">
+          <label for="sort-by">Ordenar por:</label>
+          <select id="sort-by" onchange="aplicarOrden()">
+            <option value="nombre">Nombre</option>
+            <option value="posicion">Posición</option>
+            <option value="media">Media</option>
+          </select>
+
+          <label for="sort-dir">Dirección:</label>
+          <select id="sort-dir" onchange="aplicarOrden()">
+            <option value="asc">Ascendente (A→Z / 0→100)</option>
+            <option value="desc">Descendente (Z→A / 100→0)</option>
+          </select>
+        </div>
+
         <div id="playersContainer">
           <div class="empty-state">No hay jugadores en el equipo todavía.</div>
         </div>
       </div>
     </div>
 
-    <!-- TAB AÑADIR JUGADOR -->
+    <!-- ==================== TAB: AÑADIR JUGADOR ==================== -->
     <div id="tab-anadir-jugador" class="tab-content">
       <div class="form-section">
         <h2 id="form-title">Nuevo jugador</h2>
@@ -584,7 +646,7 @@
       </div>
     </div>
 
-    <!-- TAB AÑADIR ROL -->
+    <!-- ==================== TAB: AÑADIR ROL ==================== -->
     <div id="tab-anadir-rol" class="tab-content">
       <div class="form-section">
         <h2 id="form-rol-title">Añadir rol</h2>
@@ -618,6 +680,15 @@
         </div>
       </div>
     </div>
+
+    <!-- ==================== TAB: HACER 11 ==================== -->
+    <div id="tab-hacer-11" class="tab-content">
+      <div class="placeholder-11">
+        <h2 style="margin-bottom: 12px; color: #fff;">⚽ Hacer 11</h2>
+        <p>Esta sección se desarrollará más adelante.</p>
+        <p style="margin-top: 8px; font-size: 0.95rem;">Aquí podrás formar el once ideal según roles y valoraciones.</p>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -627,6 +698,10 @@
       "Medio derecho", "Mediocentro", "Medio izquierdo",
       "Extremo derecho", "Mediapunta", "Extremo izquierdo", "Delantero centro"
     ];
+
+    // Orden lógico de posiciones para el sort por posición
+    const ORDEN_POSICIONES = {};
+    POSICIONES.forEach((p, i) => ORDEN_POSICIONES[p] = i);
 
     const ATTRS = {
       tecnico: ['cabeceo','centros','control','entradas','marcaje','pases','penaltis','regate','remate','saques_esquina','saques_largos','tecnica','tiros_lejanos','tiros_libres'],
@@ -650,19 +725,66 @@
     let jugadores = [];
     let rolesPorPosicion = {};
     let editandoId = null;
-    let editandoRol = null; // { posicion, nombreOriginal }
+    let editandoRol = null;
 
     /* ========== NAVEGACIÓN ========== */
     function mostrarTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('tab-' + tabId).classList.add('active');
+
       const botones = document.querySelectorAll('.nav-btn');
-      if (tabId === 'equipo') botones[0].classList.add('active');
-      if (tabId === 'anadir-jugador') botones[1].classList.add('active');
-      if (tabId === 'anadir-rol') botones[2].classList.add('active');
+      const map = { 'equipo': 0, 'anadir-jugador': 1, 'anadir-rol': 2, 'hacer-11': 3 };
+      if (map[tabId] !== undefined) botones[map[tabId]].classList.add('active');
+
       if (tabId === 'equipo') renderizarJugadores();
       if (tabId === 'anadir-rol') renderizarRolesExistentes();
+    }
+
+    /* ========== ORDENACIÓN ========== */
+    function aplicarOrden() {
+      renderizarJugadores();
+    }
+
+    function obtenerJugadoresOrdenados() {
+      const criterio = document.getElementById('sort-by')?.value || 'nombre';
+      const direccion = document.getElementById('sort-dir')?.value || 'asc';
+      const factor = direccion === 'asc' ? 1 : -1;
+
+      const lista = [...jugadores];
+
+      lista.sort((a, b) => {
+        if (criterio === 'nombre') {
+          const na = (a.nombre || '').toLowerCase();
+          const nb = (b.nombre || '').toLowerCase();
+          return na.localeCompare(nb) * factor;
+        }
+
+        if (criterio === 'media') {
+          const ma = calcularMediaJugador(a);
+          const mb = calcularMediaJugador(b);
+          return (ma - mb) * factor;
+        }
+
+        if (criterio === 'posicion') {
+          // Usamos la primera posición del jugador
+          const getPrimeraPos = (j) => {
+            let pos = j.posiciones || [];
+            if (typeof pos === 'string') pos = pos.split(/[,·|]/).map(s => s.trim()).filter(Boolean);
+            if (!Array.isArray(pos) || pos.length === 0) return 999;
+            return ORDEN_POSICIONES[pos[0]] ?? 999;
+          };
+          const pa = getPrimeraPos(a);
+          const pb = getPrimeraPos(b);
+          if (pa !== pb) return (pa - pb) * factor;
+          // Desempate por nombre
+          return ((a.nombre || '').toLowerCase()).localeCompare((b.nombre || '').toLowerCase());
+        }
+
+        return 0;
+      });
+
+      return lista;
     }
 
     /* ========== MEDIA ========== */
@@ -679,7 +801,7 @@
       return '#f87171';
     }
 
-    /* ========== ROLES LÓGICA ========== */
+    /* ========== ROLES ========== */
     function calcularValoracionRol(jugador, atributosRol) {
       if (!atributosRol || atributosRol.length === 0) return 0;
       let suma = 0, contador = 0;
@@ -817,9 +939,7 @@
       document.getElementById('rol-posicion').value = posicion;
       document.getElementById('rol-nombre').value = nombre;
 
-      // Desmarcar todos
       document.querySelectorAll('#rolAtributosContainer input[type="checkbox"]').forEach(c => c.checked = false);
-      // Marcar los del rol
       atributos.forEach(attr => {
         const cb = document.querySelector(`#rolAtributosContainer input[value="${attr}"]`);
         if (cb) cb.checked = true;
@@ -835,7 +955,6 @@
         document.getElementById('btn-guardar-rol').textContent = '💾 Guardar rol';
       }
 
-      // Scroll al formulario
       document.getElementById('form-rol-title').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -865,19 +984,15 @@
       if (!rolesPorPosicion[posicion]) rolesPorPosicion[posicion] = [];
 
       if (editandoRol) {
-        // Estamos editando
         const { posicion: posOrig, nombreOriginal } = editandoRol;
 
-        // Si cambió de posición, eliminar de la original
         if (posOrig !== posicion) {
           rolesPorPosicion[posOrig] = (rolesPorPosicion[posOrig] || []).filter(r => r.nombre !== nombreOriginal);
-          if (rolesPorPosicion[posOrig].length === 0) delete rolesPorPosicion[posOrig];
+          if (rolesPorPosicion[posOrig]?.length === 0) delete rolesPorPosicion[posOrig];
         } else {
-          // Misma posición: eliminar el nombre original por si cambió el nombre
           rolesPorPosicion[posicion] = rolesPorPosicion[posicion].filter(r => r.nombre !== nombreOriginal);
         }
 
-        // Añadir/actualizar
         const idx = rolesPorPosicion[posicion].findIndex(r => r.nombre === nombre);
         if (idx !== -1) {
           rolesPorPosicion[posicion][idx] = { nombre, atributos };
@@ -886,7 +1001,6 @@
         }
         mostrarStatusRol('✅ Rol actualizado');
       } else {
-        // Nuevo rol
         const idx = rolesPorPosicion[posicion].findIndex(r => r.nombre === nombre);
         if (idx !== -1) {
           rolesPorPosicion[posicion][idx] = { nombre, atributos };
@@ -942,7 +1056,6 @@
       keys.forEach(pos => {
         rolesPorPosicion[pos].forEach(rol => {
           const attrsTexto = rol.atributos.map(a => LABELS[a] || a).join(', ');
-          // Escapar comillas para los onclick
           const posEsc = pos.replace(/'/g, "\\'");
           const nomEsc = rol.nombre.replace(/'/g, "\\'");
 
@@ -1104,14 +1217,15 @@
 
     function renderizarJugadores() {
       const container = document.getElementById('playersContainer');
-      document.getElementById('count').textContent = jugadores.length;
+      const listaOrdenada = obtenerJugadoresOrdenados();
+      document.getElementById('count').textContent = listaOrdenada.length;
 
-      if (!jugadores || jugadores.length === 0) {
+      if (!listaOrdenada || listaOrdenada.length === 0) {
         container.innerHTML = '<div class="empty-state">No hay jugadores en el equipo todavía.</div>';
         return;
       }
 
-      container.innerHTML = jugadores.map(j => {
+      container.innerHTML = listaOrdenada.map(j => {
         let posTexto = 'Sin posición';
         if (Array.isArray(j.posiciones) && j.posiciones.length) posTexto = j.posiciones.join(' · ');
         else if (typeof j.posiciones === 'string' && j.posiciones.trim()) posTexto = j.posiciones;
