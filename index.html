@@ -290,7 +290,7 @@
     .mid  { color: #fbbf24; }
     .low  { color: #f87171; }
 
-    /* Roles en ficha */
+    /* ===== ROLES ===== */
     .roles-section {
       margin-top: 20px;
       background: #1e1e1e;
@@ -309,22 +309,36 @@
     }
 
     .roles-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 0;
+      display: flex;
+      flex-direction: column;
     }
 
     .role-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 14px;
+      padding: 9px 14px;
       border-bottom: 1px solid #2a2a2a;
-      border-right: 1px solid #2a2a2a;
       font-size: 0.92rem;
+      gap: 12px;
     }
 
-    .role-item .role-name { flex: 1; }
+    .role-item .role-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .role-item .role-name {
+      font-weight: 600;
+    }
+
+    .role-item .role-pos {
+      font-size: 0.8rem;
+      color: #888;
+    }
+
     .role-item .role-score {
       font-weight: 700;
       min-width: 48px;
@@ -336,6 +350,32 @@
     .score-good      { color: #a3e635; }
     .score-average   { color: #fbbf24; }
     .score-poor      { color: #f87171; }
+
+    .roles-extra {
+      display: none;
+    }
+
+    .roles-extra.show {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .btn-expand-roles {
+      width: 100%;
+      padding: 10px;
+      background: #2a2a2a;
+      border: none;
+      border-top: 1px solid var(--border);
+      color: var(--accent);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-expand-roles:hover {
+      background: #333;
+    }
 
     .no-roles {
       padding: 16px;
@@ -445,7 +485,6 @@
         </div>
 
         <div class="attrs-grid">
-          <!-- TÉCNICO -->
           <div class="attr-column">
             <h3>Técnico</h3>
             <div class="attr-row"><label>Cabeceo</label><input type="number" id="cabeceo" min="1" max="20" value="10"></div>
@@ -464,7 +503,6 @@
             <div class="attr-row"><label>Tiros libres</label><input type="number" id="tiros_libres" min="1" max="20" value="10"></div>
           </div>
 
-          <!-- MENTAL -->
           <div class="attr-column">
             <h3>Mental</h3>
             <div class="attr-row"><label>Agresividad</label><input type="number" id="agresividad" min="1" max="20" value="10"></div>
@@ -483,7 +521,6 @@
             <div class="attr-row"><label>Visión</label><input type="number" id="vision" min="1" max="20" value="10"></div>
           </div>
 
-          <!-- FÍSICO -->
           <div class="attr-column">
             <h3>Físico</h3>
             <div class="attr-row"><label>Aceleración</label><input type="number" id="aceleracion" min="1" max="20" value="10"></div>
@@ -516,9 +553,7 @@
         <div class="basic-info">
           <div class="form-group">
             <label for="rol-posicion">Posición a la que pertenece el rol</label>
-            <select id="rol-posicion">
-              <!-- se rellena por JS -->
-            </select>
+            <select id="rol-posicion"></select>
           </div>
 
           <div class="form-group">
@@ -528,9 +563,7 @@
 
           <div>
             <label>Atributos que forman parte del rol <small style="color:#888">(marca los que quieras)</small></label>
-            <div class="attrs-check-grid" id="rolAtributosContainer">
-              <!-- se rellena por JS -->
-            </div>
+            <div class="attrs-check-grid" id="rolAtributosContainer"></div>
           </div>
         </div>
 
@@ -540,7 +573,6 @@
         </div>
         <div class="status" id="status-rol"></div>
 
-        <!-- Lista de roles existentes -->
         <div class="roles-existentes">
           <h3>Roles guardados</h3>
           <div id="rolesExistentesContainer">
@@ -552,9 +584,6 @@
   </div>
 
   <script>
-    /* ============================================================
-       DATOS BASE
-       ============================================================ */
     const POSICIONES = [
       "Portero", "Lateral derecho", "Central", "Lateral izquierdo",
       "Carrilero derecho", "Centrocampista", "Carrilero izquierdo",
@@ -597,42 +626,30 @@
 
     const ALL_ATTRS = [...ATTRS.tecnico, ...ATTRS.mental, ...ATTRS.fisico];
 
-    /* ============================================================
-       ESTADO
-       ============================================================ */
     let jugadores = [];
-    let rolesPorPosicion = {};   // se carga desde localStorage
+    let rolesPorPosicion = {};
     let editandoId = null;
 
     /* ============================================================
-       NAVEGACIÓN POR PESTAÑAS
+       NAVEGACIÓN
        ============================================================ */
     function mostrarTab(tabId) {
-      // Ocultar todas
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
 
-      // Mostrar la elegida
       document.getElementById('tab-' + tabId).classList.add('active');
 
-      // Activar botón correspondiente
       const botones = document.querySelectorAll('.nav-btn');
       if (tabId === 'equipo') botones[0].classList.add('active');
       if (tabId === 'anadir-jugador') botones[1].classList.add('active');
       if (tabId === 'anadir-rol') botones[2].classList.add('active');
 
-      // Si entramos en Equipo → refrescar siempre
-      if (tabId === 'equipo') {
-        renderizarJugadores();
-      }
-      // Si entramos en Añadir rol → refrescar lista de roles
-      if (tabId === 'anadir-rol') {
-        renderizarRolesExistentes();
-      }
+      if (tabId === 'equipo') renderizarJugadores();
+      if (tabId === 'anadir-rol') renderizarRolesExistentes();
     }
 
     /* ============================================================
-       ROLES - LÓGICA
+       ROLES - CÁLCULO Y RENDER (TOP 3 + DESPLEGABLE)
        ============================================================ */
     function calcularValoracionRol(jugador, atributosRol) {
       if (!atributosRol || atributosRol.length === 0) return 0;
@@ -654,20 +671,21 @@
       }
       if (!Array.isArray(posiciones)) posiciones = [];
 
-      const rolesMap = new Map();
+      const lista = [];
+
       posiciones.forEach(pos => {
         const rolesDePos = rolesPorPosicion[pos] || [];
         rolesDePos.forEach(rol => {
-          if (!rolesMap.has(rol.nombre)) {
-            rolesMap.set(rol.nombre, {
-              nombre: rol.nombre,
-              valoracion: calcularValoracionRol(jugador, rol.atributos)
-            });
-          }
+          lista.push({
+            nombre: rol.nombre,
+            posicion: pos,
+            valoracion: calcularValoracionRol(jugador, rol.atributos)
+          });
         });
       });
 
-      return Array.from(rolesMap.values()).sort((a, b) => b.valoracion - a.valoracion);
+      // Ordenar de mayor a menor valoración
+      return lista.sort((a, b) => b.valoracion - a.valoracion);
     }
 
     function colorScore(score) {
@@ -677,8 +695,24 @@
       return 'score-poor';
     }
 
+    function toggleRoles(id) {
+      const extra = document.getElementById('roles-extra-' + id);
+      const btn = document.getElementById('btn-roles-' + id);
+      if (!extra || !btn) return;
+
+      if (extra.classList.contains('show')) {
+        extra.classList.remove('show');
+        btn.textContent = '▼ Ver más roles';
+      } else {
+        extra.classList.add('show');
+        btn.textContent = '▲ Ver menos roles';
+      }
+    }
+
     function renderRolesHTML(jugador) {
       const roles = obtenerRolesDelJugador(jugador);
+      const uid = jugador.id;
+
       if (roles.length === 0) {
         return `
           <div class="roles-section">
@@ -686,18 +720,49 @@
             <div class="no-roles">No hay roles definidos para las posiciones de este jugador.</div>
           </div>`;
       }
-      return `
+
+      const top3 = roles.slice(0, 3);
+      const resto = roles.slice(3);
+
+      let html = `
         <div class="roles-section">
-          <h4>Roles aplicables (ordenados por valoración)</h4>
+          <h4>Mejores roles</h4>
           <div class="roles-list">
-            ${roles.map(r => `
+            ${top3.map(r => `
               <div class="role-item">
-                <span class="role-name">${r.nombre}</span>
+                <div class="role-info">
+                  <span class="role-name">${r.nombre}</span>
+                  <span class="role-pos">${r.posicion}</span>
+                </div>
                 <span class="role-score ${colorScore(r.valoracion)}">${r.valoracion.toFixed(1)}</span>
               </div>
             `).join('')}
+      `;
+
+      if (resto.length > 0) {
+        html += `
+            <div class="roles-extra" id="roles-extra-${uid}">
+              ${resto.map(r => `
+                <div class="role-item">
+                  <div class="role-info">
+                    <span class="role-name">${r.nombre}</span>
+                    <span class="role-pos">${r.posicion}</span>
+                  </div>
+                  <span class="role-score ${colorScore(r.valoracion)}">${r.valoracion.toFixed(1)}</span>
+                </div>
+              `).join('')}
+            </div>
           </div>
-        </div>`;
+          <button class="btn-expand-roles" id="btn-roles-${uid}" onclick="toggleRoles(${uid})">
+            ▼ Ver más roles (${resto.length})
+          </button>
+        `;
+      } else {
+        html += `</div>`;
+      }
+
+      html += `</div>`;
+      return html;
     }
 
     /* ============================================================
@@ -722,24 +787,12 @@
       const checks = document.querySelectorAll('#rolAtributosContainer input[type="checkbox"]:checked');
       const atributos = Array.from(checks).map(c => c.value);
 
-      if (!posicion) {
-        alert('Selecciona una posición.');
-        return;
-      }
-      if (!nombre) {
-        alert('Escribe el nombre del rol.');
-        return;
-      }
-      if (atributos.length === 0) {
-        alert('Selecciona al menos un atributo.');
-        return;
-      }
+      if (!posicion) { alert('Selecciona una posición.'); return; }
+      if (!nombre) { alert('Escribe el nombre del rol.'); return; }
+      if (atributos.length === 0) { alert('Selecciona al menos un atributo.'); return; }
 
-      if (!rolesPorPosicion[posicion]) {
-        rolesPorPosicion[posicion] = [];
-      }
+      if (!rolesPorPosicion[posicion]) rolesPorPosicion[posicion] = [];
 
-      // Evitar duplicados por nombre en la misma posición
       const existe = rolesPorPosicion[posicion].findIndex(r => r.nombre === nombre);
       if (existe !== -1) {
         rolesPorPosicion[posicion][existe] = { nombre, atributos };
@@ -752,8 +805,6 @@
       guardarRolesEnStorage();
       limpiarFormularioRol();
       renderizarRolesExistentes();
-
-      // Actualizar la vista de Equipo si está visible
       if (document.getElementById('tab-equipo').classList.contains('active')) {
         renderizarJugadores();
       }
@@ -785,7 +836,7 @@
 
     function renderizarRolesExistentes() {
       const container = document.getElementById('rolesExistentesContainer');
-      const posicionesConRoles = Object.keys(rolesPorPosicion).filter(p => rolesPorPosicion[p] && rolesPorPosicion[p].length > 0);
+      const posicionesConRoles = Object.keys(rolesPorPosicion).filter(p => rolesPorPosicion[p]?.length > 0);
 
       if (posicionesConRoles.length === 0) {
         container.innerHTML = '<div class="empty-state">No hay roles creados todavía.</div>';
@@ -803,9 +854,11 @@
                 <div class="posicion">${pos}</div>
                 <div class="atributos"><strong>Atributos:</strong> ${attrsTexto}</div>
               </div>
-              <button class="btn-danger" style="padding:8px 14px;font-size:0.9rem;" onclick="eliminarRol('${pos}', '${rol.nombre.replace(/'/g, "\\'")}')">🗑️ Eliminar</button>
-            </div>
-          `;
+              <button class="btn-danger" style="padding:8px 14px;font-size:0.9rem;"
+                      onclick="eliminarRol('${pos}', '${rol.nombre.replace(/'/g, "\\'")}')">
+                🗑️ Eliminar
+              </button>
+            </div>`;
         });
       });
       container.innerHTML = html;
@@ -850,34 +903,18 @@
     function crearCheckboxesAtributosRol() {
       const container = document.getElementById('rolAtributosContainer');
       let html = '';
-
       html += '<div class="attr-group-title">Técnico</div>';
       ATTRS.tecnico.forEach(a => {
-        html += `
-          <label class="attr-check-item">
-            <input type="checkbox" value="${a}">
-            <span>${LABELS[a]}</span>
-          </label>`;
+        html += `<label class="attr-check-item"><input type="checkbox" value="${a}"><span>${LABELS[a]}</span></label>`;
       });
-
       html += '<div class="attr-group-title">Mental</div>';
       ATTRS.mental.forEach(a => {
-        html += `
-          <label class="attr-check-item">
-            <input type="checkbox" value="${a}">
-            <span>${LABELS[a]}</span>
-          </label>`;
+        html += `<label class="attr-check-item"><input type="checkbox" value="${a}"><span>${LABELS[a]}</span></label>`;
       });
-
       html += '<div class="attr-group-title">Físico</div>';
       ATTRS.fisico.forEach(a => {
-        html += `
-          <label class="attr-check-item">
-            <input type="checkbox" value="${a}">
-            <span>${LABELS[a]}</span>
-          </label>`;
+        html += `<label class="attr-check-item"><input type="checkbox" value="${a}"><span>${LABELS[a]}</span></label>`;
       });
-
       container.innerHTML = html;
     }
 
@@ -943,15 +980,13 @@
       editandoId = null;
       document.getElementById('form-title').textContent = 'Nuevo jugador';
       limpiarFormulario();
-      renderizarJugadores();   // actualiza Equipo automáticamente
+      renderizarJugadores();
     }
 
     function limpiarFormulario() {
       document.getElementById('nombre').value = '';
       marcarPosiciones([]);
-      ALL_ATTRS.forEach(attr => {
-        document.getElementById(attr).value = 10;
-      });
+      ALL_ATTRS.forEach(attr => document.getElementById(attr).value = 10);
       editandoId = null;
       document.getElementById('form-title').textContent = 'Nuevo jugador';
     }
@@ -960,9 +995,7 @@
       const j = jugadores.find(p => p.id === id);
       if (!j) return;
 
-      // Cambiar a la pestaña de añadir jugador
       mostrarTab('anadir-jugador');
-
       editandoId = id;
       document.getElementById('form-title').textContent = 'Editando: ' + j.nombre;
       document.getElementById('nombre').value = j.nombre || '';
@@ -979,7 +1012,6 @@
       if (!confirm('¿Eliminar este jugador?')) return;
       jugadores = jugadores.filter(j => j.id !== id);
       localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
-      mostrarStatus('🗑️ Jugador eliminado');
       renderizarJugadores();
     }
 
@@ -1027,8 +1059,7 @@
                     <div class="view-row">
                       <span>${LABELS[a]}</span>
                       <span class="value ${colorValor(j[a] || 1)}">${j[a] || 1}</span>
-                    </div>
-                  `).join('')}
+                    </div>`).join('')}
                 </div>
                 <div class="view-column">
                   <h4>Mental</h4>
@@ -1036,8 +1067,7 @@
                     <div class="view-row">
                       <span>${LABELS[a]}</span>
                       <span class="value ${colorValor(j[a] || 1)}">${j[a] || 1}</span>
-                    </div>
-                  `).join('')}
+                    </div>`).join('')}
                 </div>
                 <div class="view-column">
                   <h4>Físico</h4>
@@ -1045,8 +1075,7 @@
                     <div class="view-row">
                       <span>${LABELS[a]}</span>
                       <span class="value ${colorValor(j[a] || 1)}">${j[a] || 1}</span>
-                    </div>
-                  `).join('')}
+                    </div>`).join('')}
                 </div>
               </div>
 
@@ -1099,7 +1128,6 @@
        INICIALIZACIÓN
        ============================================================ */
     function init() {
-      // Cargar datos
       try {
         jugadores = JSON.parse(localStorage.getItem('jugadoresFM') || '[]');
         if (!Array.isArray(jugadores)) jugadores = [];
@@ -1108,7 +1136,6 @@
       }
 
       cargarRolesDesdeStorage();
-
       crearCheckboxesPosiciones();
       crearSelectPosicionesRol();
       crearCheckboxesAtributosRol();
