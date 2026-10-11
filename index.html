@@ -44,10 +44,23 @@
     .basic-info label, .form-group label {
       display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem;
     }
-    .basic-info input[type="text"], .form-group input[type="text"], .form-group select {
+    .basic-info input[type="text"], .basic-info input[type="number"],
+    .form-group input[type="text"], .form-group select, .form-group input[type="number"] {
       width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border);
       background: #222; color: var(--text); font-size: 1rem;
     }
+    .form-extras {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+      background: #222; border: 1px solid var(--border); border-radius: 8px; padding: 16px;
+    }
+    @media (max-width: 700px) { .form-extras { grid-template-columns: 1fr; } }
+    .form-extras label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.85rem; color: #aaa; }
+    .form-extras input {
+      width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
+      background: #1a1a1a; color: var(--text); font-size: 1rem; font-weight: 600;
+    }
+    .form-extras .hint { font-size: 0.75rem; color: #666; margin-top: 4px; }
+
     .posiciones-grid, .attrs-check-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 10px; background: #222; border: 1px solid var(--border);
@@ -126,13 +139,24 @@
     }
     .player-header-left h3 { font-size: 1.4rem; color: #fff; }
     .player-header-left .pos { color: #aaa; font-size: 0.95rem; margin-top: 4px; }
-    .player-header-right { display: flex; align-items: center; gap: 12px; }
+    .player-header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .media-bar-container { display: flex; align-items: center; gap: 10px; min-width: 160px; }
     .media-bar { flex: 1; height: 12px; background: #333; border-radius: 6px; overflow: hidden; }
     .media-bar-fill { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
     .media-value { font-weight: 700; font-size: 1.15rem; min-width: 48px; text-align: right; }
     .player-actions { display: flex; gap: 8px; }
     .player-actions button { padding: 8px 14px; font-size: 0.9rem; }
+
+    .form-extras-inline {
+      display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px;
+      background: #1e1e1e; border-radius: 8px; padding: 10px 14px; border: 1px solid var(--border);
+    }
+    .form-extras-inline .fe-item { display: flex; align-items: center; gap: 6px; }
+    .form-extras-inline label { font-size: 0.8rem; color: #888; white-space: nowrap; }
+    .form-extras-inline input {
+      width: 64px; padding: 4px 6px; border-radius: 4px; border: 1px solid var(--border);
+      background: #222; color: var(--text); font-weight: 600; font-size: 0.9rem; text-align: center;
+    }
 
     .attrs-section { margin-top: 8px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
     .btn-toggle-attrs {
@@ -211,48 +235,28 @@
       text-transform: uppercase; letter-spacing: 0.5px;
     }
 
-    /* ========== HACER 11 — estilo FM ========== */
+    /* HACER 11 */
     .once-layout {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 16px;
-      align-items: start;
+      display: grid; grid-template-columns: 1fr 400px; gap: 16px; align-items: start;
     }
-    @media (max-width: 1100px) {
-      .once-layout { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 1100px) { .once-layout { grid-template-columns: 1fr; } }
 
     .pitch-panel {
-      background: #1e1e1e;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      padding: 12px;
-      position: relative;
+      background: #1e1e1e; border-radius: 10px; border: 1px solid var(--border); padding: 12px;
     }
     .pitch-toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 10px;
-      justify-content: space-between;
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      margin-bottom: 10px; justify-content: space-between;
     }
     .pitch-toolbar .actions { display: flex; flex-wrap: wrap; gap: 6px; }
     .pitch-toolbar button { padding: 8px 14px; font-size: 0.85rem; }
 
     .once-media-badge {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: center;
+      display: inline-flex; flex-direction: column; align-items: center;
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      border: 2px solid var(--accent);
-      border-radius: 10px;
-      padding: 8px 16px;
-      min-width: 100px;
+      border: 2px solid var(--accent); border-radius: 10px; padding: 8px 16px; min-width: 100px;
     }
-    .once-media-badge .label {
-      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: #88aacc;
-    }
+    .once-media-badge .label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: #88aacc; }
     .once-media-badge .value { font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
     .once-media-badge .sub { font-size: 0.7rem; color: #888; }
 
@@ -283,33 +287,22 @@
     .pitch-area-top { top: 6%; border-top: none; }
     .pitch-area-bot { bottom: 6%; border-bottom: none; }
 
-    /* Cartas de jugador estilo FM */
     .slot {
       position: absolute; width: 92px; min-height: 70px;
       transform: translate(-50%, -50%);
       display: flex; flex-direction: column; align-items: center;
       z-index: 2; cursor: move;
     }
-    .slot.drag-over .slot-card {
-      outline: 2px solid var(--accent);
-      background: rgba(74,158,255,0.25);
-    }
+    .slot.drag-over .slot-card { outline: 2px solid var(--accent); background: rgba(74,158,255,0.25); }
     .slot.moving { z-index: 30; }
-
     .slot-card {
-      width: 100%;
-      background: rgba(20,20,20,0.88);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 6px;
-      padding: 3px 4px 4px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      width: 100%; background: rgba(20,20,20,0.88);
+      border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
+      padding: 3px 4px 4px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
     }
     .slot-card.empty {
-      background: rgba(0,0,0,0.35);
-      border: 1px dashed rgba(255,255,255,0.35);
-      min-height: 52px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.35); border: 1px dashed rgba(255,255,255,0.35);
+      min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
     .slot-type-select, .slot-role-select, .sp-role-select {
       width: 100%; padding: 1px 2px; font-size: 0.58rem;
@@ -320,45 +313,31 @@
     .slot-player { cursor: grab; width: 100%; }
     .slot-player .sp-name {
       font-size: 0.7rem; font-weight: 700; color: #fff;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      line-height: 1.2;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;
     }
-    .slot-player .sp-media {
-      font-size: 0.65rem; font-weight: 700;
-    }
+    .slot-player .sp-media { font-size: 0.65rem; font-weight: 700; }
     .slot-player .sp-remove {
       display: block; width: 100%; margin-top: 2px; padding: 1px;
       font-size: 0.55rem; background: #c0392b; color: #fff;
       border: none; border-radius: 3px; cursor: pointer;
     }
     .slot-player .sp-remove:hover { background: #e74c3c; }
-    .slot-empty-label {
-      font-size: 0.55rem; color: #888; margin-top: 2px;
-    }
+    .slot-empty-label { font-size: 0.55rem; color: #888; margin-top: 2px; }
 
-    /* Panel derecho estilo FM */
     .once-sidebar {
-      background: #1a1a1a;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      display: flex; flex-direction: column;
-      max-height: 90vh; overflow: hidden;
+      background: #1a1a1a; border-radius: 10px; border: 1px solid var(--border);
+      display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;
     }
     .once-sidebar-header {
-      padding: 12px 14px 8px;
-      border-bottom: 1px solid var(--border);
-      background: #222;
+      padding: 12px 14px 8px; border-bottom: 1px solid var(--border); background: #222;
     }
     .once-sidebar-header h3 {
-      font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;
-      color: #aaa; margin-bottom: 8px;
+      font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; color: #aaa;
     }
-    .once-actions {
-      display: flex; flex-wrap: wrap; gap: 6px;
-    }
-    .once-actions button { padding: 7px 12px; font-size: 0.8rem; flex: 1; min-width: 100px; }
+    .once-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .once-actions button { padding: 7px 12px; font-size: 0.8rem; flex: 1; min-width: 90px; }
 
-    .tooltip-wrap { position: relative; flex: 1; min-width: 100px; }
+    .tooltip-wrap { position: relative; flex: 1; min-width: 90px; }
     .tooltip-wrap button { width: 100%; }
     .tooltip-wrap .tooltip-text {
       visibility: hidden; opacity: 0;
@@ -370,30 +349,29 @@
     }
     .tooltip-wrap:hover .tooltip-text { visibility: visible; opacity: 1; }
 
-    .lineup-list, .disponibles-list {
-      overflow-y: auto; flex: 1;
-    }
     .lineup-section-title {
       padding: 8px 14px 4px; font-size: 0.75rem; text-transform: uppercase;
       letter-spacing: 0.5px; color: #666; background: #1e1e1e;
       border-bottom: 1px solid #2a2a2a; position: sticky; top: 0; z-index: 1;
     }
+    .sidebar-scroll { overflow-y: auto; flex: 1; display: flex; flex-direction: column; }
+
     .lineup-row, .disp-player {
-      display: flex; align-items: center; gap: 8px;
-      padding: 7px 12px; border-bottom: 1px solid #252525;
-      font-size: 0.85rem; transition: background 0.12s;
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 10px; border-bottom: 1px solid #252525;
+      font-size: 0.82rem; transition: background 0.12s; flex-wrap: wrap;
     }
     .lineup-row:hover, .disp-player:hover { background: #252525; }
     .lineup-row .lr-pos {
-      min-width: 72px; font-size: 0.7rem; font-weight: 700;
+      min-width: 36px; font-size: 0.68rem; font-weight: 700;
       color: #88aacc; text-transform: uppercase;
     }
-    .lineup-row .lr-name { flex: 1; font-weight: 600; color: #eee; }
+    .lineup-row .lr-name { flex: 1; font-weight: 600; color: #eee; min-width: 70px; }
     .lineup-row .lr-role {
-      font-size: 0.72rem; color: #a3e635; max-width: 100px;
+      font-size: 0.68rem; color: #a3e635; max-width: 80px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .lineup-row .lr-score { font-weight: 700; min-width: 36px; text-align: right; font-size: 0.85rem; }
+    .lineup-row .lr-score { font-weight: 700; min-width: 32px; text-align: right; font-size: 0.82rem; }
     .lineup-row .lr-remove {
       background: none; border: none; color: #888; cursor: pointer;
       font-size: 0.85rem; padding: 2px 4px;
@@ -403,14 +381,21 @@
 
     .disp-player { cursor: grab; user-select: none; }
     .disp-player.dragging { opacity: 0.45; }
-    .disp-player .dp-name { flex: 1; font-weight: 600; }
-    .disp-player .dp-pos { font-size: 0.72rem; color: #888; max-width: 120px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .disp-player .dp-media { font-size: 0.8rem; font-weight: 700; min-width: 36px; text-align: right; }
-
-    .sidebar-scroll {
-      overflow-y: auto; flex: 1; display: flex; flex-direction: column;
+    .disp-player .dp-name { flex: 1; font-weight: 600; min-width: 70px; }
+    .disp-player .dp-pos {
+      font-size: 0.68rem; color: #888; max-width: 90px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    .disp-player .dp-media { font-size: 0.8rem; font-weight: 700; min-width: 32px; text-align: right; }
+
+    .fe-mini {
+      display: flex; gap: 4px; width: 100%; margin-top: 2px; padding-left: 36px;
+    }
+    .fe-mini input {
+      width: 48px; padding: 2px 3px; font-size: 0.7rem; text-align: center;
+      background: #222; border: 1px solid #444; border-radius: 3px; color: #ccc;
+    }
+    .fe-mini label { font-size: 0.6rem; color: #666; align-self: center; }
   </style>
 </head>
 <body>
@@ -424,7 +409,6 @@
       <button class="nav-btn" onclick="mostrarTab('hacer-11')">Hacer 11</button>
     </div>
 
-    <!-- TAB EQUIPO (sin cambios estructurales) -->
     <div id="tab-equipo" class="tab-content active">
       <div class="players-list">
         <h2>Equipo (<span id="count">0</span> jugadores)</h2>
@@ -445,7 +429,6 @@
       </div>
     </div>
 
-    <!-- TAB AÑADIR JUGADOR -->
     <div id="tab-anadir-jugador" class="tab-content">
       <div class="form-section">
         <h2 id="form-title">Nuevo jugador</h2>
@@ -457,6 +440,26 @@
           <div>
             <label>Posición/es <small style="color:#888">(puedes marcar varias)</small></label>
             <div class="posiciones-grid" id="posicionesContainer"></div>
+          </div>
+          <div>
+            <label>Forma e informe <small style="color:#888">(influyen en la media del once)</small></label>
+            <div class="form-extras">
+              <div>
+                <label for="ult5">Últ. 5 partidos</label>
+                <input type="number" id="ult5" min="0" max="10" step="0.01" value="10">
+                <div class="hint">10.00 = 100 % de la media</div>
+              </div>
+              <div>
+                <label for="valEnt">Val. Entrenamiento</label>
+                <input type="number" id="valEnt" min="0" max="10" step="0.01" value="10">
+                <div class="hint">10.00 = 100 % de la media</div>
+              </div>
+              <div>
+                <label for="informe">Informe</label>
+                <input type="number" id="informe" min="-5" max="5" step="0.20" value="0">
+                <div class="hint">Suma en pasos de 0.20</div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="attrs-grid" id="attrsGrid"></div>
@@ -471,7 +474,6 @@
       </div>
     </div>
 
-    <!-- TAB AÑADIR ROL -->
     <div id="tab-anadir-rol" class="tab-content">
       <div class="form-section">
         <h2 id="form-rol-title">Añadir rol</h2>
@@ -501,31 +503,27 @@
       </div>
     </div>
 
-    <!-- ==================== TAB: HACER 11 (estilo FM) ==================== -->
     <div id="tab-hacer-11" class="tab-content">
       <div class="once-layout">
-
-        <!-- CAMPO (izquierda, como en FM) -->
         <div class="pitch-panel">
           <div class="pitch-toolbar">
             <div class="actions">
               <div class="tooltip-wrap">
                 <button class="btn-success" onclick="autoOnce(true)">⚡ Once automático</button>
                 <div class="tooltip-text">
-                  Mejor once con formación coherente y simétrica (1 POR, línea 3/4/5, bandas a la misma altura) maximizando la media de roles.
+                  Mejor once con formación coherente. Usa media de rol × (Últ.5 + Val.Ent)/20 + Informe.
                 </div>
               </div>
               <button class="btn-info" onclick="autoOnce(false)">🔧 Completar 11</button>
               <button class="btn-secondary" onclick="resetPosicionesSlots()">↺ Reset</button>
               <button class="btn-danger" onclick="limpiarOnce()">🗑️ Limpiar</button>
             </div>
-            <div class="once-media-badge" id="once-media-badge">
+            <div class="once-media-badge">
               <div class="label">Media del 11</div>
               <div class="value" id="once-media-value" style="color:#888;">—</div>
               <div class="sub"><span id="once-count">0</span>/11</div>
             </div>
           </div>
-
           <div class="pitch" id="pitch">
             <div class="pitch-half"></div>
             <div class="pitch-circle"></div>
@@ -534,7 +532,6 @@
           </div>
         </div>
 
-        <!-- PANEL DERECHO: alineación + disponibles -->
         <div class="once-sidebar">
           <div class="once-sidebar-header">
             <h3>Alineación</h3>
@@ -542,13 +539,10 @@
           <div class="sidebar-scroll">
             <div class="lineup-section-title">Titulares</div>
             <div class="lineup-list" id="lineupList"></div>
-            <div class="lineup-section-title">Disponibles</div>
-            <div class="disponibles-list" id="disponiblesList">
-              <div class="empty-state" style="padding:20px;font-size:0.85rem;">No hay jugadores.</div>
-            </div>
+            <div class="lineup-section-title">Disponibles (edita forma aquí)</div>
+            <div class="disponibles-list" id="disponiblesList"></div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -564,12 +558,10 @@
     POSICIONES.forEach((p,i) => ORDEN_POSICIONES[p] = i);
 
     const MAX_POR_TIPO = {
-      "Portero": 1,
-      "Lateral derecho": 2, "Central": 3, "Lateral izquierdo": 2,
+      "Portero": 1, "Lateral derecho": 2, "Central": 3, "Lateral izquierdo": 2,
       "Carrilero derecho": 2, "Centrocampista": 2, "Carrilero izquierdo": 2,
       "Medio derecho": 2, "Mediocentro": 3, "Medio izquierdo": 2,
-      "Extremo derecho": 2, "Mediapunta": 3, "Extremo izquierdo": 2,
-      "Delantero centro": 3
+      "Extremo derecho": 2, "Mediapunta": 3, "Extremo izquierdo": 2, "Delantero centro": 3
     };
 
     const ALTS = {
@@ -590,10 +582,10 @@
     };
 
     const ABREV = {
-      "Portero":"POR","Lateral derecho":"LD","Central":"DFC","Lateral izquierdo":"LI",
-      "Carrilero derecho":"CAD","Centrocampista":"MC","Carrilero izquierdo":"CAI",
-      "Medio derecho":"MD","Mediocentro":"MCD","Medio izquierdo":"MI",
-      "Extremo derecho":"ED","Mediapunta":"MP","Extremo izquierdo":"EI","Delantero centro":"DC"
+      "Portero":"POR", "Lateral derecho":"LD", "Central":"DFC", "Lateral izquierdo":"LI",
+      "Carrilero derecho":"CAD", "Centrocampista":"MCD", "Carrilero izquierdo":"CAI",
+      "Medio derecho":"MD", "Mediocentro":"MC", "Medio izquierdo":"MI",
+      "Extremo derecho":"ED", "Mediapunta":"MP", "Extremo izquierdo":"EI", "Delantero centro":"DC"
     };
 
     const FORMACIONES_COHERENTES = [
@@ -696,7 +688,7 @@
       if (map[tabId] !== undefined) botones[map[tabId]].classList.add('active');
       if (tabId === 'equipo') renderizarJugadores();
       if (tabId === 'anadir-rol') renderizarRolesExistentes();
-      if (tabId === 'hacer-11') { construirPitch(); renderDisponibles(); renderPitch(); }
+      if (tabId === 'hacer-11') { construirPitch(); renderPitch(); }
       if (tabId === 'anadir-jugador') actualizarFormularioAtributos();
     }
 
@@ -809,8 +801,26 @@
       return html + `</div>`;
     }
 
-    function valoracionRolEnOnce(player, roleName) {
+    /* ===== FORMA: Últ.5 + Val.Ent + Informe ===== */
+    function getUlt5(j) { const v = Number(j.ult5); return isNaN(v) ? 10 : v; }
+    function getValEnt(j) { const v = Number(j.valEnt); return isNaN(v) ? 10 : v; }
+    function getInforme(j) { const v = Number(j.informe); return isNaN(v) ? 0 : v; }
+
+    /** Factor de forma: (ult5 + valEnt) / 20 → 1.0 cuando ambos son 10 */
+    function factorForma(j) {
+      return (getUlt5(j) + getValEnt(j)) / 20;
+    }
+
+    /** Media efectiva = media_rol × factor_forma + informe */
+    function mediaEfectiva(player, roleName) {
       if (!player) return 0;
+      const base = roleName
+        ? valoracionRolBase(player, roleName)
+        : calcularMediaJugador(player);
+      return base * factorForma(player) + getInforme(player);
+    }
+
+    function valoracionRolBase(player, roleName) {
       if (!roleName) return calcularMediaJugador(player);
       const found = obtenerRolesDelJugador(player).find(r => r.nombre === roleName);
       if (found) return found.valoracion;
@@ -818,6 +828,11 @@
       if (rolGlobal) return calcularValoracionRol(player, rolGlobal.atributos);
       return calcularMediaJugador(player);
     }
+
+    function valoracionRolEnOnce(player, roleName) {
+      return mediaEfectiva(player, roleName);
+    }
+
     function calcularMediaOncePorRoles() {
       let suma = 0, n = 0;
       Object.keys(lineup).forEach(sid => {
@@ -825,10 +840,11 @@
         if (!entry?.playerId) return;
         const player = jugadores.find(j => j.id === entry.playerId);
         if (!player) return;
-        suma += valoracionRolEnOnce(player, entry.roleName); n++;
+        suma += mediaEfectiva(player, entry.roleName); n++;
       });
       return n ? suma / n : 0;
     }
+
     function actualizarBadgeMediaOnce() {
       const media = calcularMediaOncePorRoles();
       const count = Object.keys(lineup).filter(k => lineup[k]?.playerId).length;
@@ -860,10 +876,33 @@
     function scoreEnTipo(player, tipoSlot) {
       if (!puedeJugarEn(player, tipoSlot)) return -1;
       const rol = mejorRolCompatible(player, tipoSlot);
-      return rol ? rol.valoracion : calcularMediaJugador(player);
+      const roleName = rol ? rol.nombre : '';
+      return mediaEfectiva(player, roleName);
     }
 
-    /* ROLES CRUD — igual que antes */
+    /** Actualizar forma desde inputs en lista de disponibles/equipo */
+    function actualizarFormaJugador(id, campo, valor) {
+      const j = jugadores.find(p => p.id === id || p.id == id);
+      if (!j) return;
+      let v = parseFloat(valor);
+      if (isNaN(v)) v = 0;
+      if (campo === 'ult5' || campo === 'valEnt') {
+        v = Math.max(0, Math.min(10, v));
+      }
+      if (campo === 'informe') {
+        // redondear a múltiplos de 0.20
+        v = Math.round(v / 0.2) * 0.2;
+        v = Math.max(-5, Math.min(5, v));
+      }
+      j[campo] = v;
+      localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+      // refrescar once si estamos ahí
+      if (document.getElementById('tab-hacer-11').classList.contains('active')) {
+        renderPitch();
+      }
+    }
+
+    /* ROLES */
     function guardarRolesEnStorage() { localStorage.setItem('rolesFM_v2', JSON.stringify(roles)); }
     function cargarRolesDesdeStorage() {
       try {
@@ -1027,8 +1066,24 @@
     }
     function obtenerDatosFormulario() {
       document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => clampValor(el));
-      const data = { id: editandoId || Date.now(), nombre: document.getElementById('nombre').value.trim(), posiciones: obtenerPosicionesSeleccionadas() };
-      document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => { data[el.id] = parseInt(el.value) || 1; });
+      let ult5 = parseFloat(document.getElementById('ult5').value);
+      let valEnt = parseFloat(document.getElementById('valEnt').value);
+      let informe = parseFloat(document.getElementById('informe').value);
+      if (isNaN(ult5)) ult5 = 10; ult5 = Math.max(0, Math.min(10, ult5));
+      if (isNaN(valEnt)) valEnt = 10; valEnt = Math.max(0, Math.min(10, valEnt));
+      if (isNaN(informe)) informe = 0;
+      informe = Math.round(informe / 0.2) * 0.2;
+      informe = Math.max(-5, Math.min(5, informe));
+
+      const data = {
+        id: editandoId || Date.now(),
+        nombre: document.getElementById('nombre').value.trim(),
+        posiciones: obtenerPosicionesSeleccionadas(),
+        ult5, valEnt, informe
+      };
+      document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => {
+        data[el.id] = parseInt(el.value) || 1;
+      });
       return data;
     }
     function guardarJugador() {
@@ -1038,13 +1093,20 @@
         const idx = jugadores.findIndex(j => j.id === editandoId);
         if (idx !== -1) jugadores[idx] = data;
         mostrarStatus('✅ Jugador actualizado');
-      } else { jugadores.push(data); mostrarStatus('✅ Jugador guardado'); }
+      } else {
+        jugadores.push(data);
+        mostrarStatus('✅ Jugador guardado');
+      }
       localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
       editandoId = null; document.getElementById('form-title').textContent = 'Nuevo jugador';
       limpiarFormulario(); renderizarJugadores();
     }
     function limpiarFormulario() {
-      document.getElementById('nombre').value = ''; marcarPosiciones([]);
+      document.getElementById('nombre').value = '';
+      document.getElementById('ult5').value = 10;
+      document.getElementById('valEnt').value = 10;
+      document.getElementById('informe').value = 0;
+      marcarPosiciones([]);
       editandoId = null; document.getElementById('form-title').textContent = 'Nuevo jugador';
     }
     function editarJugador(id) {
@@ -1052,6 +1114,9 @@
       mostrarTab('anadir-jugador'); editandoId = id;
       document.getElementById('form-title').textContent = 'Editando: ' + j.nombre;
       document.getElementById('nombre').value = j.nombre || '';
+      document.getElementById('ult5').value = getUlt5(j);
+      document.getElementById('valEnt').value = getValEnt(j);
+      document.getElementById('informe').value = getInforme(j);
       marcarPosiciones(j.posiciones || []);
       setTimeout(() => {
         document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => {
@@ -1077,6 +1142,7 @@
         const posArr = getPosicionesJugador(j);
         const posTexto = posArr.length ? posArr.join(' · ') : 'Sin posición';
         const media = calcularMediaJugador(j), mc = colorMedia(media), esGK = jugadorEsPortero(j);
+        const u5 = getUlt5(j), ve = getValEnt(j), inf = getInforme(j);
         let attrsHTML = '';
         if (esGK) {
           attrsHTML = `<div class="view-column"><h4>Portería</h4>${ATTRS_GK.porteria.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
@@ -1100,6 +1166,20 @@
                 <button class="btn-secondary" onclick="editarJugador(${j.id})">✏️ Editar</button>
                 <button class="btn-danger" onclick="eliminarJugador(${j.id})">🗑️ Eliminar</button>
               </div>
+            </div>
+          </div>
+          <div class="form-extras-inline">
+            <div class="fe-item"><label>Últ.5</label>
+              <input type="number" min="0" max="10" step="0.01" value="${u5}"
+                onchange="actualizarFormaJugador(${j.id},'ult5',this.value)"></div>
+            <div class="fe-item"><label>Val.Ent</label>
+              <input type="number" min="0" max="10" step="0.01" value="${ve}"
+                onchange="actualizarFormaJugador(${j.id},'valEnt',this.value)"></div>
+            <div class="fe-item"><label>Informe</label>
+              <input type="number" min="-5" max="5" step="0.20" value="${inf}"
+                onchange="actualizarFormaJugador(${j.id},'informe',this.value)"></div>
+            <div class="fe-item" style="color:#888;font-size:0.8rem;">
+              Factor: ${(factorForma(j)*100).toFixed(0)}%
             </div>
           </div>
           <div class="attrs-section">
@@ -1132,7 +1212,7 @@
       reader.readAsText(file); event.target.value = '';
     }
 
-    /* ========== HACER 11 ========== */
+    /* HACER 11 */
     function guardarLineup() {
       localStorage.setItem('lineupFM', JSON.stringify(lineup));
       localStorage.setItem('slotsConfigFM', JSON.stringify(slotsConfig));
@@ -1204,7 +1284,6 @@
         pitch.appendChild(div);
       });
     }
-
     function makeSlotDraggable(el, slotData) {
       let startX, startY, origLeft, origTop, dragging = false;
       el.addEventListener('pointerdown', e => {
@@ -1233,7 +1312,6 @@
     function renderLineupList() {
       const container = document.getElementById('lineupList');
       if (!container) return;
-      // Orden por posición en campo (top descendente = defensa primero visualmente en lista)
       const ordenados = [...slotsConfig].sort((a,b) => b.top - a.top || a.left - b.left);
       container.innerHTML = ordenados.map(s => {
         const entry = lineup[s.id];
@@ -1241,21 +1319,26 @@
         if (entry?.playerId) {
           const player = jugadores.find(j => j.id === entry.playerId);
           if (!player) return '';
-          const sc = valoracionRolEnOnce(player, entry.roleName);
+          const sc = mediaEfectiva(player, entry.roleName);
           const mc = colorMedia(sc);
           return `<div class="lineup-row">
             <span class="lr-pos">${abrev}</span>
             <span class="lr-name">${player.nombre}</span>
             <span class="lr-role">${entry.roleName || '—'}</span>
-            <span class="lr-score" style="color:${mc}">${sc.toFixed(0)}</span>
-            <button class="lr-remove" onclick="quitarDelSlot(${s.id})" title="Quitar">✕</button>
+            <span class="lr-score" style="color:${mc}">${sc.toFixed(1)}</span>
+            <button class="lr-remove" onclick="quitarDelSlot(${s.id})">✕</button>
+            <div class="fe-mini">
+              <label>Ú5</label><input type="number" min="0" max="10" step="0.01" value="${getUlt5(player)}"
+                onchange="actualizarFormaJugador(${player.id},'ult5',this.value)">
+              <label>VE</label><input type="number" min="0" max="10" step="0.01" value="${getValEnt(player)}"
+                onchange="actualizarFormaJugador(${player.id},'valEnt',this.value)">
+              <label>Inf</label><input type="number" min="-5" max="5" step="0.20" value="${getInforme(player)}"
+                onchange="actualizarFormaJugador(${player.id},'informe',this.value)">
+            </div>
           </div>`;
         }
         return `<div class="lineup-row empty-slot">
-          <span class="lr-pos">${abrev}</span>
-          <span class="lr-name">Vacío</span>
-          <span class="lr-role"></span>
-          <span class="lr-score"></span>
+          <span class="lr-pos">${abrev}</span><span class="lr-name">Vacío</span>
         </div>`;
       }).join('');
     }
@@ -1278,6 +1361,14 @@
           <span class="dp-name">${j.nombre}</span>
           <span class="dp-pos">${posT}</span>
           <span class="dp-media" style="color:${mc}">${media.toFixed(0)}</span>
+          <div class="fe-mini">
+            <label>Ú5</label><input type="number" min="0" max="10" step="0.01" value="${getUlt5(j)}"
+              onclick="event.stopPropagation()" onchange="actualizarFormaJugador(${j.id},'ult5',this.value)">
+            <label>VE</label><input type="number" min="0" max="10" step="0.01" value="${getValEnt(j)}"
+              onclick="event.stopPropagation()" onchange="actualizarFormaJugador(${j.id},'valEnt',this.value)">
+            <label>Inf</label><input type="number" min="-5" max="5" step="0.20" value="${getInforme(j)}"
+              onclick="event.stopPropagation()" onchange="actualizarFormaJugador(${j.id},'informe',this.value)">
+          </div>
         </div>`;
       }).join('');
     }
@@ -1287,18 +1378,15 @@
         const sid = parseInt(slotEl.dataset.slot);
         const cfg = slotsConfig.find(s => s.id === sid);
         if (!cfg) return;
-
         const card = slotEl.querySelector('[data-card]') || slotEl;
-        // Rebuild card content
         const entry = lineup[sid];
         const player = entry ? jugadores.find(j => j.id === entry.playerId) : null;
-
         const optsTipo = POSICIONES.map(p =>
           `<option value="${p}" ${p===cfg.tipo?'selected':''}>${ABREV[p]||p}</option>`
         ).join('');
 
         if (player) {
-          const rolScore = valoracionRolEnOnce(player, entry.roleName);
+          const rolScore = mediaEfectiva(player, entry.roleName);
           const mc = colorMedia(rolScore);
           const rolesDisp = obtenerRolesDelJugador(player);
           const alts = ALTS[cfg.tipo] || [cfg.tipo];
@@ -1308,7 +1396,6 @@
           rolesSlot.forEach(r => {
             roleOptions += `<option value="${r.nombre}" ${entry.roleName===r.nombre?'selected':''}>${r.nombre}</option>`;
           });
-
           card.className = 'slot-card';
           card.innerHTML = `
             <select class="slot-type-select" onchange="cambiarTipoSlot(${sid}, this.value)">${optsTipo}</select>
@@ -1331,17 +1418,14 @@
             <select class="slot-role-select" onchange="cambiarRolDeseado(${sid}, this.value)">${optsRol}</select>
             <div class="slot-empty-label">Vacío</div>`;
         }
-
         slotEl.ondragover = e => { e.preventDefault(); slotEl.classList.add('drag-over'); };
         slotEl.ondragleave = () => slotEl.classList.remove('drag-over');
         slotEl.ondrop = e => {
-          e.preventDefault();
-          slotEl.classList.remove('drag-over');
+          e.preventDefault(); slotEl.classList.remove('drag-over');
           const pid = parseFloat(e.dataTransfer.getData('text/pid'));
           if (pid) colocarJugador(sid, pid);
         };
       });
-
       actualizarBadgeMediaOnce();
       renderLineupList();
       renderDisponibles();
@@ -1365,12 +1449,9 @@
         roleName = mejor ? mejor.nombre : (cfg.desiredRole || '');
       }
       lineup[slotId] = { playerId: Number(playerId) || playerId, roleName };
-      guardarLineup();
-      renderPitch();
+      guardarLineup(); renderPitch();
     }
-    function quitarDelSlot(slotId) {
-      delete lineup[slotId]; guardarLineup(); renderPitch();
-    }
+    function quitarDelSlot(slotId) { delete lineup[slotId]; guardarLineup(); renderPitch(); }
     function cambiarRolSlot(slotId, roleName) {
       if (lineup[slotId]) {
         lineup[slotId].roleName = roleName;
@@ -1421,7 +1502,6 @@
 
     function autoOnce(full) {
       if (jugadores.length < 1) { alert('No hay jugadores disponibles.'); return; }
-
       if (full) {
         let mejorEval = null;
         for (const form of FORMACIONES_COHERENTES) {
@@ -1444,8 +1524,6 @@
         guardarLineup(); construirPitch(); renderPitch();
         return;
       }
-
-      // Completar 11 — solo compatibles
       const usados = new Set(Object.values(lineup).map(e => e.playerId).filter(Boolean));
       const orden = [...slotsConfig].sort((a,b) => {
         const prio = t => t==='Portero'?0 : (t==='Central'||t.includes('Lateral'))?1 : t.includes('Carrilero')?2 : (t==='Mediocentro'||t==='Centrocampista')?3 : 4;
@@ -1480,6 +1558,12 @@
       try {
         jugadores = JSON.parse(localStorage.getItem('jugadoresFM') || '[]');
         if (!Array.isArray(jugadores)) jugadores = [];
+        // Migrar jugadores antiguos sin campos de forma
+        jugadores.forEach(j => {
+          if (j.ult5 === undefined) j.ult5 = 10;
+          if (j.valEnt === undefined) j.valEnt = 10;
+          if (j.informe === undefined) j.informe = 0;
+        });
       } catch(e) { jugadores = []; }
       cargarRolesDesdeStorage();
       cargarLineup();
