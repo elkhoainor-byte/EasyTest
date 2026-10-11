@@ -61,11 +61,18 @@
     .pos-item input[type="checkbox"], .attr-check-item input[type="checkbox"] {
       width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer;
     }
+
     .attrs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
     @media (max-width: 900px) { .attrs-grid { grid-template-columns: 1fr; } }
     .attr-column { background: #222; border-radius: 8px; padding: 16px; border: 1px solid var(--border); }
-    .attr-column h3 { text-align: center; margin-bottom: 14px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; color: #aaa; }
-    .attr-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; margin-bottom: 4px; border-radius: 4px; }
+    .attr-column h3 {
+      text-align: center; margin-bottom: 14px; font-size: 1.1rem;
+      text-transform: uppercase; letter-spacing: 1px; color: #aaa;
+    }
+    .attr-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 8px; margin-bottom: 4px; border-radius: 4px;
+    }
     .attr-row:hover { background: #2f2f2f; }
     .attr-row label { flex: 1; font-size: 0.95rem; }
     .attr-row input {
@@ -74,6 +81,15 @@
       font-weight: 600; font-size: 0.95rem;
     }
     .attr-row input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+
+    .tecnico-gk-block {
+      margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);
+    }
+    .tecnico-gk-block h4 {
+      text-align: center; margin-bottom: 10px; font-size: 0.95rem;
+      text-transform: uppercase; letter-spacing: 1px; color: #aaa;
+    }
+
     .buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; justify-content: center; }
     button {
       padding: 12px 24px; border: none; border-radius: 6px; font-size: 1rem;
@@ -132,16 +148,28 @@
     .view-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
     @media (max-width: 800px) { .view-grid { grid-template-columns: 1fr; } }
     .view-column { background: #222; border-radius: 6px; overflow: hidden; }
-    .view-column h4 { background: #333; padding: 8px; text-align: center; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #bbb; }
-    .view-row { display: flex; justify-content: space-between; padding: 6px 12px; border-bottom: 1px solid #2a2a2a; font-size: 0.92rem; }
+    .view-column h4 {
+      background: #333; padding: 8px; text-align: center; font-size: 0.9rem;
+      text-transform: uppercase; letter-spacing: 1px; color: #bbb;
+    }
+    .view-row {
+      display: flex; justify-content: space-between; padding: 6px 12px;
+      border-bottom: 1px solid #2a2a2a; font-size: 0.92rem;
+    }
     .view-row:last-child { border-bottom: none; }
     .view-row .value { font-weight: 700; min-width: 28px; text-align: right; }
     .high { color: #4ade80; } .mid { color: #fbbf24; } .low { color: #f87171; }
 
     .roles-section { margin-top: 16px; background: #1e1e1e; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
-    .roles-section h4 { background: #333; padding: 10px 14px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; color: #bbb; }
+    .roles-section h4 {
+      background: #333; padding: 10px 14px; font-size: 0.95rem;
+      text-transform: uppercase; letter-spacing: 1px; color: #bbb;
+    }
     .roles-list { display: flex; flex-direction: column; }
-    .role-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; border-bottom: 1px solid #2a2a2a; font-size: 0.92rem; gap: 12px; }
+    .role-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 9px 14px; border-bottom: 1px solid #2a2a2a; font-size: 0.92rem; gap: 12px;
+    }
     .role-item .role-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
     .role-item .role-name { font-weight: 600; }
     .role-item .role-pos { font-size: 0.8rem; color: #888; }
@@ -186,10 +214,9 @@
       text-transform: uppercase; letter-spacing: 0.5px;
     }
 
-    /* ========== HACER 11 ========== */
+    /* HACER 11 */
     .once-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
     @media (max-width: 1000px) { .once-layout { grid-template-columns: 1fr; } }
-
     .once-sidebar {
       background: var(--card); border-radius: 10px; border: 1px solid var(--border);
       padding: 16px; max-height: 85vh; overflow-y: auto;
@@ -200,18 +227,12 @@
     }
     .once-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
     .once-actions button { width: 100%; padding: 10px; font-size: 0.9rem; }
-
-    .formacion-select {
-      margin-bottom: 14px;
-    }
-    .formacion-select label {
-      display: block; font-weight: 600; font-size: 0.85rem; color: #aaa; margin-bottom: 4px;
-    }
+    .formacion-select { margin-bottom: 14px; }
+    .formacion-select label { display: block; font-weight: 600; font-size: 0.85rem; color: #aaa; margin-bottom: 4px; }
     .formacion-select select {
       width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
       background: #222; color: var(--text); font-size: 0.95rem; cursor: pointer;
     }
-
     .disponibles-list { display: flex; flex-direction: column; gap: 8px; }
     .disp-player {
       background: #222; border: 1px solid var(--border); border-radius: 8px;
@@ -261,7 +282,7 @@
       align-items: center; justify-content: center; transition: all 0.2s; z-index: 2;
     }
     .slot.drag-over {
-      background: rgba(74, 158, 255, 0.35); border-color: var(--accent); border-style: solid;
+      background: rgba(74,158,255,0.35); border-color: var(--accent); border-style: solid;
     }
     .slot-label {
       font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;
@@ -285,10 +306,7 @@
       background: #c0392b; color: #fff; border: none; border-radius: 3px; cursor: pointer;
     }
     .slot-player .sp-remove:hover { background: #e74c3c; }
-
-    .once-info {
-      text-align: center; margin-top: 12px; font-size: 0.95rem; color: #aaa;
-    }
+    .once-info { text-align: center; margin-top: 12px; font-size: 0.95rem; color: #aaa; }
     .once-info strong { color: #fff; }
   </style>
 </head>
@@ -338,53 +356,12 @@
             <div class="posiciones-grid" id="posicionesContainer"></div>
           </div>
         </div>
-        <div class="attrs-grid">
-          <div class="attr-column">
-            <h3>Técnico</h3>
-            <div class="attr-row"><label>Cabeceo</label><input type="number" id="cabeceo" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Centros</label><input type="number" id="centros" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Control</label><input type="number" id="control" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Entradas</label><input type="number" id="entradas" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Marcaje</label><input type="number" id="marcaje" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Pases</label><input type="number" id="pases" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Penaltis</label><input type="number" id="penaltis" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Regate</label><input type="number" id="regate" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Remate</label><input type="number" id="remate" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Saques de esquina</label><input type="number" id="saques_esquina" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Saques largos</label><input type="number" id="saques_largos" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Técnica</label><input type="number" id="tecnica" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Tiros lejanos</label><input type="number" id="tiros_lejanos" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Tiros libres</label><input type="number" id="tiros_libres" min="1" max="20" value="10"></div>
-          </div>
-          <div class="attr-column">
-            <h3>Mental</h3>
-            <div class="attr-row"><label>Agresividad</label><input type="number" id="agresividad" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Anticipación</label><input type="number" id="anticipacion" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Colocación</label><input type="number" id="colocacion" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Concentración</label><input type="number" id="concentracion" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Decisiones</label><input type="number" id="decisiones" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Desmarques</label><input type="number" id="desmarques" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Determinación</label><input type="number" id="determinacion" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Juego en equipo</label><input type="number" id="juego_equipo" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Liderazgo</label><input type="number" id="liderazgo" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Sacrificio</label><input type="number" id="sacrificio" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Serenidad</label><input type="number" id="serenidad" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Talento</label><input type="number" id="talento" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Valentía</label><input type="number" id="valentia" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Visión</label><input type="number" id="vision" min="1" max="20" value="10"></div>
-          </div>
-          <div class="attr-column">
-            <h3>Físico</h3>
-            <div class="attr-row"><label>Aceleración</label><input type="number" id="aceleracion" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Agilidad</label><input type="number" id="agilidad" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Alcance de salto</label><input type="number" id="alcance_salto" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Equilibrio</label><input type="number" id="equilibrio" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Fuerza</label><input type="number" id="fuerza" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Recuperación física</label><input type="number" id="recuperacion" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Resistencia</label><input type="number" id="resistencia" min="1" max="20" value="10"></div>
-            <div class="attr-row"><label>Velocidad</label><input type="number" id="velocidad" min="1" max="20" value="10"></div>
-          </div>
+
+        <!-- Atributos dinámicos -->
+        <div class="attrs-grid" id="attrsGrid">
+          <!-- Se rellena por JS según si es portero o no -->
         </div>
+
         <div class="buttons">
           <button class="btn-primary" onclick="guardarJugador()">💾 Guardar jugador</button>
           <button class="btn-secondary" onclick="limpiarFormulario()">🗑️ Limpiar</button>
@@ -426,12 +403,11 @@
       </div>
     </div>
 
-    <!-- ==================== TAB: HACER 11 ==================== -->
+    <!-- TAB HACER 11 -->
     <div id="tab-hacer-11" class="tab-content">
       <div class="once-layout">
         <div class="once-sidebar">
           <h3>Jugadores disponibles</h3>
-
           <div class="formacion-select">
             <label for="select-formacion">Táctica / Formación</label>
             <select id="select-formacion" onchange="cambiarFormacion()">
@@ -445,7 +421,6 @@
               <option value="3-4-3">3-4-3</option>
             </select>
           </div>
-
           <div class="once-actions">
             <button class="btn-success" onclick="autoOnce(true)">⚡ Once automático (todo)</button>
             <button class="btn-info" onclick="autoOnce(false)">🔧 Completar 11</button>
@@ -455,14 +430,12 @@
             <div class="empty-state" style="padding:20px;font-size:0.9rem;">No hay jugadores.</div>
           </div>
         </div>
-
         <div class="pitch-container">
           <div class="pitch" id="pitch">
             <div class="pitch-half"></div>
             <div class="pitch-circle"></div>
             <div class="pitch-area-top"></div>
             <div class="pitch-area-bot"></div>
-            <!-- slots se generan por JS según formación -->
           </div>
           <div class="once-info">
             Formación: <strong id="once-formacion">4-3-3</strong>
@@ -484,7 +457,48 @@
     const ORDEN_POSICIONES = {};
     POSICIONES.forEach((p,i) => ORDEN_POSICIONES[p] = i);
 
-    /* ========== FORMACIONES ========== */
+    /* Atributos de campo (outfield) */
+    const ATTRS_OUTFIELD = {
+      tecnico: ['cabeceo','centros','control','entradas','marcaje','pases','penaltis','regate','remate','saques_esquina','saques_largos','tecnica','tiros_lejanos','tiros_libres'],
+      mental:  ['agresividad','anticipacion','colocacion','concentracion','decisiones','desmarques','determinacion','juego_equipo','liderazgo','sacrificio','serenidad','talento','valentia','vision'],
+      fisico:  ['aceleracion','agilidad','alcance_salto','equilibrio','fuerza','recuperacion','resistencia','velocidad']
+    };
+
+    /* Atributos de portero */
+    const ATTRS_GK = {
+      porteria: ['alcance_aereo','blocaje','comunicacion','control','excentricidad','golpeo_punios','mando_area','pases','reflejos','salidas','saque_mano','saques_puerta','uno_contra_uno'],
+      mental:   ATTRS_OUTFIELD.mental,
+      fisico:   ATTRS_OUTFIELD.fisico,
+      tecnico:  ['penaltis','tecnica','tiros_libres']   // debajo de Físico
+    };
+
+    const LABELS = {
+      // Outfield técnico
+      cabeceo:'Cabeceo', centros:'Centros', control:'Control', entradas:'Entradas', marcaje:'Marcaje', pases:'Pases',
+      penaltis:'Penaltis', regate:'Regate', remate:'Remate', saques_esquina:'Saques de esquina', saques_largos:'Saques largos',
+      tecnica:'Técnica', tiros_lejanos:'Tiros lejanos', tiros_libres:'Tiros libres',
+      // Mental
+      agresividad:'Agresividad', anticipacion:'Anticipación', colocacion:'Colocación', concentracion:'Concentración',
+      decisiones:'Decisiones', desmarques:'Desmarques', determinacion:'Determinación', juego_equipo:'Juego en equipo',
+      liderazgo:'Liderazgo', sacrificio:'Sacrificio', serenidad:'Serenidad', talento:'Talento', valentia:'Valentía', vision:'Visión',
+      // Físico
+      aceleracion:'Aceleración', agilidad:'Agilidad', alcance_salto:'Alcance de salto', equilibrio:'Equilibrio',
+      fuerza:'Fuerza', recuperacion:'Recuperación física', resistencia:'Resistencia', velocidad:'Velocidad',
+      // Portería
+      alcance_aereo:'Alcance aéreo', blocaje:'Blocaje', comunicacion:'Comunicación',
+      excentricidad:'Excentricidad', golpeo_punios:'Golpeo de puños (tendencia)', mando_area:'Mando en el área',
+      reflejos:'Reflejos', salidas:'Salidas (tendencia)', saque_mano:'Saque con la mano',
+      saques_puerta:'Saques de puerta', uno_contra_uno:'Uno contra uno'
+    };
+
+    // Todos los atributos posibles (para media y clamp)
+    const ALL_ATTRS = [
+      ...ATTRS_OUTFIELD.tecnico, ...ATTRS_OUTFIELD.mental, ...ATTRS_OUTFIELD.fisico,
+      ...ATTRS_GK.porteria.filter(a => !ATTRS_OUTFIELD.tecnico.includes(a) && !ATTRS_OUTFIELD.mental.includes(a) && !ATTRS_OUTFIELD.fisico.includes(a))
+    ];
+    // Eliminar duplicados
+    const ALL_ATTRS_UNIQUE = [...new Set(ALL_ATTRS)];
+
     const FORMACIONES = {
       "4-3-3": [
         { id:"POR", label:"POR", pos:"Portero", alts:["Portero"], left:"50%", top:"92%" },
@@ -593,29 +607,12 @@
     };
 
     let formacionActual = "4-3-3";
-
-    const ATTRS = {
-      tecnico: ['cabeceo','centros','control','entradas','marcaje','pases','penaltis','regate','remate','saques_esquina','saques_largos','tecnica','tiros_lejanos','tiros_libres'],
-      mental: ['agresividad','anticipacion','colocacion','concentracion','decisiones','desmarques','determinacion','juego_equipo','liderazgo','sacrificio','serenidad','talento','valentia','vision'],
-      fisico: ['aceleracion','agilidad','alcance_salto','equilibrio','fuerza','recuperacion','resistencia','velocidad']
-    };
-    const LABELS = {
-      cabeceo:'Cabeceo', centros:'Centros', control:'Control', entradas:'Entradas', marcaje:'Marcaje', pases:'Pases',
-      penaltis:'Penaltis', regate:'Regate', remate:'Remate', saques_esquina:'Saques de esquina', saques_largos:'Saques largos',
-      tecnica:'Técnica', tiros_lejanos:'Tiros lejanos', tiros_libres:'Tiros libres',
-      agresividad:'Agresividad', anticipacion:'Anticipación', colocacion:'Colocación', concentracion:'Concentración',
-      decisiones:'Decisiones', desmarques:'Desmarques', determinacion:'Determinación', juego_equipo:'Juego en equipo',
-      liderazgo:'Liderazgo', sacrificio:'Sacrificio', serenidad:'Serenidad', talento:'Talento', valentia:'Valentía', vision:'Visión',
-      aceleracion:'Aceleración', agilidad:'Agilidad', alcance_salto:'Alcance de salto', equilibrio:'Equilibrio',
-      fuerza:'Fuerza', recuperacion:'Recuperación física', resistencia:'Resistencia', velocidad:'Velocidad'
-    };
-    const ALL_ATTRS = [...ATTRS.tecnico, ...ATTRS.mental, ...ATTRS.fisico];
-
     let jugadores = [];
     let roles = [];
     let editandoId = null;
     let editandoRolId = null;
     let lineup = {};
+    let esPorteroForm = false; // estado actual del formulario
 
     /* ========== NAVEGACIÓN ========== */
     function mostrarTab(tabId) {
@@ -628,9 +625,68 @@
       if (tabId === 'equipo') renderizarJugadores();
       if (tabId === 'anadir-rol') renderizarRolesExistentes();
       if (tabId === 'hacer-11') { construirPitch(); renderDisponibles(); renderPitch(); }
+      if (tabId === 'anadir-jugador') actualizarFormularioAtributos();
     }
 
-    /* ========== UTILIDADES COMUNES ========== */
+    /* ========== ATRIBUTOS DINÁMICOS (PORTERO vs CAMPO) ========== */
+    function esPorteroSeleccionado() {
+      return Array.from(document.querySelectorAll('input[name="posicion"]:checked'))
+        .some(c => c.value === 'Portero');
+    }
+
+    function crearFilaAttr(id, label) {
+      return `<div class="attr-row">
+        <label for="${id}">${label}</label>
+        <input type="number" id="${id}" min="1" max="20" value="10">
+      </div>`;
+    }
+
+    function actualizarFormularioAtributos() {
+      const esGK = esPorteroSeleccionado();
+      esPorteroForm = esGK;
+      const grid = document.getElementById('attrsGrid');
+
+      if (esGK) {
+        // Columna Portería | Mental | Físico + Técnico debajo
+        let html = `
+          <div class="attr-column">
+            <h3>Portería</h3>
+            ${ATTRS_GK.porteria.map(a => crearFilaAttr(a, LABELS[a] || a)).join('')}
+          </div>
+          <div class="attr-column">
+            <h3>Mental</h3>
+            ${ATTRS_GK.mental.map(a => crearFilaAttr(a, LABELS[a] || a)).join('')}
+          </div>
+          <div class="attr-column">
+            <h3>Físico</h3>
+            ${ATTRS_GK.fisico.map(a => crearFilaAttr(a, LABELS[a] || a)).join('')}
+            <div class="tecnico-gk-block">
+              <h4>Técnico</h4>
+              ${ATTRS_GK.tecnico.map(a => crearFilaAttr(a, LABELS[a] || a)).join('')}
+            </div>
+          </div>`;
+        grid.innerHTML = html;
+      } else {
+        // Técnico | Mental | Físico normal
+        let html = `
+          <div class="attr-column">
+            <h3>Técnico</h3>
+            ${ATTRS_OUTFIELD.tecnico.map(a => crearFilaAttr(a, LABELS[a] || a)).join('')}
+          </div>
+          <div class="attr-column">
+            <h3>Mental</h3>
+            ${ATTRS_OUTFIELD.mental.map(a => crearFilaAttr(a, LABELS[a] || a)).join('')}
+          </div>
+          <div class="attr-column">
+            <h3>Físico</h3>
+            ${ATTRS_OUTFIELD.fisico.map(a => crearFilaAttr(a, LABELS[a] || a)).join('')}
+          </div>`;
+        grid.innerHTML = html;
+      }
+      activarClampEnInputs();
+    }
+
+    /* ========== UTILIDADES ========== */
     function aplicarOrden() { renderizarJugadores(); }
     function obtenerJugadoresOrdenados() {
       const criterio = document.getElementById('sort-by')?.value || 'nombre';
@@ -655,9 +711,25 @@
       });
       return lista;
     }
+
+    function jugadorEsPortero(j) {
+      let pos = j.posiciones || [];
+      if (typeof pos === 'string') pos = pos.split(/[,·|]/).map(s=>s.trim()).filter(Boolean);
+      return Array.isArray(pos) && pos.includes('Portero');
+    }
+
+    function attrsParaMedia(j) {
+      if (jugadorEsPortero(j)) {
+        return [...ATTRS_GK.porteria, ...ATTRS_GK.mental, ...ATTRS_GK.fisico, ...ATTRS_GK.tecnico];
+      }
+      return [...ATTRS_OUTFIELD.tecnico, ...ATTRS_OUTFIELD.mental, ...ATTRS_OUTFIELD.fisico];
+    }
+
     function calcularMediaJugador(j) {
-      let s = 0; ALL_ATTRS.forEach(a => s += Number(j[a])||0);
-      return ((s / ALL_ATTRS.length) / 20) * 100;
+      const attrs = attrsParaMedia(j);
+      let s = 0;
+      attrs.forEach(a => s += Number(j[a]) || 0);
+      return attrs.length ? ((s / attrs.length) / 20) * 100 : 0;
     }
     function colorMedia(s) {
       if (s >= 80) return '#4ade80'; if (s >= 65) return '#a3e635';
@@ -713,7 +785,7 @@
       return html;
     }
 
-    /* ========== ROLES STORAGE ========== */
+    /* ========== ROLES ========== */
     function guardarRolesEnStorage() { localStorage.setItem('rolesFM_v2', JSON.stringify(roles)); }
     function cargarRolesDesdeStorage() {
       try {
@@ -843,28 +915,35 @@
       let v = parseInt(input.value); if (isNaN(v)||v<1) v=1; if (v>20) v=20; input.value = v;
     }
     function activarClampEnInputs() {
-      ALL_ATTRS.forEach(id => {
-        const el = document.getElementById(id); if (!el) return;
-        el.addEventListener('input', () => clampValor(el));
-        el.addEventListener('blur', () => clampValor(el));
-        el.addEventListener('change', () => clampValor(el));
+      document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => {
+        el.removeEventListener('input', el._clamp);
+        el._clamp = () => clampValor(el);
+        el.addEventListener('input', el._clamp);
+        el.addEventListener('blur', el._clamp);
+        el.addEventListener('change', el._clamp);
       });
     }
     function crearCheckboxesPosiciones() {
       document.getElementById('posicionesContainer').innerHTML = POSICIONES.map((pos,i) =>
-        `<label class="pos-item"><input type="checkbox" name="posicion" value="${pos}" id="pos_${i}"><span>${pos}</span></label>`).join('');
+        `<label class="pos-item">
+          <input type="checkbox" name="posicion" value="${pos}" id="pos_${i}" onchange="actualizarFormularioAtributos()">
+          <span>${pos}</span>
+        </label>`).join('');
     }
     function crearCheckboxesPosicionesRol() {
       document.getElementById('rolPosicionesContainer').innerHTML = POSICIONES.map((pos,i) =>
         `<label class="pos-item"><input type="checkbox" name="rol-pos" value="${pos}" id="rolpos_${i}"><span>${pos}</span></label>`).join('');
     }
     function crearCheckboxesAtributosRol() {
-      let html = '<div class="attr-group-title">Técnico</div>';
-      ATTRS.tecnico.forEach(a => { html += `<label class="attr-check-item"><input type="checkbox" value="${a}"><span>${LABELS[a]}</span></label>`; });
+      // Incluir tanto outfield como portería
+      let html = '<div class="attr-group-title">Portería</div>';
+      ATTRS_GK.porteria.forEach(a => { html += `<label class="attr-check-item"><input type="checkbox" value="${a}"><span>${LABELS[a]||a}</span></label>`; });
+      html += '<div class="attr-group-title">Técnico</div>';
+      ATTRS_OUTFIELD.tecnico.forEach(a => { html += `<label class="attr-check-item"><input type="checkbox" value="${a}"><span>${LABELS[a]||a}</span></label>`; });
       html += '<div class="attr-group-title">Mental</div>';
-      ATTRS.mental.forEach(a => { html += `<label class="attr-check-item"><input type="checkbox" value="${a}"><span>${LABELS[a]}</span></label>`; });
+      ATTRS_OUTFIELD.mental.forEach(a => { html += `<label class="attr-check-item"><input type="checkbox" value="${a}"><span>${LABELS[a]||a}</span></label>`; });
       html += '<div class="attr-group-title">Físico</div>';
-      ATTRS.fisico.forEach(a => { html += `<label class="attr-check-item"><input type="checkbox" value="${a}"><span>${LABELS[a]}</span></label>`; });
+      ATTRS_OUTFIELD.fisico.forEach(a => { html += `<label class="attr-check-item"><input type="checkbox" value="${a}"><span>${LABELS[a]||a}</span></label>`; });
       document.getElementById('rolAtributosContainer').innerHTML = html;
     }
     function obtenerPosicionesSeleccionadas() {
@@ -875,15 +954,26 @@
       let lista = posiciones;
       if (typeof posiciones === 'string') lista = posiciones.split(/[,·|]/).map(s=>s.trim()).filter(Boolean);
       if (!Array.isArray(lista)) lista = [];
-      lista.forEach(pos => { const cb = document.querySelector(`input[name="posicion"][value="${pos}"]`); if (cb) cb.checked = true; });
+      lista.forEach(pos => {
+        const cb = document.querySelector(`input[name="posicion"][value="${pos}"]`);
+        if (cb) cb.checked = true;
+      });
+      actualizarFormularioAtributos();
     }
     function mostrarStatus(msg) {
       const el = document.getElementById('status'); el.textContent = msg; setTimeout(() => el.textContent = '', 2500);
     }
     function obtenerDatosFormulario() {
-      ALL_ATTRS.forEach(id => { const el = document.getElementById(id); if (el) clampValor(el); });
-      const data = { id: editandoId || Date.now(), nombre: document.getElementById('nombre').value.trim(), posiciones: obtenerPosicionesSeleccionadas() };
-      ALL_ATTRS.forEach(attr => data[attr] = parseInt(document.getElementById(attr).value) || 1);
+      document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => clampValor(el));
+      const data = {
+        id: editandoId || Date.now(),
+        nombre: document.getElementById('nombre').value.trim(),
+        posiciones: obtenerPosicionesSeleccionadas()
+      };
+      // Recoger todos los inputs visibles
+      document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => {
+        data[el.id] = parseInt(el.value) || 1;
+      });
       return data;
     }
     function guardarJugador() {
@@ -893,23 +983,36 @@
         const idx = jugadores.findIndex(j => j.id === editandoId);
         if (idx !== -1) jugadores[idx] = data;
         mostrarStatus('✅ Jugador actualizado');
-      } else { jugadores.push(data); mostrarStatus('✅ Jugador guardado'); }
+      } else {
+        jugadores.push(data);
+        mostrarStatus('✅ Jugador guardado');
+      }
       localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
-      editandoId = null; document.getElementById('form-title').textContent = 'Nuevo jugador';
-      limpiarFormulario(); renderizarJugadores();
+      editandoId = null;
+      document.getElementById('form-title').textContent = 'Nuevo jugador';
+      limpiarFormulario();
+      renderizarJugadores();
     }
     function limpiarFormulario() {
-      document.getElementById('nombre').value = ''; marcarPosiciones([]);
-      ALL_ATTRS.forEach(a => document.getElementById(a).value = 10);
-      editandoId = null; document.getElementById('form-title').textContent = 'Nuevo jugador';
+      document.getElementById('nombre').value = '';
+      marcarPosiciones([]);
+      editandoId = null;
+      document.getElementById('form-title').textContent = 'Nuevo jugador';
     }
     function editarJugador(id) {
       const j = jugadores.find(p => p.id === id); if (!j) return;
-      mostrarTab('anadir-jugador'); editandoId = id;
+      mostrarTab('anadir-jugador');
+      editandoId = id;
       document.getElementById('form-title').textContent = 'Editando: ' + j.nombre;
       document.getElementById('nombre').value = j.nombre || '';
       marcarPosiciones(j.posiciones || []);
-      ALL_ATTRS.forEach(attr => { const el = document.getElementById(attr); el.value = j[attr] ?? 10; clampValor(el); });
+      // Esperar a que se actualice el formulario
+      setTimeout(() => {
+        document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => {
+          el.value = j[el.id] ?? 10;
+          clampValor(el);
+        });
+      }, 50);
     }
     function eliminarJugador(id) {
       if (!confirm('¿Eliminar este jugador?')) return;
@@ -926,12 +1029,44 @@
       const lista = obtenerJugadoresOrdenados();
       document.getElementById('count').textContent = lista.length;
       if (!lista.length) { container.innerHTML = '<div class="empty-state">No hay jugadores en el equipo todavía.</div>'; return; }
+
       container.innerHTML = lista.map(j => {
         let posTexto = 'Sin posición';
         if (Array.isArray(j.posiciones) && j.posiciones.length) posTexto = j.posiciones.join(' · ');
         else if (typeof j.posiciones === 'string' && j.posiciones.trim()) posTexto = j.posiciones;
+
         const media = calcularMediaJugador(j);
         const mc = colorMedia(media);
+        const esGK = jugadorEsPortero(j);
+
+        let attrsHTML = '';
+        if (esGK) {
+          attrsHTML = `
+            <div class="view-column"><h4>Portería</h4>
+              ${ATTRS_GK.porteria.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}
+            </div>
+            <div class="view-column"><h4>Mental</h4>
+              ${ATTRS_GK.mental.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}
+            </div>
+            <div class="view-column">
+              <h4>Físico</h4>
+              ${ATTRS_GK.fisico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}
+              <h4 style="margin-top:8px;background:#2a2a2a;">Técnico</h4>
+              ${ATTRS_GK.tecnico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}
+            </div>`;
+        } else {
+          attrsHTML = `
+            <div class="view-column"><h4>Técnico</h4>
+              ${ATTRS_OUTFIELD.tecnico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}
+            </div>
+            <div class="view-column"><h4>Mental</h4>
+              ${ATTRS_OUTFIELD.mental.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}
+            </div>
+            <div class="view-column"><h4>Físico</h4>
+              ${ATTRS_OUTFIELD.fisico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}
+            </div>`;
+        }
+
         return `<div class="player-card">
           <div class="player-header">
             <div class="player-header-left"><h3>${j.nombre||'Sin nombre'}</h3><div class="pos">${posTexto}</div></div>
@@ -949,17 +1084,14 @@
           <div class="attrs-section">
             <button class="btn-toggle-attrs" id="btn-attrs-${j.id}" onclick="toggleAttrs(${j.id})">▼ Ver atributos</button>
             <div class="attrs-content" id="attrs-content-${j.id}">
-              <div class="view-grid">
-                <div class="view-column"><h4>Técnico</h4>${ATTRS.tecnico.map(a=>`<div class="view-row"><span>${LABELS[a]}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
-                <div class="view-column"><h4>Mental</h4>${ATTRS.mental.map(a=>`<div class="view-row"><span>${LABELS[a]}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
-                <div class="view-column"><h4>Físico</h4>${ATTRS.fisico.map(a=>`<div class="view-row"><span>${LABELS[a]}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
-              </div>
+              <div class="view-grid">${attrsHTML}</div>
             </div>
           </div>
           ${renderRolesHTML(j)}
         </div>`;
       }).join('');
     }
+
     function exportarJSON() {
       if (!jugadores.length) { alert('No hay jugadores para exportar.'); return; }
       const blob = new Blob([JSON.stringify(jugadores, null, 2)], { type: 'application/json' });
@@ -982,7 +1114,7 @@
     }
 
     /* ================================================================
-       HACER 11 – FORMACIONES + DRAG & DROP + AUTO / COMPLETAR
+       HACER 11
        ================================================================ */
     function guardarLineup() { localStorage.setItem('lineupFM', JSON.stringify(lineup)); localStorage.setItem('formacionFM', formacionActual); }
     function cargarLineup() {
@@ -993,26 +1125,13 @@
         if (f && FORMACIONES[f]) formacionActual = f;
       } catch(e) { lineup = {}; }
     }
-
-    function slotsActuales() {
-      return FORMACIONES[formacionActual] || FORMACIONES["4-3-3"];
-    }
-
-    function jugadoresEnCampo() {
-      return Object.values(lineup).map(x => x.playerId).filter(Boolean);
-    }
+    function slotsActuales() { return FORMACIONES[formacionActual] || FORMACIONES["4-3-3"]; }
+    function jugadoresEnCampo() { return Object.values(lineup).map(x => x.playerId).filter(Boolean); }
 
     function construirPitch() {
       const pitch = document.getElementById('pitch');
-      // Mantener líneas
-      pitch.innerHTML = `
-        <div class="pitch-half"></div>
-        <div class="pitch-circle"></div>
-        <div class="pitch-area-top"></div>
-        <div class="pitch-area-bot"></div>
-      `;
-      const slots = slotsActuales();
-      slots.forEach(s => {
+      pitch.innerHTML = `<div class="pitch-half"></div><div class="pitch-circle"></div><div class="pitch-area-top"></div><div class="pitch-area-bot"></div>`;
+      slotsActuales().forEach(s => {
         const div = document.createElement('div');
         div.className = 'slot';
         div.dataset.slot = s.id;
@@ -1025,27 +1144,20 @@
       document.getElementById('once-formacion').textContent = formacionActual;
       document.getElementById('select-formacion').value = formacionActual;
     }
-
     function cambiarFormacion() {
       const nueva = document.getElementById('select-formacion').value;
       if (nueva === formacionActual) return;
-
-      // Conservar jugadores cuyos slots existan en la nueva formación
       const nuevosSlots = new Set((FORMACIONES[nueva] || []).map(s => s.id));
       const nuevoLineup = {};
-      Object.keys(lineup).forEach(sid => {
-        if (nuevosSlots.has(sid)) nuevoLineup[sid] = lineup[sid];
-      });
+      Object.keys(lineup).forEach(sid => { if (nuevosSlots.has(sid)) nuevoLineup[sid] = lineup[sid]; });
       lineup = nuevoLineup;
       formacionActual = nueva;
       guardarLineup();
       construirPitch();
       renderPitch();
     }
-
     function mejorRolParaSlot(player, slotId) {
-      const slots = slotsActuales();
-      const cfg = slots.find(s => s.id === slotId);
+      const cfg = slotsActuales().find(s => s.id === slotId);
       if (!cfg) return null;
       const rolesJ = obtenerRolesDelJugador(player);
       let mejor = null, mejorVal = -1;
@@ -1056,12 +1168,10 @@
       if (!mejor && rolesJ.length) mejor = rolesJ[0];
       return mejor;
     }
-
     function scoreJugadorParaSlot(player, slotId) {
       const mejor = mejorRolParaSlot(player, slotId);
       return mejor ? mejor.valoracion : calcularMediaJugador(player);
     }
-
     function renderDisponibles() {
       const container = document.getElementById('disponiblesList');
       const enCampo = new Set(jugadoresEnCampo());
@@ -1083,13 +1193,11 @@
         </div>`;
       }).join('');
     }
-
     function renderPitch() {
       const slots = slotsActuales();
       document.querySelectorAll('.slot').forEach(slot => {
         const sid = slot.dataset.slot;
         const cfg = slots.find(s => s.id === sid);
-        // Limpiar contenido excepto label
         const label = slot.querySelector('.slot-label');
         slot.innerHTML = '';
         if (label) slot.appendChild(label);
@@ -1099,16 +1207,13 @@
           l.textContent = cfg?.label || sid;
           slot.appendChild(l);
         }
-
         slot.ondragover = e => { e.preventDefault(); slot.classList.add('drag-over'); };
         slot.ondragleave = () => slot.classList.remove('drag-over');
         slot.ondrop = e => {
-          e.preventDefault();
-          slot.classList.remove('drag-over');
+          e.preventDefault(); slot.classList.remove('drag-over');
           const pid = parseFloat(e.dataTransfer.getData('text/pid'));
           if (pid) colocarJugador(sid, pid);
         };
-
         const entry = lineup[sid];
         if (entry) {
           const player = jugadores.find(j => j.id === entry.playerId);
@@ -1118,33 +1223,24 @@
             const rolesDisp = obtenerRolesDelJugador(player);
             let rolesSlot = rolesDisp.filter(r => (r.posiciones||[]).some(p => (cfg?.alts||[]).includes(p)));
             if (!rolesSlot.length) rolesSlot = rolesDisp;
-
             let roleOptions = '<option value="">— Sin rol —</option>';
             rolesSlot.forEach(r => {
               const sel = entry.roleName === r.nombre ? 'selected' : '';
               roleOptions += `<option value="${r.nombre}" ${sel}>${r.nombre} (${r.valoracion.toFixed(0)})</option>`;
             });
-
             const sp = document.createElement('div');
             sp.className = 'slot-player';
             sp.draggable = true;
-            sp.ondragstart = e => {
-              e.dataTransfer.setData('text/pid', player.id);
-              e.dataTransfer.setData('text/fromSlot', sid);
-            };
+            sp.ondragstart = e => { e.dataTransfer.setData('text/pid', player.id); e.dataTransfer.setData('text/fromSlot', sid); };
             sp.innerHTML = `
               <div class="sp-name">${player.nombre}</div>
               <div class="sp-media" style="color:${mc}">${media.toFixed(1)}</div>
               <select class="sp-role-select" onchange="cambiarRolSlot('${sid}', this.value)">${roleOptions}</select>
-              <button class="sp-remove" onclick="quitarDelSlot('${sid}')">✕</button>
-            `;
+              <button class="sp-remove" onclick="quitarDelSlot('${sid}')">✕</button>`;
             slot.appendChild(sp);
-          } else {
-            delete lineup[sid];
-          }
+          } else delete lineup[sid];
         }
       });
-
       const count = Object.keys(lineup).filter(k => lineup[k]?.playerId).length;
       document.getElementById('once-count').textContent = count;
       let suma = 0, n = 0;
@@ -1155,89 +1251,53 @@
       document.getElementById('once-media').textContent = n ? (suma / n).toFixed(1) : '—';
       renderDisponibles();
     }
-
-    function onDragStart(e, pid) {
-      e.dataTransfer.setData('text/pid', pid);
-      e.target.classList.add('dragging');
-    }
+    function onDragStart(e, pid) { e.dataTransfer.setData('text/pid', pid); e.target.classList.add('dragging'); }
     function onDragEnd(e) { e.target.classList.remove('dragging'); }
-
     function colocarJugador(slotId, playerId) {
       Object.keys(lineup).forEach(s => { if (lineup[s]?.playerId === playerId) delete lineup[s]; });
       const player = jugadores.find(j => j.id === playerId);
       if (!player) return;
       const mejor = mejorRolParaSlot(player, slotId);
       lineup[slotId] = { playerId, roleName: mejor ? mejor.nombre : '' };
-      guardarLineup();
-      renderPitch();
+      guardarLineup(); renderPitch();
     }
-    function quitarDelSlot(slotId) {
-      delete lineup[slotId];
-      guardarLineup();
-      renderPitch();
-    }
+    function quitarDelSlot(slotId) { delete lineup[slotId]; guardarLineup(); renderPitch(); }
     function cambiarRolSlot(slotId, roleName) {
       if (lineup[slotId]) { lineup[slotId].roleName = roleName; guardarLineup(); }
     }
     function limpiarOnce() {
       if (!confirm('¿Vaciar todo el campo?')) return;
-      lineup = {};
-      guardarLineup();
-      renderPitch();
+      lineup = {}; guardarLineup(); renderPitch();
     }
-
-    /**
-     * autoOnce(full)
-     * full = true  → limpia y rellena los 11 (Once automático)
-     * full = false → solo rellena los huecos (Completar 11)
-     */
     function autoOnce(full) {
       if (full) lineup = {};
-
       const slots = slotsActuales();
       const usados = new Set(Object.values(lineup).map(e => e.playerId).filter(Boolean));
-
-      // Orden de prioridad de slots (defensa primero, luego medios, luego ataque)
-      const orden = [...slots].sort((a, b) => {
-        const prio = { "Portero": 0, "Central": 1, "Lateral derecho": 2, "Lateral izquierdo": 2,
-                       "Carrilero derecho": 3, "Carrilero izquierdo": 3,
-                       "Mediocentro": 4, "Centrocampista": 4, "Medio derecho": 5, "Medio izquierdo": 5,
-                       "Mediapunta": 6, "Extremo derecho": 7, "Extremo izquierdo": 7, "Delantero centro": 8 };
-        return (prio[a.pos] ?? 9) - (prio[b.pos] ?? 9);
+      const orden = [...slots].sort((a,b) => {
+        const prio = { "Portero":0, "Central":1, "Lateral derecho":2, "Lateral izquierdo":2,
+                       "Carrilero derecho":3, "Carrilero izquierdo":3, "Mediocentro":4, "Centrocampista":4,
+                       "Medio derecho":5, "Medio izquierdo":5, "Mediapunta":6, "Extremo derecho":7,
+                       "Extremo izquierdo":7, "Delantero centro":8 };
+        return (prio[a.pos]??9) - (prio[b.pos]??9);
       });
-
       orden.forEach(slot => {
-        if (lineup[slot.id]?.playerId) return; // ya ocupado
-
-        // Candidatos por posición
+        if (lineup[slot.id]?.playerId) return;
         let candidatos = jugadores.filter(j => {
           if (usados.has(j.id)) return false;
           let posJ = j.posiciones || [];
           if (typeof posJ === 'string') posJ = posJ.split(/[,·|]/).map(s=>s.trim()).filter(Boolean);
           return posJ.some(p => slot.alts.includes(p));
         });
-
-        // Si no hay por posición, cualquiera libre
-        if (!candidatos.length) {
-          candidatos = jugadores.filter(j => !usados.has(j.id));
-        }
+        if (!candidatos.length) candidatos = jugadores.filter(j => !usados.has(j.id));
         if (!candidatos.length) return;
-
-        // Mejor puntuación para este slot
         candidatos.forEach(j => { j._score = scoreJugadorParaSlot(j, slot.id); });
-        candidatos.sort((a, b) => b._score - a._score);
-
+        candidatos.sort((a,b) => b._score - a._score);
         const elegido = candidatos[0];
         usados.add(elegido.id);
         const mejor = mejorRolParaSlot(elegido, slot.id);
-        lineup[slot.id] = {
-          playerId: elegido.id,
-          roleName: mejor ? mejor.nombre : ''
-        };
+        lineup[slot.id] = { playerId: elegido.id, roleName: mejor ? mejor.nombre : '' };
       });
-
-      guardarLineup();
-      renderPitch();
+      guardarLineup(); renderPitch();
     }
 
     /* ========== INIT ========== */
@@ -1251,11 +1311,10 @@
       crearCheckboxesPosiciones();
       crearCheckboxesPosicionesRol();
       crearCheckboxesAtributosRol();
-      activarClampEnInputs();
+      actualizarFormularioAtributos();
       renderizarJugadores();
       renderizarRolesExistentes();
     }
-
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', init);
     } else {
