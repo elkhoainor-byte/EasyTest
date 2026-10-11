@@ -16,7 +16,7 @@
       padding: 20px; min-height: 100vh;
     }
     h1 { text-align: center; margin-bottom: 20px; font-size: 1.8rem; color: #fff; }
-    .container { max-width: 1400px; margin: 0 auto; }
+    .container { max-width: 1500px; margin: 0 auto; }
 
     .nav-menu {
       display: flex; gap: 8px; margin-bottom: 24px; background: var(--card);
@@ -211,135 +211,206 @@
       text-transform: uppercase; letter-spacing: 0.5px;
     }
 
-    .once-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; position: relative; }
-    @media (max-width: 1000px) { .once-layout { grid-template-columns: 1fr; } }
+    /* ========== HACER 11 — estilo FM ========== */
+    .once-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 1100px) {
+      .once-layout { grid-template-columns: 1fr; }
+    }
 
-    .once-sidebar {
-      background: var(--card); border-radius: 10px; border: 1px solid var(--border);
-      padding: 16px; max-height: 85vh; overflow-y: auto;
+    .pitch-panel {
+      background: #1e1e1e;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 12px;
+      position: relative;
     }
-    .once-sidebar h3 {
-      margin-bottom: 12px; font-size: 1.1rem;
-      border-bottom: 1px solid var(--border); padding-bottom: 8px;
+    .pitch-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+      justify-content: space-between;
     }
-    .once-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-    .once-actions button { width: 100%; padding: 10px; font-size: 0.9rem; position: relative; }
+    .pitch-toolbar .actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pitch-toolbar button { padding: 8px 14px; font-size: 0.85rem; }
 
-    .tooltip-wrap { position: relative; }
-    .tooltip-wrap .tooltip-text {
-      visibility: hidden; opacity: 0;
-      position: absolute; left: 0; bottom: calc(100% + 8px);
-      background: #111; color: #eee; border: 1px solid var(--accent);
-      border-radius: 8px; padding: 10px 12px; font-size: 0.8rem; line-height: 1.45;
-      width: 260px; z-index: 50; transition: opacity 0.2s;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    .once-media-badge {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      padding: 8px 16px;
+      min-width: 100px;
     }
-    .tooltip-wrap:hover .tooltip-text { visibility: visible; opacity: 1; }
+    .once-media-badge .label {
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: #88aacc;
+    }
+    .once-media-badge .value { font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
+    .once-media-badge .sub { font-size: 0.7rem; color: #888; }
 
-    .limites-info {
-      background: #1e1e1e; border: 1px solid var(--border); border-radius: 8px;
-      padding: 10px 12px; margin-bottom: 14px; font-size: 0.8rem; color: #aaa; line-height: 1.5;
-    }
-    .limites-info strong { color: #ccc; }
-
-    .disponibles-list { display: flex; flex-direction: column; gap: 8px; }
-    .disp-player {
-      background: #222; border: 1px solid var(--border); border-radius: 8px;
-      padding: 10px 12px; cursor: grab; transition: all 0.15s; user-select: none;
-    }
-    .disp-player:hover { border-color: var(--accent); background: #2a2a2a; }
-    .disp-player.dragging { opacity: 0.5; }
-    .disp-player .dp-name { font-weight: 700; font-size: 0.95rem; }
-    .disp-player .dp-pos { font-size: 0.8rem; color: #888; margin-top: 2px; }
-    .disp-player .dp-media { font-size: 0.85rem; font-weight: 700; margin-top: 4px; }
-
-    .pitch-container {
-      background: var(--card); border-radius: 10px; border: 1px solid var(--border);
-      padding: 16px; overflow: auto; position: relative;
-    }
     .pitch {
-      position: relative; width: 100%; max-width: 700px; margin: 0 auto;
+      position: relative; width: 100%; max-width: 720px; margin: 0 auto;
       aspect-ratio: 2 / 3;
-      background: linear-gradient(180deg, #1a6b35 0%, #145a2a 50%, #1a6b35 100%);
-      border-radius: 8px; border: 3px solid rgba(255,255,255,0.4); overflow: hidden;
+      background: linear-gradient(180deg, #1a6b35 0%, #145a2a 40%, #1a6b35 100%);
+      border-radius: 6px; border: 2px solid rgba(255,255,255,0.3); overflow: hidden;
       touch-action: none;
     }
     .pitch::before {
-      content: ''; position: absolute; inset: 8%;
-      border: 2px solid var(--pitch-line); border-radius: 4px; pointer-events: none;
+      content: ''; position: absolute; inset: 6%;
+      border: 2px solid var(--pitch-line); border-radius: 2px; pointer-events: none;
     }
     .pitch-half {
-      position: absolute; left: 8%; right: 8%; top: 50%; height: 0;
+      position: absolute; left: 6%; right: 6%; top: 50%; height: 0;
       border-top: 2px solid var(--pitch-line); pointer-events: none;
     }
     .pitch-circle {
-      position: absolute; left: 50%; top: 50%; width: 18%; aspect-ratio: 1;
+      position: absolute; left: 50%; top: 50%; width: 20%; aspect-ratio: 1;
       border: 2px solid var(--pitch-line); border-radius: 50%;
       transform: translate(-50%, -50%); pointer-events: none;
     }
     .pitch-area-top, .pitch-area-bot {
-      position: absolute; left: 25%; width: 50%; height: 14%;
+      position: absolute; left: 22%; width: 56%; height: 13%;
       border: 2px solid var(--pitch-line); pointer-events: none;
     }
-    .pitch-area-top { top: 8%; border-top: none; }
-    .pitch-area-bot { bottom: 8%; border-bottom: none; }
+    .pitch-area-top { top: 6%; border-top: none; }
+    .pitch-area-bot { bottom: 6%; border-bottom: none; }
 
+    /* Cartas de jugador estilo FM */
     .slot {
-      position: absolute; width: 104px; min-height: 82px;
+      position: absolute; width: 92px; min-height: 70px;
       transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.3); border: 2px dashed rgba(255,255,255,0.35);
-      border-radius: 10px; display: flex; flex-direction: column;
-      align-items: center; justify-content: flex-start; padding: 4px;
-      transition: box-shadow 0.15s, border-color 0.15s; z-index: 2;
-      cursor: move;
+      display: flex; flex-direction: column; align-items: center;
+      z-index: 2; cursor: move;
     }
-    .slot.drag-over {
-      background: rgba(74,158,255,0.35); border-color: var(--accent); border-style: solid;
+    .slot.drag-over .slot-card {
+      outline: 2px solid var(--accent);
+      background: rgba(74,158,255,0.25);
     }
-    .slot.moving {
-      z-index: 20; box-shadow: 0 0 12px rgba(74,158,255,0.6);
-      border-color: var(--accent); border-style: solid;
+    .slot.moving { z-index: 30; }
+
+    .slot-card {
+      width: 100%;
+      background: rgba(20,20,20,0.88);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      padding: 3px 4px 4px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
     }
-    .slot-type-select, .slot-role-select {
-      width: 100%; padding: 2px 3px; font-size: 0.6rem;
-      background: #1a1a1a; color: #ccc; border: 1px solid #444;
-      border-radius: 4px; cursor: pointer; margin-bottom: 2px;
+    .slot-card.empty {
+      background: rgba(0,0,0,0.35);
+      border: 1px dashed rgba(255,255,255,0.35);
+      min-height: 52px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-    .slot-role-select { border-color: #555; color: #a3e635; }
-    .slot-player {
-      width: 100%; padding: 3px 5px; background: rgba(0,0,0,0.75);
-      border-radius: 6px; text-align: center; cursor: grab;
+    .slot-type-select, .slot-role-select, .sp-role-select {
+      width: 100%; padding: 1px 2px; font-size: 0.58rem;
+      background: #1a1a1a; color: #ddd; border: 1px solid #444;
+      border-radius: 3px; cursor: pointer; margin-bottom: 2px;
     }
+    .slot-role-select, .sp-role-select { color: #a3e635; border-color: #3a5a3a; }
+    .slot-player { cursor: grab; width: 100%; }
     .slot-player .sp-name {
-      font-size: 0.72rem; font-weight: 700; color: #fff;
+      font-size: 0.7rem; font-weight: 700; color: #fff;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      line-height: 1.2;
     }
-    .slot-player .sp-media { font-size: 0.68rem; font-weight: 700; }
-    .slot-player .sp-role-select {
-      width: 100%; margin-top: 3px; padding: 1px 3px; font-size: 0.6rem;
-      background: #222; color: #ccc; border: 1px solid #444; border-radius: 3px; cursor: pointer;
+    .slot-player .sp-media {
+      font-size: 0.65rem; font-weight: 700;
     }
     .slot-player .sp-remove {
-      display: block; width: 100%; margin-top: 2px; padding: 1px; font-size: 0.6rem;
-      background: #c0392b; color: #fff; border: none; border-radius: 3px; cursor: pointer;
+      display: block; width: 100%; margin-top: 2px; padding: 1px;
+      font-size: 0.55rem; background: #c0392b; color: #fff;
+      border: none; border-radius: 3px; cursor: pointer;
     }
     .slot-player .sp-remove:hover { background: #e74c3c; }
-
-    .once-info { text-align: center; margin-top: 12px; font-size: 0.95rem; color: #aaa; }
-    .once-info strong { color: #fff; }
-
-    .once-media-badge {
-      position: sticky; top: 12px; float: right; z-index: 30;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      border: 2px solid var(--accent); border-radius: 12px;
-      padding: 12px 18px; text-align: center;
-      box-shadow: 0 4px 20px rgba(74,158,255,0.25); min-width: 130px; margin-bottom: 12px;
+    .slot-empty-label {
+      font-size: 0.55rem; color: #888; margin-top: 2px;
     }
-    .once-media-badge .label {
-      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #88aacc; margin-bottom: 2px;
+
+    /* Panel derecho estilo FM */
+    .once-sidebar {
+      background: #1a1a1a;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      max-height: 90vh; overflow: hidden;
     }
-    .once-media-badge .value { font-size: 2rem; font-weight: 800; line-height: 1.1; }
-    .once-media-badge .sub { font-size: 0.75rem; color: #888; margin-top: 2px; }
+    .once-sidebar-header {
+      padding: 12px 14px 8px;
+      border-bottom: 1px solid var(--border);
+      background: #222;
+    }
+    .once-sidebar-header h3 {
+      font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;
+      color: #aaa; margin-bottom: 8px;
+    }
+    .once-actions {
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .once-actions button { padding: 7px 12px; font-size: 0.8rem; flex: 1; min-width: 100px; }
+
+    .tooltip-wrap { position: relative; flex: 1; min-width: 100px; }
+    .tooltip-wrap button { width: 100%; }
+    .tooltip-wrap .tooltip-text {
+      visibility: hidden; opacity: 0;
+      position: absolute; left: 0; bottom: calc(100% + 6px);
+      background: #111; color: #eee; border: 1px solid var(--accent);
+      border-radius: 8px; padding: 10px 12px; font-size: 0.78rem; line-height: 1.45;
+      width: 240px; z-index: 50; transition: opacity 0.2s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+    .tooltip-wrap:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+    .lineup-list, .disponibles-list {
+      overflow-y: auto; flex: 1;
+    }
+    .lineup-section-title {
+      padding: 8px 14px 4px; font-size: 0.75rem; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #666; background: #1e1e1e;
+      border-bottom: 1px solid #2a2a2a; position: sticky; top: 0; z-index: 1;
+    }
+    .lineup-row, .disp-player {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 12px; border-bottom: 1px solid #252525;
+      font-size: 0.85rem; transition: background 0.12s;
+    }
+    .lineup-row:hover, .disp-player:hover { background: #252525; }
+    .lineup-row .lr-pos {
+      min-width: 72px; font-size: 0.7rem; font-weight: 700;
+      color: #88aacc; text-transform: uppercase;
+    }
+    .lineup-row .lr-name { flex: 1; font-weight: 600; color: #eee; }
+    .lineup-row .lr-role {
+      font-size: 0.72rem; color: #a3e635; max-width: 100px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lineup-row .lr-score { font-weight: 700; min-width: 36px; text-align: right; font-size: 0.85rem; }
+    .lineup-row .lr-remove {
+      background: none; border: none; color: #888; cursor: pointer;
+      font-size: 0.85rem; padding: 2px 4px;
+    }
+    .lineup-row .lr-remove:hover { color: #e74c3c; }
+    .lineup-row.empty-slot { color: #555; font-style: italic; }
+
+    .disp-player { cursor: grab; user-select: none; }
+    .disp-player.dragging { opacity: 0.45; }
+    .disp-player .dp-name { flex: 1; font-weight: 600; }
+    .disp-player .dp-pos { font-size: 0.72rem; color: #888; max-width: 120px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .disp-player .dp-media { font-size: 0.8rem; font-weight: 700; min-width: 36px; text-align: right; }
+
+    .sidebar-scroll {
+      overflow-y: auto; flex: 1; display: flex; flex-direction: column;
+    }
   </style>
 </head>
 <body>
@@ -353,6 +424,7 @@
       <button class="nav-btn" onclick="mostrarTab('hacer-11')">Hacer 11</button>
     </div>
 
+    <!-- TAB EQUIPO (sin cambios estructurales) -->
     <div id="tab-equipo" class="tab-content active">
       <div class="players-list">
         <h2>Equipo (<span id="count">0</span> jugadores)</h2>
@@ -373,6 +445,7 @@
       </div>
     </div>
 
+    <!-- TAB AÑADIR JUGADOR -->
     <div id="tab-anadir-jugador" class="tab-content">
       <div class="form-section">
         <h2 id="form-title">Nuevo jugador</h2>
@@ -398,6 +471,7 @@
       </div>
     </div>
 
+    <!-- TAB AÑADIR ROL -->
     <div id="tab-anadir-rol" class="tab-content">
       <div class="form-section">
         <h2 id="form-rol-title">Añadir rol</h2>
@@ -427,52 +501,54 @@
       </div>
     </div>
 
+    <!-- ==================== TAB: HACER 11 (estilo FM) ==================== -->
     <div id="tab-hacer-11" class="tab-content">
       <div class="once-layout">
-        <div class="once-sidebar">
-          <h3>Jugadores disponibles</h3>
-          <div class="limites-info">
-            <strong>Límites por posición:</strong><br>
-            Portero ×1 · Central ×3 · Mediocentro ×3<br>
-            Mediapunta ×3 · Delantero ×3 · Centrocampista ×2<br>
-            Resto ×2 cada una
-          </div>
-          <div class="once-actions">
-            <div class="tooltip-wrap">
-              <button class="btn-success" onclick="autoOnce(true)" style="width:100%">⚡ Once automático (todo)</button>
-              <div class="tooltip-text">
-                Crea el <strong>mejor once posible</strong> con una formación coherente y simétrica:<br>
-                · 1 portero · línea de 3/4/5 atrás<br>
-                · Bandas a la misma altura<br>
-                · Mejores roles y mayor puntuación total
-              </div>
-            </div>
-            <button class="btn-info" onclick="autoOnce(false)">🔧 Completar 11</button>
-            <button class="btn-secondary" onclick="resetPosicionesSlots()">↺ Reset posiciones</button>
-            <button class="btn-danger" onclick="limpiarOnce()">🗑️ Limpiar jugadores</button>
-          </div>
-          <div class="disponibles-list" id="disponiblesList">
-            <div class="empty-state" style="padding:20px;font-size:0.9rem;">No hay jugadores.</div>
-          </div>
-        </div>
 
-        <div class="pitch-container">
-          <div class="once-media-badge" id="once-media-badge">
-            <div class="label">Media del 11</div>
-            <div class="value" id="once-media-value" style="color:#888;">—</div>
-            <div class="sub"><span id="once-count">0</span>/11 jugadores</div>
+        <!-- CAMPO (izquierda, como en FM) -->
+        <div class="pitch-panel">
+          <div class="pitch-toolbar">
+            <div class="actions">
+              <div class="tooltip-wrap">
+                <button class="btn-success" onclick="autoOnce(true)">⚡ Once automático</button>
+                <div class="tooltip-text">
+                  Mejor once con formación coherente y simétrica (1 POR, línea 3/4/5, bandas a la misma altura) maximizando la media de roles.
+                </div>
+              </div>
+              <button class="btn-info" onclick="autoOnce(false)">🔧 Completar 11</button>
+              <button class="btn-secondary" onclick="resetPosicionesSlots()">↺ Reset</button>
+              <button class="btn-danger" onclick="limpiarOnce()">🗑️ Limpiar</button>
+            </div>
+            <div class="once-media-badge" id="once-media-badge">
+              <div class="label">Media del 11</div>
+              <div class="value" id="once-media-value" style="color:#888;">—</div>
+              <div class="sub"><span id="once-count">0</span>/11</div>
+            </div>
           </div>
-          <div style="clear:both"></div>
+
           <div class="pitch" id="pitch">
             <div class="pitch-half"></div>
             <div class="pitch-circle"></div>
             <div class="pitch-area-top"></div>
             <div class="pitch-area-bot"></div>
           </div>
-          <div class="once-info">
-            <small style="color:#666">Tras rellenar el once, arrastra jugadores entre huecos libremente</small>
+        </div>
+
+        <!-- PANEL DERECHO: alineación + disponibles -->
+        <div class="once-sidebar">
+          <div class="once-sidebar-header">
+            <h3>Alineación</h3>
+          </div>
+          <div class="sidebar-scroll">
+            <div class="lineup-section-title">Titulares</div>
+            <div class="lineup-list" id="lineupList"></div>
+            <div class="lineup-section-title">Disponibles</div>
+            <div class="disponibles-list" id="disponiblesList">
+              <div class="empty-state" style="padding:20px;font-size:0.85rem;">No hay jugadores.</div>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -496,7 +572,6 @@
       "Delantero centro": 3
     };
 
-    // Compatibilidad ESTRICTA: solo posiciones que realmente puede jugar el jugador
     const ALTS = {
       "Portero": ["Portero"],
       "Lateral derecho": ["Lateral derecho","Carrilero derecho"],
@@ -514,120 +589,70 @@
       "Delantero centro": ["Delantero centro","Mediapunta"]
     };
 
-    // Formaciones coherentes y SIMÉTRICAS (bandas a la misma altura)
+    const ABREV = {
+      "Portero":"POR","Lateral derecho":"LD","Central":"DFC","Lateral izquierdo":"LI",
+      "Carrilero derecho":"CAD","Centrocampista":"MC","Carrilero izquierdo":"CAI",
+      "Medio derecho":"MD","Mediocentro":"MCD","Medio izquierdo":"MI",
+      "Extremo derecho":"ED","Mediapunta":"MP","Extremo izquierdo":"EI","Delantero centro":"DC"
+    };
+
     const FORMACIONES_COHERENTES = [
-      {
-        nombre: "4-3-3",
-        slots: [
-          { tipo:"Portero", left:50, top:92 },
-          { tipo:"Lateral izquierdo", left:12, top:76 },
-          { tipo:"Central", left:35, top:80 },
-          { tipo:"Central", left:65, top:80 },
-          { tipo:"Lateral derecho", left:88, top:76 },
-          { tipo:"Medio izquierdo", left:22, top:52 },
-          { tipo:"Mediocentro", left:50, top:55 },
-          { tipo:"Medio derecho", left:78, top:52 },
-          { tipo:"Extremo izquierdo", left:15, top:28 },
-          { tipo:"Delantero centro", left:50, top:16 },
-          { tipo:"Extremo derecho", left:85, top:28 }
-        ]
-      },
-      {
-        nombre: "4-4-2",
-        slots: [
-          { tipo:"Portero", left:50, top:92 },
-          { tipo:"Lateral izquierdo", left:12, top:76 },
-          { tipo:"Central", left:35, top:80 },
-          { tipo:"Central", left:65, top:80 },
-          { tipo:"Lateral derecho", left:88, top:76 },
-          { tipo:"Medio izquierdo", left:15, top:50 },
-          { tipo:"Mediocentro", left:38, top:55 },
-          { tipo:"Mediocentro", left:62, top:55 },
-          { tipo:"Medio derecho", left:85, top:50 },
-          { tipo:"Delantero centro", left:38, top:18 },
-          { tipo:"Delantero centro", left:62, top:18 }
-        ]
-      },
-      {
-        nombre: "4-2-3-1",
-        slots: [
-          { tipo:"Portero", left:50, top:92 },
-          { tipo:"Lateral izquierdo", left:12, top:76 },
-          { tipo:"Central", left:35, top:80 },
-          { tipo:"Central", left:65, top:80 },
-          { tipo:"Lateral derecho", left:88, top:76 },
-          { tipo:"Mediocentro", left:38, top:58 },
-          { tipo:"Mediocentro", left:62, top:58 },
-          { tipo:"Extremo izquierdo", left:15, top:35 },
-          { tipo:"Mediapunta", left:50, top:32 },
-          { tipo:"Extremo derecho", left:85, top:35 },
-          { tipo:"Delantero centro", left:50, top:14 }
-        ]
-      },
-      {
-        nombre: "3-5-2",
-        slots: [
-          { tipo:"Portero", left:50, top:92 },
-          { tipo:"Central", left:28, top:80 },
-          { tipo:"Central", left:50, top:82 },
-          { tipo:"Central", left:72, top:80 },
-          { tipo:"Carrilero izquierdo", left:10, top:55 },
-          { tipo:"Mediocentro", left:35, top:55 },
-          { tipo:"Mediocentro", left:50, top:52 },
-          { tipo:"Mediocentro", left:65, top:55 },
-          { tipo:"Carrilero derecho", left:90, top:55 },
-          { tipo:"Delantero centro", left:38, top:18 },
-          { tipo:"Delantero centro", left:62, top:18 }
-        ]
-      },
-      {
-        nombre: "5-3-2",
-        slots: [
-          { tipo:"Portero", left:50, top:92 },
-          { tipo:"Lateral izquierdo", left:10, top:72 },
-          { tipo:"Central", left:28, top:80 },
-          { tipo:"Central", left:50, top:82 },
-          { tipo:"Central", left:72, top:80 },
-          { tipo:"Lateral derecho", left:90, top:72 },
-          { tipo:"Mediocentro", left:30, top:50 },
-          { tipo:"Mediocentro", left:50, top:48 },
-          { tipo:"Mediocentro", left:70, top:50 },
-          { tipo:"Delantero centro", left:38, top:18 },
-          { tipo:"Delantero centro", left:62, top:18 }
-        ]
-      },
-      {
-        nombre: "4-1-4-1",
-        slots: [
-          { tipo:"Portero", left:50, top:92 },
-          { tipo:"Lateral izquierdo", left:12, top:76 },
-          { tipo:"Central", left:35, top:80 },
-          { tipo:"Central", left:65, top:80 },
-          { tipo:"Lateral derecho", left:88, top:76 },
-          { tipo:"Mediocentro", left:50, top:62 },
-          { tipo:"Medio izquierdo", left:15, top:42 },
-          { tipo:"Mediocentro", left:38, top:45 },
-          { tipo:"Mediocentro", left:62, top:45 },
-          { tipo:"Medio derecho", left:85, top:42 },
-          { tipo:"Delantero centro", left:50, top:14 }
-        ]
-      },
-      {
-        nombre: "3-4-3",
-        slots: [
-          { tipo:"Portero", left:50, top:92 },
-          { tipo:"Central", left:28, top:80 },
-          { tipo:"Central", left:50, top:82 },
-          { tipo:"Central", left:72, top:80 },
-          { tipo:"Carrilero izquierdo", left:12, top:55 },
-          { tipo:"Mediocentro", left:38, top:55 },
-          { tipo:"Mediocentro", left:62, top:55 },
-          { tipo:"Carrilero derecho", left:88, top:55 },
-          { tipo:"Extremo izquierdo", left:18, top:25 },
-          { tipo:"Delantero centro", left:50, top:16 },
-          { tipo:"Extremo derecho", left:82, top:25 }
-        ]
-      }
+      { nombre:"4-3-3", slots:[
+        {tipo:"Portero",left:50,top:92},{tipo:"Lateral izquierdo",left:12,top:76},
+        {tipo:"Central",left:35,top:80},{tipo:"Central",left:65,top:80},
+        {tipo:"Lateral derecho",left:88,top:76},{tipo:"Medio izquierdo",left:22,top:52},
+        {tipo:"Mediocentro",left:50,top:55},{tipo:"Medio derecho",left:78,top:52},
+        {tipo:"Extremo izquierdo",left:15,top:28},{tipo:"Delantero centro",left:50,top:16},
+        {tipo:"Extremo derecho",left:85,top:28}
+      ]},
+      { nombre:"4-4-2", slots:[
+        {tipo:"Portero",left:50,top:92},{tipo:"Lateral izquierdo",left:12,top:76},
+        {tipo:"Central",left:35,top:80},{tipo:"Central",left:65,top:80},
+        {tipo:"Lateral derecho",left:88,top:76},{tipo:"Medio izquierdo",left:15,top:50},
+        {tipo:"Mediocentro",left:38,top:55},{tipo:"Mediocentro",left:62,top:55},
+        {tipo:"Medio derecho",left:85,top:50},{tipo:"Delantero centro",left:38,top:18},
+        {tipo:"Delantero centro",left:62,top:18}
+      ]},
+      { nombre:"4-2-3-1", slots:[
+        {tipo:"Portero",left:50,top:92},{tipo:"Lateral izquierdo",left:12,top:76},
+        {tipo:"Central",left:35,top:80},{tipo:"Central",left:65,top:80},
+        {tipo:"Lateral derecho",left:88,top:76},{tipo:"Mediocentro",left:38,top:58},
+        {tipo:"Mediocentro",left:62,top:58},{tipo:"Extremo izquierdo",left:15,top:35},
+        {tipo:"Mediapunta",left:50,top:32},{tipo:"Extremo derecho",left:85,top:35},
+        {tipo:"Delantero centro",left:50,top:14}
+      ]},
+      { nombre:"3-5-2", slots:[
+        {tipo:"Portero",left:50,top:92},{tipo:"Central",left:28,top:80},
+        {tipo:"Central",left:50,top:82},{tipo:"Central",left:72,top:80},
+        {tipo:"Carrilero izquierdo",left:10,top:55},{tipo:"Mediocentro",left:35,top:55},
+        {tipo:"Mediocentro",left:50,top:52},{tipo:"Mediocentro",left:65,top:55},
+        {tipo:"Carrilero derecho",left:90,top:55},{tipo:"Delantero centro",left:38,top:18},
+        {tipo:"Delantero centro",left:62,top:18}
+      ]},
+      { nombre:"5-3-2", slots:[
+        {tipo:"Portero",left:50,top:92},{tipo:"Lateral izquierdo",left:10,top:72},
+        {tipo:"Central",left:28,top:80},{tipo:"Central",left:50,top:82},
+        {tipo:"Central",left:72,top:80},{tipo:"Lateral derecho",left:90,top:72},
+        {tipo:"Mediocentro",left:30,top:50},{tipo:"Mediocentro",left:50,top:48},
+        {tipo:"Mediocentro",left:70,top:50},{tipo:"Delantero centro",left:38,top:18},
+        {tipo:"Delantero centro",left:62,top:18}
+      ]},
+      { nombre:"4-1-4-1", slots:[
+        {tipo:"Portero",left:50,top:92},{tipo:"Lateral izquierdo",left:12,top:76},
+        {tipo:"Central",left:35,top:80},{tipo:"Central",left:65,top:80},
+        {tipo:"Lateral derecho",left:88,top:76},{tipo:"Mediocentro",left:50,top:62},
+        {tipo:"Medio izquierdo",left:15,top:42},{tipo:"Mediocentro",left:38,top:45},
+        {tipo:"Mediocentro",left:62,top:45},{tipo:"Medio derecho",left:85,top:42},
+        {tipo:"Delantero centro",left:50,top:14}
+      ]},
+      { nombre:"3-4-3", slots:[
+        {tipo:"Portero",left:50,top:92},{tipo:"Central",left:28,top:80},
+        {tipo:"Central",left:50,top:82},{tipo:"Central",left:72,top:80},
+        {tipo:"Carrilero izquierdo",left:12,top:55},{tipo:"Mediocentro",left:38,top:55},
+        {tipo:"Mediocentro",left:62,top:55},{tipo:"Carrilero derecho",left:88,top:55},
+        {tipo:"Extremo izquierdo",left:18,top:25},{tipo:"Delantero centro",left:50,top:16},
+        {tipo:"Extremo derecho",left:82,top:25}
+      ]}
     ];
 
     const DEFAULT_SLOTS = FORMACIONES_COHERENTES[0].slots.map((s,i) => ({
@@ -641,8 +666,7 @@
     };
     const ATTRS_GK = {
       porteria: ['alcance_aereo','blocaje','comunicacion','control','excentricidad','golpeo_punios','mando_area','pases','reflejos','salidas','saque_mano','saques_puerta','uno_contra_uno'],
-      mental: ATTRS_OUTFIELD.mental,
-      fisico: ATTRS_OUTFIELD.fisico,
+      mental: ATTRS_OUTFIELD.mental, fisico: ATTRS_OUTFIELD.fisico,
       tecnico: ['penaltis','tecnica','tiros_libres']
     };
     const LABELS = {
@@ -661,8 +685,7 @@
     };
 
     let jugadores = [], roles = [], editandoId = null, editandoRolId = null;
-    let lineup = {};
-    let slotsConfig = [];
+    let lineup = {}, slotsConfig = [];
 
     function mostrarTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -689,27 +712,25 @@
       const grid = document.getElementById('attrsGrid');
       if (esGK) {
         grid.innerHTML = `
-          <div class="attr-column"><h3>Portería</h3>
-            ${ATTRS_GK.porteria.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}</div>
-          <div class="attr-column"><h3>Mental</h3>
-            ${ATTRS_GK.mental.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}</div>
-          <div class="attr-column"><h3>Físico</h3>
-            ${ATTRS_GK.fisico.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}
-            <div class="tecnico-gk-block"><h4>Técnico</h4>
-              ${ATTRS_GK.tecnico.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}</div></div>`;
+          <div class="attr-column"><h3>Portería</h3>${ATTRS_GK.porteria.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}</div>
+          <div class="attr-column"><h3>Mental</h3>${ATTRS_GK.mental.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}</div>
+          <div class="attr-column"><h3>Físico</h3>${ATTRS_GK.fisico.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}
+            <div class="tecnico-gk-block"><h4>Técnico</h4>${ATTRS_GK.tecnico.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}</div></div>`;
       } else {
         grid.innerHTML = `
-          <div class="attr-column"><h3>Técnico</h3>
-            ${ATTRS_OUTFIELD.tecnico.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}</div>
-          <div class="attr-column"><h3>Mental</h3>
-            ${ATTRS_OUTFIELD.mental.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}</div>
-          <div class="attr-column"><h3>Físico</h3>
-            ${ATTRS_OUTFIELD.fisico.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}</div>`;
+          <div class="attr-column"><h3>Técnico</h3>${ATTRS_OUTFIELD.tecnico.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}</div>
+          <div class="attr-column"><h3>Mental</h3>${ATTRS_OUTFIELD.mental.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}</div>
+          <div class="attr-column"><h3>Físico</h3>${ATTRS_OUTFIELD.fisico.map(a => crearFilaAttr(a, LABELS[a]||a)).join('')}</div>`;
       }
       activarClampEnInputs();
     }
 
     function aplicarOrden() { renderizarJugadores(); }
+    function getPosicionesJugador(j) {
+      let pos = j.posiciones || [];
+      if (typeof pos === 'string') pos = pos.split(/[,·|]/).map(s=>s.trim()).filter(Boolean);
+      return Array.isArray(pos) ? pos : [];
+    }
     function obtenerJugadoresOrdenados() {
       const criterio = document.getElementById('sort-by')?.value || 'nombre';
       const direccion = document.getElementById('sort-dir')?.value || 'asc';
@@ -719,11 +740,7 @@
         if (criterio === 'nombre') return ((a.nombre||'').toLowerCase()).localeCompare((b.nombre||'').toLowerCase()) * factor;
         if (criterio === 'media') return (calcularMediaJugador(a) - calcularMediaJugador(b)) * factor;
         if (criterio === 'posicion') {
-          const getP = j => {
-            let pos = getPosicionesJugador(j);
-            if (!pos.length) return 999;
-            return ORDEN_POSICIONES[pos[0]] ?? 999;
-          };
+          const getP = j => { const pos = getPosicionesJugador(j); return pos.length ? (ORDEN_POSICIONES[pos[0]]??999) : 999; };
           const pa = getP(a), pb = getP(b);
           if (pa !== pb) return (pa - pb) * factor;
           return ((a.nombre||'').toLowerCase()).localeCompare((b.nombre||'').toLowerCase());
@@ -732,16 +749,7 @@
       });
       return lista;
     }
-
-    function getPosicionesJugador(j) {
-      let pos = j.posiciones || [];
-      if (typeof pos === 'string') pos = pos.split(/[,·|]/).map(s=>s.trim()).filter(Boolean);
-      return Array.isArray(pos) ? pos : [];
-    }
-
-    function jugadorEsPortero(j) {
-      return getPosicionesJugador(j).includes('Portero');
-    }
+    function jugadorEsPortero(j) { return getPosicionesJugador(j).includes('Portero'); }
     function attrsParaMedia(j) {
       if (jugadorEsPortero(j)) return [...ATTRS_GK.porteria, ...ATTRS_GK.mental, ...ATTRS_GK.fisico, ...ATTRS_GK.tecnico];
       return [...ATTRS_OUTFIELD.tecnico, ...ATTRS_OUTFIELD.mental, ...ATTRS_OUTFIELD.fisico];
@@ -759,8 +767,7 @@
       if (!attrs || !attrs.length) return 0;
       let s = 0, c = 0;
       attrs.forEach(a => { if (jugador[a] !== undefined) { s += Number(jugador[a])||0; c++; } });
-      if (!c) return 0;
-      return ((s / c) / 20) * 100;
+      return c ? ((s / c) / 20) * 100 : 0;
     }
     function obtenerRolesDelJugador(jugador) {
       const posJ = getPosicionesJugador(jugador);
@@ -799,21 +806,18 @@
         html += `<div class="roles-extra" id="roles-extra-${uid}">${resto.map(r => `<div class="role-item"><div class="role-info"><span class="role-name">${r.nombre}</span><span class="role-pos">${(r.posiciones||[]).join(' · ')}</span></div><span class="role-score ${colorScore(r.valoracion)}">${r.valoracion.toFixed(1)}</span></div>`).join('')}</div></div>
           <button class="btn-expand-roles" id="btn-roles-${uid}" data-more-text="▼ Ver más roles (${resto.length})" onclick="toggleRoles(${uid})">▼ Ver más roles (${resto.length})</button>`;
       } else html += `</div>`;
-      html += `</div>`;
-      return html;
+      return html + `</div>`;
     }
 
     function valoracionRolEnOnce(player, roleName) {
       if (!player) return 0;
       if (!roleName) return calcularMediaJugador(player);
-      const rolesJ = obtenerRolesDelJugador(player);
-      const found = rolesJ.find(r => r.nombre === roleName);
+      const found = obtenerRolesDelJugador(player).find(r => r.nombre === roleName);
       if (found) return found.valoracion;
       const rolGlobal = roles.find(r => r.nombre === roleName);
       if (rolGlobal) return calcularValoracionRol(player, rolGlobal.atributos);
       return calcularMediaJugador(player);
     }
-
     function calcularMediaOncePorRoles() {
       let suma = 0, n = 0;
       Object.keys(lineup).forEach(sid => {
@@ -821,12 +825,10 @@
         if (!entry?.playerId) return;
         const player = jugadores.find(j => j.id === entry.playerId);
         if (!player) return;
-        suma += valoracionRolEnOnce(player, entry.roleName);
-        n++;
+        suma += valoracionRolEnOnce(player, entry.roleName); n++;
       });
       return n ? suma / n : 0;
     }
-
     function actualizarBadgeMediaOnce() {
       const media = calcularMediaOncePorRoles();
       const count = Object.keys(lineup).filter(k => lineup[k]?.playerId).length;
@@ -834,45 +836,34 @@
       const countEl = document.getElementById('once-count');
       if (countEl) countEl.textContent = count;
       if (!el) return;
-      if (count === 0) {
-        el.textContent = '—';
-        el.style.color = '#888';
-      } else {
-        el.textContent = media.toFixed(1);
-        el.style.color = colorMedia(media);
-      }
+      if (count === 0) { el.textContent = '—'; el.style.color = '#888'; }
+      else { el.textContent = media.toFixed(1); el.style.color = colorMedia(media); }
     }
 
-    /** ¿Puede este jugador ocupar este tipo de slot? (estricto) */
     function puedeJugarEn(player, tipoSlot) {
       const posJ = getPosicionesJugador(player);
       if (!posJ.length) return false;
       const alts = ALTS[tipoSlot] || [tipoSlot];
       return posJ.some(p => alts.includes(p));
     }
-
-    /** Mejor rol del jugador compatible con el tipo de slot */
     function mejorRolCompatible(player, tipoSlot) {
       const alts = ALTS[tipoSlot] || [tipoSlot];
       const rolesJ = obtenerRolesDelJugador(player);
       let mejor = null, mejorVal = -1;
       rolesJ.forEach(r => {
         if ((r.posiciones||[]).some(p => alts.includes(p)) && r.valoracion > mejorVal) {
-          mejorVal = r.valoracion;
-          mejor = r;
+          mejorVal = r.valoracion; mejor = r;
         }
       });
       return mejor;
     }
-
-    /** Score de un jugador en un tipo de slot (solo si puede jugarlo) */
     function scoreEnTipo(player, tipoSlot) {
       if (!puedeJugarEn(player, tipoSlot)) return -1;
       const rol = mejorRolCompatible(player, tipoSlot);
-      if (rol) return rol.valoracion;
-      return calcularMediaJugador(player);
+      return rol ? rol.valoracion : calcularMediaJugador(player);
     }
 
+    /* ROLES CRUD — igual que antes */
     function guardarRolesEnStorage() { localStorage.setItem('rolesFM_v2', JSON.stringify(roles)); }
     function cargarRolesDesdeStorage() {
       try {
@@ -910,15 +901,9 @@
         const cb = document.querySelector(`#rolAtributosContainer input[value="${attr}"]`);
         if (cb) cb.checked = true;
       });
-      if (esEdicion) {
-        editandoRolId = rol.id;
-        document.getElementById('form-rol-title').textContent = 'Editando rol: ' + rol.nombre;
-        document.getElementById('btn-guardar-rol').textContent = '💾 Actualizar rol';
-      } else {
-        editandoRolId = null;
-        document.getElementById('form-rol-title').textContent = 'Añadir rol';
-        document.getElementById('btn-guardar-rol').textContent = '💾 Guardar rol';
-      }
+      editandoRolId = esEdicion ? rol.id : null;
+      document.getElementById('form-rol-title').textContent = esEdicion ? 'Editando rol: ' + rol.nombre : 'Añadir rol';
+      document.getElementById('btn-guardar-rol').textContent = esEdicion ? '💾 Actualizar rol' : '💾 Guardar rol';
       document.getElementById('form-rol-title').scrollIntoView({ behavior: 'smooth' });
     }
     function editarRol(id) { const r = roles.find(x => x.id === id); if (r) cargarRolEnFormulario(r, true); }
@@ -969,10 +954,8 @@
       document.getElementById('roles-count').textContent = roles.length;
       if (!roles.length) { container.innerHTML = '<div class="empty-state">No hay roles creados todavía.</div>'; return; }
       const grupos = {}; POSICIONES.forEach(p => grupos[p] = []);
-      const ordenados = [...roles].sort((a,b) => a.nombre.localeCompare(b.nombre));
-      ordenados.forEach(rol => {
-        const pl = rol.posiciones || [];
-        if (!pl.length) return;
+      [...roles].sort((a,b) => a.nombre.localeCompare(b.nombre)).forEach(rol => {
+        const pl = rol.posiciones || []; if (!pl.length) return;
         let mejor = pl[0], idx = ORDEN_POSICIONES[mejor] ?? 999;
         pl.forEach(p => { const i = ORDEN_POSICIONES[p]??999; if (i < idx) { idx = i; mejor = p; } });
         if (!grupos[mejor]) grupos[mejor] = [];
@@ -997,6 +980,7 @@
       container.innerHTML = html;
     }
 
+    /* JUGADORES */
     function clampValor(input) {
       let v = parseInt(input.value); if (isNaN(v)||v<1) v=1; if (v>20) v=20; input.value = v;
     }
@@ -1007,10 +991,7 @@
     }
     function crearCheckboxesPosiciones() {
       document.getElementById('posicionesContainer').innerHTML = POSICIONES.map((pos,i) =>
-        `<label class="pos-item">
-          <input type="checkbox" name="posicion" value="${pos}" id="pos_${i}" onchange="actualizarFormularioAtributos()">
-          <span>${pos}</span>
-        </label>`).join('');
+        `<label class="pos-item"><input type="checkbox" name="posicion" value="${pos}" id="pos_${i}" onchange="actualizarFormularioAtributos()"><span>${pos}</span></label>`).join('');
     }
     function crearCheckboxesPosicionesRol() {
       document.getElementById('rolPosicionesContainer').innerHTML = POSICIONES.map((pos,i) =>
@@ -1046,14 +1027,8 @@
     }
     function obtenerDatosFormulario() {
       document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => clampValor(el));
-      const data = {
-        id: editandoId || Date.now(),
-        nombre: document.getElementById('nombre').value.trim(),
-        posiciones: obtenerPosicionesSeleccionadas()
-      };
-      document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => {
-        data[el.id] = parseInt(el.value) || 1;
-      });
+      const data = { id: editandoId || Date.now(), nombre: document.getElementById('nombre').value.trim(), posiciones: obtenerPosicionesSeleccionadas() };
+      document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => { data[el.id] = parseInt(el.value) || 1; });
       return data;
     }
     function guardarJugador() {
@@ -1063,33 +1038,24 @@
         const idx = jugadores.findIndex(j => j.id === editandoId);
         if (idx !== -1) jugadores[idx] = data;
         mostrarStatus('✅ Jugador actualizado');
-      } else {
-        jugadores.push(data);
-        mostrarStatus('✅ Jugador guardado');
-      }
+      } else { jugadores.push(data); mostrarStatus('✅ Jugador guardado'); }
       localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
-      editandoId = null;
-      document.getElementById('form-title').textContent = 'Nuevo jugador';
-      limpiarFormulario();
-      renderizarJugadores();
+      editandoId = null; document.getElementById('form-title').textContent = 'Nuevo jugador';
+      limpiarFormulario(); renderizarJugadores();
     }
     function limpiarFormulario() {
-      document.getElementById('nombre').value = '';
-      marcarPosiciones([]);
-      editandoId = null;
-      document.getElementById('form-title').textContent = 'Nuevo jugador';
+      document.getElementById('nombre').value = ''; marcarPosiciones([]);
+      editandoId = null; document.getElementById('form-title').textContent = 'Nuevo jugador';
     }
     function editarJugador(id) {
       const j = jugadores.find(p => p.id === id); if (!j) return;
-      mostrarTab('anadir-jugador');
-      editandoId = id;
+      mostrarTab('anadir-jugador'); editandoId = id;
       document.getElementById('form-title').textContent = 'Editando: ' + j.nombre;
       document.getElementById('nombre').value = j.nombre || '';
       marcarPosiciones(j.posiciones || []);
       setTimeout(() => {
         document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => {
-          el.value = j[el.id] ?? 10;
-          clampValor(el);
+          el.value = j[el.id] ?? 10; clampValor(el);
         });
       }, 50);
     }
@@ -1097,8 +1063,7 @@
       if (!confirm('¿Eliminar este jugador?')) return;
       jugadores = jugadores.filter(j => j.id !== id);
       Object.keys(lineup).forEach(s => { if (lineup[s]?.playerId === id) delete lineup[s]; });
-      guardarLineup();
-      localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+      guardarLineup(); localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
       renderizarJugadores();
     }
     function colorValor(v) { if (v >= 15) return 'high'; if (v >= 10) return 'mid'; return 'low'; }
@@ -1108,36 +1073,21 @@
       const lista = obtenerJugadoresOrdenados();
       document.getElementById('count').textContent = lista.length;
       if (!lista.length) { container.innerHTML = '<div class="empty-state">No hay jugadores en el equipo todavía.</div>'; return; }
-
       container.innerHTML = lista.map(j => {
-        let posTexto = 'Sin posición';
         const posArr = getPosicionesJugador(j);
-        if (posArr.length) posTexto = posArr.join(' · ');
-        const media = calcularMediaJugador(j);
-        const mc = colorMedia(media);
-        const esGK = jugadorEsPortero(j);
-
+        const posTexto = posArr.length ? posArr.join(' · ') : 'Sin posición';
+        const media = calcularMediaJugador(j), mc = colorMedia(media), esGK = jugadorEsPortero(j);
         let attrsHTML = '';
         if (esGK) {
-          attrsHTML = `
-            <div class="view-column"><h4>Portería</h4>
-              ${ATTRS_GK.porteria.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
-            <div class="view-column"><h4>Mental</h4>
-              ${ATTRS_GK.mental.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
-            <div class="view-column"><h4>Físico</h4>
-              ${ATTRS_GK.fisico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}
-              <h4 style="margin-top:8px;background:#2a2a2a;">Técnico</h4>
-              ${ATTRS_GK.tecnico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>`;
+          attrsHTML = `<div class="view-column"><h4>Portería</h4>${ATTRS_GK.porteria.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
+            <div class="view-column"><h4>Mental</h4>${ATTRS_GK.mental.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
+            <div class="view-column"><h4>Físico</h4>${ATTRS_GK.fisico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}
+              <h4 style="margin-top:8px;background:#2a2a2a;">Técnico</h4>${ATTRS_GK.tecnico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>`;
         } else {
-          attrsHTML = `
-            <div class="view-column"><h4>Técnico</h4>
-              ${ATTRS_OUTFIELD.tecnico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
-            <div class="view-column"><h4>Mental</h4>
-              ${ATTRS_OUTFIELD.mental.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
-            <div class="view-column"><h4>Físico</h4>
-              ${ATTRS_OUTFIELD.fisico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>`;
+          attrsHTML = `<div class="view-column"><h4>Técnico</h4>${ATTRS_OUTFIELD.tecnico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
+            <div class="view-column"><h4>Mental</h4>${ATTRS_OUTFIELD.mental.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
+            <div class="view-column"><h4>Físico</h4>${ATTRS_OUTFIELD.fisico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>`;
         }
-
         return `<div class="player-card">
           <div class="player-header">
             <div class="player-header-left"><h3>${j.nombre||'Sin nombre'}</h3><div class="pos">${posTexto}</div></div>
@@ -1154,9 +1104,7 @@
           </div>
           <div class="attrs-section">
             <button class="btn-toggle-attrs" id="btn-attrs-${j.id}" onclick="toggleAttrs(${j.id})">▼ Ver atributos</button>
-            <div class="attrs-content" id="attrs-content-${j.id}">
-              <div class="view-grid">${attrsHTML}</div>
-            </div>
+            <div class="attrs-content" id="attrs-content-${j.id}"><div class="view-grid">${attrsHTML}</div></div>
           </div>
           ${renderRolesHTML(j)}
         </div>`;
@@ -1184,9 +1132,7 @@
       reader.readAsText(file); event.target.value = '';
     }
 
-    /* ================================================================
-       HACER 11
-       ================================================================ */
+    /* ========== HACER 11 ========== */
     function guardarLineup() {
       localStorage.setItem('lineupFM', JSON.stringify(lineup));
       localStorage.setItem('slotsConfigFM', JSON.stringify(slotsConfig));
@@ -1199,27 +1145,20 @@
         if (Array.isArray(sc) && sc.length === 11) slotsConfig = sc;
         else slotsConfig = JSON.parse(JSON.stringify(DEFAULT_SLOTS));
       } catch(e) {
-        lineup = {};
-        slotsConfig = JSON.parse(JSON.stringify(DEFAULT_SLOTS));
+        lineup = {}; slotsConfig = JSON.parse(JSON.stringify(DEFAULT_SLOTS));
       }
     }
-
     function contarTipo(tipo, excludeId) {
       return slotsConfig.filter(s => s.tipo === tipo && s.id !== excludeId).length;
     }
-
     function cambiarTipoSlot(slotId, nuevoTipo) {
       const slot = slotsConfig.find(s => s.id === slotId);
       if (!slot) return;
-      const max = MAX_POR_TIPO[nuevoTipo] ?? 2;
-      const actual = contarTipo(nuevoTipo, slotId);
-      if (actual >= max) {
-        alert(`Máximo ${max} de "${nuevoTipo}" permitidos.`);
-        renderPitch();
-        return;
+      if (contarTipo(nuevoTipo, slotId) >= (MAX_POR_TIPO[nuevoTipo] ?? 2)) {
+        alert(`Máximo ${MAX_POR_TIPO[nuevoTipo]??2} de "${nuevoTipo}" permitidos.`);
+        renderPitch(); return;
       }
-      slot.tipo = nuevoTipo;
-      slot.desiredRole = '';
+      slot.tipo = nuevoTipo; slot.desiredRole = '';
       if (lineup[slotId]) {
         const player = jugadores.find(j => j.id === lineup[slotId].playerId);
         if (player) {
@@ -1227,33 +1166,25 @@
           lineup[slotId].roleName = mejor ? mejor.nombre : '';
         }
       }
-      guardarLineup();
-      renderPitch();
+      guardarLineup(); renderPitch();
     }
-
     function cambiarRolDeseado(slotId, roleName) {
       const slot = slotsConfig.find(s => s.id === slotId);
       if (slot) {
         slot.desiredRole = roleName;
         if (lineup[slotId]) lineup[slotId].roleName = roleName;
-        guardarLineup();
-        actualizarBadgeMediaOnce();
-        renderPitch();
+        guardarLineup(); renderPitch();
       }
     }
-
     function jugadoresEnCampo() {
       return Object.values(lineup).map(x => x.playerId).filter(Boolean);
     }
-
     function rolesDisponiblesParaTipo(tipo) {
       const alts = ALTS[tipo] || [tipo];
-      const set = new Set();
-      const lista = [];
+      const set = new Set(), lista = [];
       roles.forEach(r => {
         if ((r.posiciones||[]).some(p => alts.includes(p)) && !set.has(r.nombre)) {
-          set.add(r.nombre);
-          lista.push(r);
+          set.add(r.nombre); lista.push(r);
         }
       });
       return lista;
@@ -1261,35 +1192,14 @@
 
     function construirPitch() {
       const pitch = document.getElementById('pitch');
-      pitch.innerHTML = `
-        <div class="pitch-half"></div>
-        <div class="pitch-circle"></div>
-        <div class="pitch-area-top"></div>
-        <div class="pitch-area-bot"></div>`;
-
+      pitch.innerHTML = `<div class="pitch-half"></div><div class="pitch-circle"></div><div class="pitch-area-top"></div><div class="pitch-area-bot"></div>`;
       slotsConfig.forEach(s => {
         const div = document.createElement('div');
         div.className = 'slot';
         div.dataset.slot = s.id;
         div.style.left = s.left + '%';
         div.style.top = s.top + '%';
-
-        let optsTipo = POSICIONES.map(p => {
-          const sel = p === s.tipo ? 'selected' : '';
-          return `<option value="${p}" ${sel}>${p}</option>`;
-        }).join('');
-
-        const rolesTipo = rolesDisponiblesParaTipo(s.tipo);
-        let optsRol = '<option value="">— Rol deseado —</option>';
-        rolesTipo.forEach(r => {
-          const sel = (s.desiredRole === r.nombre) ? 'selected' : '';
-          optsRol += `<option value="${r.nombre}" ${sel}>${r.nombre}</option>`;
-        });
-
-        div.innerHTML = `
-          <select class="slot-type-select" onchange="cambiarTipoSlot(${s.id}, this.value)">${optsTipo}</select>
-          <select class="slot-role-select" onchange="cambiarRolDeseado(${s.id}, this.value)">${optsRol}</select>`;
-
+        div.innerHTML = `<div class="slot-card empty" data-card></div>`;
         makeSlotDraggable(div, s);
         pitch.appendChild(div);
       });
@@ -1299,8 +1209,7 @@
       let startX, startY, origLeft, origTop, dragging = false;
       el.addEventListener('pointerdown', e => {
         if (e.target.closest('select') || e.target.closest('button') || e.target.closest('.slot-player')) return;
-        dragging = true;
-        el.classList.add('moving');
+        dragging = true; el.classList.add('moving');
         el.setPointerCapture(e.pointerId);
         startX = e.clientX; startY = e.clientY;
         origLeft = slotData.left; origTop = slotData.top;
@@ -1308,24 +1217,47 @@
       });
       el.addEventListener('pointermove', e => {
         if (!dragging) return;
-        const pitch = document.getElementById('pitch');
-        const rect = pitch.getBoundingClientRect();
-        const dx = ((e.clientX - startX) / rect.width) * 100;
-        const dy = ((e.clientY - startY) / rect.height) * 100;
-        let newLeft = Math.max(5, Math.min(95, origLeft + dx));
-        let newTop  = Math.max(5, Math.min(95, origTop + dy));
-        el.style.left = newLeft + '%';
-        el.style.top  = newTop + '%';
-        slotData.left = newLeft;
-        slotData.top  = newTop;
+        const rect = document.getElementById('pitch').getBoundingClientRect();
+        const newLeft = Math.max(5, Math.min(95, origLeft + ((e.clientX - startX) / rect.width) * 100));
+        const newTop  = Math.max(5, Math.min(95, origTop  + ((e.clientY - startY) / rect.height) * 100));
+        el.style.left = newLeft + '%'; el.style.top = newTop + '%';
+        slotData.left = newLeft; slotData.top = newTop;
       });
       el.addEventListener('pointerup', e => {
         if (!dragging) return;
-        dragging = false;
-        el.classList.remove('moving');
-        el.releasePointerCapture(e.pointerId);
-        guardarLineup();
+        dragging = false; el.classList.remove('moving');
+        el.releasePointerCapture(e.pointerId); guardarLineup();
       });
+    }
+
+    function renderLineupList() {
+      const container = document.getElementById('lineupList');
+      if (!container) return;
+      // Orden por posición en campo (top descendente = defensa primero visualmente en lista)
+      const ordenados = [...slotsConfig].sort((a,b) => b.top - a.top || a.left - b.left);
+      container.innerHTML = ordenados.map(s => {
+        const entry = lineup[s.id];
+        const abrev = ABREV[s.tipo] || s.tipo.slice(0,3).toUpperCase();
+        if (entry?.playerId) {
+          const player = jugadores.find(j => j.id === entry.playerId);
+          if (!player) return '';
+          const sc = valoracionRolEnOnce(player, entry.roleName);
+          const mc = colorMedia(sc);
+          return `<div class="lineup-row">
+            <span class="lr-pos">${abrev}</span>
+            <span class="lr-name">${player.nombre}</span>
+            <span class="lr-role">${entry.roleName || '—'}</span>
+            <span class="lr-score" style="color:${mc}">${sc.toFixed(0)}</span>
+            <button class="lr-remove" onclick="quitarDelSlot(${s.id})" title="Quitar">✕</button>
+          </div>`;
+        }
+        return `<div class="lineup-row empty-slot">
+          <span class="lr-pos">${abrev}</span>
+          <span class="lr-name">Vacío</span>
+          <span class="lr-role"></span>
+          <span class="lr-score"></span>
+        </div>`;
+      }).join('');
     }
 
     function renderDisponibles() {
@@ -1333,19 +1265,19 @@
       const enCampo = new Set(jugadoresEnCampo());
       const disponibles = jugadores.filter(j => !enCampo.has(j.id));
       if (!disponibles.length) {
-        container.innerHTML = '<div class="empty-state" style="padding:20px;font-size:0.9rem;">Todos en el campo o no hay jugadores.</div>';
+        container.innerHTML = '<div class="empty-state" style="padding:16px;font-size:0.85rem;">Todos en el campo.</div>';
         return;
       }
       disponibles.sort((a,b) => calcularMediaJugador(b) - calcularMediaJugador(a));
       container.innerHTML = disponibles.map(j => {
         const media = calcularMediaJugador(j);
         const mc = colorMedia(media);
-        const posT = getPosicionesJugador(j).join(', ') || 'Sin posición';
+        const posT = getPosicionesJugador(j).join(', ') || '—';
         return `<div class="disp-player" draggable="true" data-pid="${j.id}"
                      ondragstart="onDragStart(event, ${j.id})" ondragend="onDragEnd(event)">
-          <div class="dp-name">${j.nombre}</div>
-          <div class="dp-pos">${posT}</div>
-          <div class="dp-media" style="color:${mc}">Media: ${media.toFixed(1)}</div>
+          <span class="dp-name">${j.nombre}</span>
+          <span class="dp-pos">${posT}</span>
+          <span class="dp-media" style="color:${mc}">${media.toFixed(0)}</span>
         </div>`;
       }).join('');
     }
@@ -1356,23 +1288,48 @@
         const cfg = slotsConfig.find(s => s.id === sid);
         if (!cfg) return;
 
-        const children = [...slotEl.children];
-        children.forEach(c => {
-          if (!c.classList.contains('slot-type-select') && !c.classList.contains('slot-role-select')) c.remove();
-        });
+        const card = slotEl.querySelector('[data-card]') || slotEl;
+        // Rebuild card content
+        const entry = lineup[sid];
+        const player = entry ? jugadores.find(j => j.id === entry.playerId) : null;
 
-        const selectTipo = slotEl.querySelector('.slot-type-select');
-        const selectRol  = slotEl.querySelector('.slot-role-select');
-        if (selectTipo) selectTipo.value = cfg.tipo;
+        const optsTipo = POSICIONES.map(p =>
+          `<option value="${p}" ${p===cfg.tipo?'selected':''}>${ABREV[p]||p}</option>`
+        ).join('');
 
-        if (selectRol) {
-          const rolesTipo = rolesDisponiblesParaTipo(cfg.tipo);
-          let optsRol = '<option value="">— Rol deseado —</option>';
-          rolesTipo.forEach(r => {
-            const sel = (cfg.desiredRole === r.nombre) ? 'selected' : '';
-            optsRol += `<option value="${r.nombre}" ${sel}>${r.nombre}</option>`;
+        if (player) {
+          const rolScore = valoracionRolEnOnce(player, entry.roleName);
+          const mc = colorMedia(rolScore);
+          const rolesDisp = obtenerRolesDelJugador(player);
+          const alts = ALTS[cfg.tipo] || [cfg.tipo];
+          let rolesSlot = rolesDisp.filter(r => (r.posiciones||[]).some(p => alts.includes(p)));
+          if (!rolesSlot.length) rolesSlot = rolesDisp;
+          let roleOptions = '<option value="">— Rol —</option>';
+          rolesSlot.forEach(r => {
+            roleOptions += `<option value="${r.nombre}" ${entry.roleName===r.nombre?'selected':''}>${r.nombre}</option>`;
           });
-          selectRol.innerHTML = optsRol;
+
+          card.className = 'slot-card';
+          card.innerHTML = `
+            <select class="slot-type-select" onchange="cambiarTipoSlot(${sid}, this.value)">${optsTipo}</select>
+            <div class="slot-player" draggable="true"
+                 ondragstart="event.stopPropagation(); event.dataTransfer.setData('text/pid', '${player.id}'); event.dataTransfer.effectAllowed='move';">
+              <div class="sp-name">${player.nombre}</div>
+              <div class="sp-media" style="color:${mc}">${rolScore.toFixed(1)}</div>
+              <select class="sp-role-select" onchange="cambiarRolSlot(${sid}, this.value)">${roleOptions}</select>
+              <button class="sp-remove" onclick="quitarDelSlot(${sid})">✕</button>
+            </div>`;
+        } else {
+          const rolesTipo = rolesDisponiblesParaTipo(cfg.tipo);
+          let optsRol = '<option value="">— Rol —</option>';
+          rolesTipo.forEach(r => {
+            optsRol += `<option value="${r.nombre}" ${cfg.desiredRole===r.nombre?'selected':''}>${r.nombre}</option>`;
+          });
+          card.className = 'slot-card empty';
+          card.innerHTML = `
+            <select class="slot-type-select" onchange="cambiarTipoSlot(${sid}, this.value)">${optsTipo}</select>
+            <select class="slot-role-select" onchange="cambiarRolDeseado(${sid}, this.value)">${optsRol}</select>
+            <div class="slot-empty-label">Vacío</div>`;
         }
 
         slotEl.ondragover = e => { e.preventDefault(); slotEl.classList.add('drag-over'); };
@@ -1383,46 +1340,10 @@
           const pid = parseFloat(e.dataTransfer.getData('text/pid'));
           if (pid) colocarJugador(sid, pid);
         };
-
-        const entry = lineup[sid];
-        if (entry) {
-          const player = jugadores.find(j => j.id === entry.playerId);
-          if (player) {
-            const rolScore = valoracionRolEnOnce(player, entry.roleName);
-            const mc = colorMedia(rolScore);
-            const rolesDisp = obtenerRolesDelJugador(player);
-            const alts = ALTS[cfg.tipo] || [cfg.tipo];
-            let rolesSlot = rolesDisp.filter(r => (r.posiciones||[]).some(p => alts.includes(p)));
-            if (!rolesSlot.length) rolesSlot = rolesDisp;
-
-            let roleOptions = '<option value="">— Sin rol —</option>';
-            rolesSlot.forEach(r => {
-              const sel = entry.roleName === r.nombre ? 'selected' : '';
-              roleOptions += `<option value="${r.nombre}" ${sel}>${r.nombre} (${r.valoracion.toFixed(0)})</option>`;
-            });
-
-            const sp = document.createElement('div');
-            sp.className = 'slot-player';
-            sp.draggable = true;
-            sp.ondragstart = e => {
-              e.stopPropagation();
-              e.dataTransfer.setData('text/pid', String(player.id));
-              e.dataTransfer.setData('text/fromSlot', String(sid));
-              e.dataTransfer.effectAllowed = 'move';
-            };
-            sp.innerHTML = `
-              <div class="sp-name">${player.nombre}</div>
-              <div class="sp-media" style="color:${mc}">${rolScore.toFixed(1)}</div>
-              <select class="sp-role-select" onchange="cambiarRolSlot(${sid}, this.value)">${roleOptions}</select>
-              <button class="sp-remove" onclick="quitarDelSlot(${sid})">✕</button>`;
-            slotEl.appendChild(sp);
-          } else {
-            delete lineup[sid];
-          }
-        }
       });
 
       actualizarBadgeMediaOnce();
+      renderLineupList();
       renderDisponibles();
     }
 
@@ -1434,17 +1355,13 @@
     function onDragEnd(e) { e.target.classList.remove('dragging'); }
 
     function colocarJugador(slotId, playerId) {
-      // Quitar de cualquier otro slot
-      Object.keys(lineup).forEach(s => {
-        if (lineup[s]?.playerId == playerId) delete lineup[s];
-      });
+      Object.keys(lineup).forEach(s => { if (lineup[s]?.playerId == playerId) delete lineup[s]; });
       const player = jugadores.find(j => j.id == playerId);
       if (!player) return;
       const cfg = slotsConfig.find(s => s.id === slotId);
-      const tipo = cfg ? cfg.tipo : null;
       let roleName = '';
-      if (tipo) {
-        const mejor = mejorRolCompatible(player, tipo);
+      if (cfg) {
+        const mejor = mejorRolCompatible(player, cfg.tipo);
         roleName = mejor ? mejor.nombre : (cfg.desiredRole || '');
       }
       lineup[slotId] = { playerId: Number(playerId) || playerId, roleName };
@@ -1452,193 +1369,111 @@
       renderPitch();
     }
     function quitarDelSlot(slotId) {
-      delete lineup[slotId];
-      guardarLineup();
-      renderPitch();
+      delete lineup[slotId]; guardarLineup(); renderPitch();
     }
     function cambiarRolSlot(slotId, roleName) {
       if (lineup[slotId]) {
         lineup[slotId].roleName = roleName;
         const slot = slotsConfig.find(s => s.id === slotId);
         if (slot) slot.desiredRole = roleName;
-        guardarLineup();
-        renderPitch();
+        guardarLineup(); renderPitch();
       }
     }
     function limpiarOnce() {
       if (!confirm('¿Quitar todos los jugadores del campo?')) return;
-      lineup = {};
-      guardarLineup();
-      renderPitch();
+      lineup = {}; guardarLineup(); renderPitch();
     }
     function resetPosicionesSlots() {
-      if (!confirm('¿Restablecer las posiciones de los huecos al layout por defecto (4-3-3)?')) return;
+      if (!confirm('¿Restablecer al layout 4-3-3?')) return;
       slotsConfig = JSON.parse(JSON.stringify(DEFAULT_SLOTS));
-      guardarLineup();
-      construirPitch();
-      renderPitch();
+      guardarLineup(); construirPitch(); renderPitch();
     }
 
-    /**
-     * Evalúa cómo de bien se puede rellenar una formación con los jugadores disponibles.
-     * Devuelve { score, asignaciones: [{slotIdx, player, roleName, score}] }
-     * Solo asigna jugadores que PUEDEN jugar esa posición.
-     */
-    function evaluarFormacion(formacion, jugadoresPool, yaUsados) {
-      const usados = new Set(yaUsados);
+    function evaluarFormacion(formacion, jugadoresPool) {
+      const usados = new Set();
       const asignaciones = [];
-      let totalScore = 0;
-      let rellenados = 0;
-
-      // Prioridad: POR primero, luego defensa, luego resto
+      let totalScore = 0, rellenados = 0;
       const indices = formacion.slots.map((_, i) => i);
       indices.sort((a, b) => {
-        const ta = formacion.slots[a].tipo, tb = formacion.slots[b].tipo;
-        const prio = t => {
-          if (t === 'Portero') return 0;
-          if (t === 'Central' || t.includes('Lateral')) return 1;
-          if (t.includes('Carrilero')) return 2;
-          if (t === 'Mediocentro' || t === 'Centrocampista') return 3;
-          return 4;
-        };
-        return prio(ta) - prio(tb);
+        const prio = t => t==='Portero'?0 : (t==='Central'||t.includes('Lateral'))?1 : t.includes('Carrilero')?2 : (t==='Mediocentro'||t==='Centrocampista')?3 : 4;
+        return prio(formacion.slots[a].tipo) - prio(formacion.slots[b].tipo);
       });
-
       for (const idx of indices) {
         const tipo = formacion.slots[idx].tipo;
         let best = null, bestScore = -1, bestRole = '';
-
         for (const j of jugadoresPool) {
           if (usados.has(j.id)) continue;
           const sc = scoreEnTipo(j, tipo);
           if (sc > bestScore) {
-            bestScore = sc;
-            best = j;
+            bestScore = sc; best = j;
             const rol = mejorRolCompatible(j, tipo);
             bestRole = rol ? rol.nombre : '';
           }
         }
-
         if (best && bestScore >= 0) {
           usados.add(best.id);
           asignaciones.push({ slotIdx: idx, player: best, roleName: bestRole, score: bestScore });
-          totalScore += bestScore;
-          rellenados++;
+          totalScore += bestScore; rellenados++;
         }
       }
-
-      // Penalizar huecos vacíos
-      const penalizacion = (11 - rellenados) * 15;
-      return {
-        score: totalScore - penalizacion,
-        rellenados,
-        asignaciones,
-        formacion
-      };
+      return { score: totalScore - (11 - rellenados) * 15, rellenados, asignaciones, formacion };
     }
 
     function autoOnce(full) {
-      if (jugadores.length < 1) {
-        alert('No hay jugadores disponibles.');
-        return;
-      }
+      if (jugadores.length < 1) { alert('No hay jugadores disponibles.'); return; }
 
       if (full) {
-        // ===== ONCE AUTOMÁTICO: elegir mejor formación coherente =====
         let mejorEval = null;
-
         for (const form of FORMACIONES_COHERENTES) {
-          const ev = evaluarFormacion(form, jugadores, []);
-          if (!mejorEval || ev.score > mejorEval.score) {
-            mejorEval = ev;
-          }
+          const ev = evaluarFormacion(form, jugadores);
+          if (!mejorEval || ev.score > mejorEval.score) mejorEval = ev;
         }
-
         if (!mejorEval || mejorEval.rellenados === 0) {
           alert('No se pudo formar un once con las posiciones disponibles.');
           return;
         }
-
-        // Construir slots y lineup desde la formación ganadora
         lineup = {};
         slotsConfig = mejorEval.formacion.slots.map((s, i) => ({
-          id: i + 1,
-          tipo: s.tipo,
-          left: s.left,
-          top: s.top,
-          desiredRole: ''
+          id: i+1, tipo: s.tipo, left: s.left, top: s.top, desiredRole: ''
         }));
-
         mejorEval.asignaciones.forEach(asig => {
           const id = asig.slotIdx + 1;
           slotsConfig[asig.slotIdx].desiredRole = asig.roleName;
-          lineup[id] = {
-            playerId: asig.player.id,
-            roleName: asig.roleName
-          };
+          lineup[id] = { playerId: asig.player.id, roleName: asig.roleName };
         });
-
-        guardarLineup();
-        construirPitch();
-        renderPitch();
+        guardarLineup(); construirPitch(); renderPitch();
         return;
       }
 
-      // ===== COMPLETAR 11: solo huecos vacíos, SOLO jugadores compatibles =====
+      // Completar 11 — solo compatibles
       const usados = new Set(Object.values(lineup).map(e => e.playerId).filter(Boolean));
-
-      // Orden: portero → defensa → resto
-      const orden = [...slotsConfig].sort((a, b) => {
-        const prio = t => {
-          if (t === 'Portero') return 0;
-          if (t === 'Central' || t.includes('Lateral')) return 1;
-          if (t.includes('Carrilero')) return 2;
-          if (t === 'Mediocentro' || t === 'Centrocampista') return 3;
-          return 4;
-        };
+      const orden = [...slotsConfig].sort((a,b) => {
+        const prio = t => t==='Portero'?0 : (t==='Central'||t.includes('Lateral'))?1 : t.includes('Carrilero')?2 : (t==='Mediocentro'||t==='Centrocampista')?3 : 4;
         return prio(a.tipo) - prio(b.tipo);
       });
-
       orden.forEach(slot => {
         if (lineup[slot.id]?.playerId) return;
-
         let best = null, bestScore = -1, bestRole = '';
-
         for (const j of jugadores) {
           if (usados.has(j.id)) continue;
-          // ESTRICTO: solo si puede jugar esta posición
           if (!puedeJugarEn(j, slot.tipo)) continue;
-
           const sc = scoreEnTipo(j, slot.tipo);
           if (sc > bestScore) {
-            bestScore = sc;
-            best = j;
-            // Preferir rol deseado del slot si el jugador lo puede jugar
+            bestScore = sc; best = j;
             if (slot.desiredRole) {
-              const rolesJ = obtenerRolesDelJugador(j);
-              const found = rolesJ.find(r => r.nombre === slot.desiredRole);
-              if (found) {
-                bestRole = found.nombre;
-              } else {
-                const rol = mejorRolCompatible(j, slot.tipo);
-                bestRole = rol ? rol.nombre : '';
-              }
+              const found = obtenerRolesDelJugador(j).find(r => r.nombre === slot.desiredRole);
+              bestRole = found ? found.nombre : (mejorRolCompatible(j, slot.tipo)?.nombre || '');
             } else {
-              const rol = mejorRolCompatible(j, slot.tipo);
-              bestRole = rol ? rol.nombre : '';
+              bestRole = mejorRolCompatible(j, slot.tipo)?.nombre || '';
             }
           }
         }
-
-        // NO hay fallback a jugadores incompatibles
         if (best) {
           usados.add(best.id);
           lineup[slot.id] = { playerId: best.id, roleName: bestRole };
         }
       });
-
-      guardarLineup();
-      renderPitch();
+      guardarLineup(); renderPitch();
     }
 
     function init() {
@@ -1655,11 +1490,8 @@
       renderizarJugadores();
       renderizarRolesExistentes();
     }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
-    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
   </script>
 </body>
 </html>
