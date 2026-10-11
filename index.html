@@ -212,7 +212,7 @@
     }
 
     /* ========== HACER 11 ========== */
-    .once-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+    .once-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; position: relative; }
     @media (max-width: 1000px) { .once-layout { grid-template-columns: 1fr; } }
 
     .once-sidebar {
@@ -226,7 +226,6 @@
     .once-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
     .once-actions button { width: 100%; padding: 10px; font-size: 0.9rem; position: relative; }
 
-    /* Tooltip */
     .tooltip-wrap { position: relative; }
     .tooltip-wrap .tooltip-text {
       visibility: hidden; opacity: 0;
@@ -257,7 +256,7 @@
 
     .pitch-container {
       background: var(--card); border-radius: 10px; border: 1px solid var(--border);
-      padding: 16px; overflow: auto;
+      padding: 16px; overflow: auto; position: relative;
     }
     .pitch {
       position: relative; width: 100%; max-width: 700px; margin: 0 auto;
@@ -329,6 +328,39 @@
 
     .once-info { text-align: center; margin-top: 12px; font-size: 0.95rem; color: #aaa; }
     .once-info strong { color: #fff; }
+
+    /* ===== MEDIA DEL 11 FIJA ===== */
+    .once-media-badge {
+      position: sticky;
+      top: 12px;
+      float: right;
+      z-index: 30;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      padding: 12px 18px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(74,158,255,0.25);
+      min-width: 130px;
+      margin-bottom: 12px;
+    }
+    .once-media-badge .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #88aacc;
+      margin-bottom: 2px;
+    }
+    .once-media-badge .value {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    .once-media-badge .sub {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 2px;
+    }
   </style>
 </head>
 <body>
@@ -439,7 +471,7 @@
                 Crea el <strong>mejor once posible</strong> automáticamente:<br>
                 · Elige los jugadores con mayor puntuación<br>
                 · Asigna los mejores roles<br>
-                · <strong>Cambia las posiciones del campo</strong> si hace falta para maximizar la media total del equipo
+                · <strong>Cambia las posiciones del campo</strong> si hace falta para maximizar la media de roles del equipo
               </div>
             </div>
             <button class="btn-info" onclick="autoOnce(false)">🔧 Completar 11</button>
@@ -452,6 +484,15 @@
         </div>
 
         <div class="pitch-container">
+          <!-- BADGE MEDIA DEL 11 (fijo arriba a la derecha) -->
+          <div class="once-media-badge" id="once-media-badge">
+            <div class="label">Media del 11</div>
+            <div class="value" id="once-media-value" style="color:#888;">—</div>
+            <div class="sub"><span id="once-count">0</span>/11 jugadores</div>
+          </div>
+
+          <div style="clear:both"></div>
+
           <div class="pitch" id="pitch">
             <div class="pitch-half"></div>
             <div class="pitch-circle"></div>
@@ -459,9 +500,7 @@
             <div class="pitch-area-bot"></div>
           </div>
           <div class="once-info">
-            Media del once: <strong id="once-media">—</strong>
-            &nbsp;|&nbsp; Jugadores: <strong id="once-count">0</strong>/11
-            <br><small style="color:#666">Arrastra los huecos · Cambia posición y rol aunque no haya jugador</small>
+            <small style="color:#666">Arrastra los huecos · Cambia posición y rol aunque no haya jugador</small>
           </div>
         </div>
       </div>
@@ -504,7 +543,6 @@
       "Delantero centro": ["Delantero centro","Mediapunta"]
     };
 
-    // Layout por defecto – IZQUIERDA = izquierdos, DERECHA = derechos (atacando hacia arriba)
     const DEFAULT_SLOTS = [
       { id:1,  tipo:"Portero",           left:50, top:92 },
       { id:2,  tipo:"Lateral izquierdo", left:12, top:75 },
@@ -519,7 +557,6 @@
       { id:11, tipo:"Extremo derecho",   left:85, top:28 }
     ];
 
-    // Posiciones espaciales sugeridas por tipo (para auto-layout)
     const SPATIAL_BY_TIPO = {
       "Portero":           [{left:50, top:92}],
       "Lateral izquierdo": [{left:12, top:75},{left:10, top:68}],
@@ -564,8 +601,8 @@
     };
 
     let jugadores = [], roles = [], editandoId = null, editandoRolId = null;
-    let lineup = {};       // { slotId: { playerId, roleName } }
-    let slotsConfig = [];  // [{ id, tipo, left, top, desiredRole? }]
+    let lineup = {};
+    let slotsConfig = [];
 
     /* ========== NAVEGACIÓN ========== */
     function mostrarTab(tabId) {
@@ -705,6 +742,49 @@
       } else html += `</div>`;
       html += `</div>`;
       return html;
+    }
+
+    /* ========== VALORACIÓN DE ROL EN EL ONCE ========== */
+    function valoracionRolEnOnce(player, roleName) {
+      if (!player) return 0;
+      if (!roleName) return calcularMediaJugador(player); // fallback si no hay rol
+      const rolesJ = obtenerRolesDelJugador(player);
+      const found = rolesJ.find(r => r.nombre === roleName);
+      if (found) return found.valoracion;
+      // Buscar el rol en la lista global
+      const rolGlobal = roles.find(r => r.nombre === roleName);
+      if (rolGlobal) return calcularValoracionRol(player, rolGlobal.atributos);
+      return calcularMediaJugador(player);
+    }
+
+    function calcularMediaOncePorRoles() {
+      let suma = 0, n = 0;
+      Object.keys(lineup).forEach(sid => {
+        const entry = lineup[sid];
+        if (!entry?.playerId) return;
+        const player = jugadores.find(j => j.id === entry.playerId);
+        if (!player) return;
+        const score = valoracionRolEnOnce(player, entry.roleName);
+        suma += score;
+        n++;
+      });
+      return n ? suma / n : 0;
+    }
+
+    function actualizarBadgeMediaOnce() {
+      const media = calcularMediaOncePorRoles();
+      const count = Object.keys(lineup).filter(k => lineup[k]?.playerId).length;
+      const el = document.getElementById('once-media-value');
+      const countEl = document.getElementById('once-count');
+      if (countEl) countEl.textContent = count;
+      if (!el) return;
+      if (count === 0) {
+        el.textContent = '—';
+        el.style.color = '#888';
+      } else {
+        el.textContent = media.toFixed(1);
+        el.style.color = colorMedia(media);
+      }
     }
 
     /* ========== ROLES ========== */
@@ -1055,7 +1135,7 @@
         return;
       }
       slot.tipo = nuevoTipo;
-      slot.desiredRole = ''; // reset rol deseado al cambiar tipo
+      slot.desiredRole = '';
       if (lineup[slotId]) {
         const player = jugadores.find(j => j.id === lineup[slotId].playerId);
         if (player) {
@@ -1071,11 +1151,11 @@
       const slot = slotsConfig.find(s => s.id === slotId);
       if (slot) {
         slot.desiredRole = roleName;
-        // Si hay jugador, actualizar también su rol
         if (lineup[slotId]) {
           lineup[slotId].roleName = roleName;
         }
         guardarLineup();
+        actualizarBadgeMediaOnce();
       }
     }
 
@@ -1116,7 +1196,6 @@
           return `<option value="${p}" ${sel}>${p}</option>`;
         }).join('');
 
-        // Roles disponibles para este tipo (aunque no haya jugador)
         const rolesTipo = rolesDisponiblesParaTipo(s.tipo);
         let optsRol = '<option value="">— Rol deseado —</option>';
         rolesTipo.forEach(r => {
@@ -1169,7 +1248,6 @@
     function mejorRolParaSlot(player, slotId) {
       const slot = slotsConfig.find(s => s.id === slotId);
       if (!slot) return null;
-      // Si hay rol deseado y el jugador lo puede jugar, usarlo
       if (slot.desiredRole) {
         const rolesJ = obtenerRolesDelJugador(player);
         const found = rolesJ.find(r => r.nombre === slot.desiredRole);
@@ -1218,16 +1296,13 @@
         const cfg = slotsConfig.find(s => s.id === sid);
         if (!cfg) return;
 
-        // Rebuild selects
         const children = [...slotEl.children];
         children.forEach(c => { if (!c.classList.contains('slot-type-select') && !c.classList.contains('slot-role-select')) c.remove(); });
 
         let selectTipo = slotEl.querySelector('.slot-type-select');
         let selectRol  = slotEl.querySelector('.slot-role-select');
-
         if (selectTipo) selectTipo.value = cfg.tipo;
 
-        // Refresh role options
         if (selectRol) {
           const rolesTipo = rolesDisponiblesParaTipo(cfg.tipo);
           let optsRol = '<option value="">— Rol deseado —</option>';
@@ -1251,8 +1326,9 @@
         if (entry) {
           const player = jugadores.find(j => j.id === entry.playerId);
           if (player) {
-            const media = calcularMediaJugador(player);
-            const mc = colorMedia(media);
+            // Mostrar valoración del ROL seleccionado (no la media general)
+            const rolScore = valoracionRolEnOnce(player, entry.roleName);
+            const mc = colorMedia(rolScore);
             const rolesDisp = obtenerRolesDelJugador(player);
             const alts = ALTS[cfg.tipo] || [cfg.tipo];
             let rolesSlot = rolesDisp.filter(r => (r.posiciones||[]).some(p => alts.includes(p)));
@@ -1273,7 +1349,7 @@
             };
             sp.innerHTML = `
               <div class="sp-name">${player.nombre}</div>
-              <div class="sp-media" style="color:${mc}">${media.toFixed(1)}</div>
+              <div class="sp-media" style="color:${mc}">${rolScore.toFixed(1)}</div>
               <select class="sp-role-select" onchange="cambiarRolSlot(${sid}, this.value)">${roleOptions}</select>
               <button class="sp-remove" onclick="quitarDelSlot(${sid})">✕</button>`;
             slotEl.appendChild(sp);
@@ -1283,14 +1359,7 @@
         }
       });
 
-      const count = Object.keys(lineup).filter(k => lineup[k]?.playerId).length;
-      document.getElementById('once-count').textContent = count;
-      let suma = 0, n = 0;
-      Object.values(lineup).forEach(e => {
-        const p = jugadores.find(j => j.id === e.playerId);
-        if (p) { suma += calcularMediaJugador(p); n++; }
-      });
-      document.getElementById('once-media').textContent = n ? (suma / n).toFixed(1) : '—';
+      actualizarBadgeMediaOnce();
       renderDisponibles();
     }
 
@@ -1305,7 +1374,10 @@
       const player = jugadores.find(j => j.id === playerId);
       if (!player) return;
       const mejor = mejorRolParaSlot(player, slotId);
-      lineup[slotId] = { playerId, roleName: mejor ? mejor.nombre : (slotsConfig.find(s=>s.id===slotId)?.desiredRole || '') };
+      lineup[slotId] = {
+        playerId,
+        roleName: mejor ? mejor.nombre : (slotsConfig.find(s=>s.id===slotId)?.desiredRole || '')
+      };
       guardarLineup();
       renderPitch();
     }
@@ -1320,6 +1392,7 @@
         const slot = slotsConfig.find(s => s.id === slotId);
         if (slot) slot.desiredRole = roleName;
         guardarLineup();
+        renderPitch(); // recalcula media del rol
       }
     }
     function limpiarOnce() {
@@ -1336,12 +1409,6 @@
       renderPitch();
     }
 
-    /**
-     * autoOnce(full)
-     * full=true  → Once automático: puede REASIGNAR tipos de posición de los huecos
-     *              para maximizar la puntuación total (mejores jugadores + mejores roles + mejores posiciones)
-     * full=false → Completar 11: solo rellena huecos vacíos respetando tipos actuales
-     */
     function autoOnce(full) {
       if (jugadores.length < 1) {
         alert('No hay jugadores disponibles.');
@@ -1349,56 +1416,35 @@
       }
 
       if (full) {
-        // ===== ONCE AUTOMÁTICO INTELIGENTE =====
-        // 1. Para cada jugador calcular su mejor puntuación posible (mejor rol)
         const candidatos = jugadores.map(j => {
           const rolesJ = obtenerRolesDelJugador(j);
           const mejorRol = rolesJ.length ? rolesJ[0] : null;
           const score = mejorRol ? mejorRol.valoracion : calcularMediaJugador(j);
-          // Posiciones que puede ocupar
           let posJ = j.posiciones || [];
           if (typeof posJ === 'string') posJ = posJ.split(/[,·|]/).map(s=>s.trim()).filter(Boolean);
-          return {
-            player: j,
-            score,
-            mejorRol,
-            posiciones: posJ
-          };
+          return { player: j, score, mejorRol, posiciones: posJ };
         });
-
-        // Ordenar por score descendente
         candidatos.sort((a,b) => b.score - a.score);
 
-        // 2. Asignar de forma greedy respetando límites, eligiendo la mejor posición disponible para cada jugador
         const usados = new Set();
         const contadores = {};
         POSICIONES.forEach(p => contadores[p] = 0);
-        const asignaciones = []; // { player, tipo, roleName, score }
+        const asignaciones = [];
 
         for (const cand of candidatos) {
           if (asignaciones.length >= 11) break;
           if (usados.has(cand.player.id)) continue;
 
-          // Buscar la mejor posición que aún tenga cupo
-          let mejorTipo = null;
-          let mejorScoreTipo = -1;
-          let mejorRoleName = '';
-
-          const posicionesCandidatas = cand.posiciones.length ? cand.posiciones : POSICIONES.filter(p => p !== 'Portero' || cand.posiciones.includes('Portero'));
-
-          // También considerar roles: un rol puede indicar buena posición
+          let mejorTipo = null, mejorScoreTipo = -1, mejorRoleName = '';
           const rolesJ = obtenerRolesDelJugador(cand.player);
 
           for (const tipo of POSICIONES) {
             const max = MAX_POR_TIPO[tipo] ?? 2;
             if (contadores[tipo] >= max) continue;
-
-            // ¿Puede jugar aquí?
             const alts = ALTS[tipo] || [tipo];
             const puede = cand.posiciones.some(p => alts.includes(p)) || cand.posiciones.length === 0;
             if (!puede && cand.posiciones.length > 0) continue;
 
-            // Score en esta posición
             let scoreTipo = calcularMediaJugador(cand.player);
             let roleName = '';
             const rolesMatch = rolesJ.filter(r => (r.posiciones||[]).some(p => alts.includes(p)));
@@ -1406,10 +1452,9 @@
               scoreTipo = rolesMatch[0].valoracion;
               roleName = rolesMatch[0].nombre;
             } else if (cand.mejorRol) {
-              scoreTipo = cand.mejorRol.valoracion * 0.85; // penalización leve
+              scoreTipo = cand.mejorRol.valoracion * 0.85;
               roleName = cand.mejorRol.nombre;
             }
-
             if (scoreTipo > mejorScoreTipo) {
               mejorScoreTipo = scoreTipo;
               mejorTipo = tipo;
@@ -1420,29 +1465,21 @@
           if (mejorTipo) {
             contadores[mejorTipo]++;
             usados.add(cand.player.id);
-            asignaciones.push({
-              player: cand.player,
-              tipo: mejorTipo,
-              roleName: mejorRoleName,
-              score: mejorScoreTipo
-            });
+            asignaciones.push({ player: cand.player, tipo: mejorTipo, roleName: mejorRoleName, score: mejorScoreTipo });
           }
         }
 
-        // Si no llegamos a 11, rellenar con cualquiera restante
         if (asignaciones.length < 11) {
           for (const cand of candidatos) {
             if (asignaciones.length >= 11) break;
             if (usados.has(cand.player.id)) continue;
-            // Buscar cualquier tipo con cupo
             for (const tipo of POSICIONES) {
               const max = MAX_POR_TIPO[tipo] ?? 2;
               if (contadores[tipo] >= max) continue;
               contadores[tipo]++;
               usados.add(cand.player.id);
               asignaciones.push({
-                player: cand.player,
-                tipo,
+                player: cand.player, tipo,
                 roleName: cand.mejorRol ? cand.mejorRol.nombre : '',
                 score: cand.score
               });
@@ -1451,53 +1488,30 @@
           }
         }
 
-        // 3. Reconstruir slotsConfig con los tipos asignados + posiciones espaciales
         lineup = {};
         const nuevosSlots = [];
-        const usadosSpatial = {}; // para no solapar coords
+        const usadosSpatial = {};
 
         asignaciones.forEach((asig, idx) => {
           const id = idx + 1;
-          // Elegir coordenada espacial
           const coordsList = SPATIAL_BY_TIPO[asig.tipo] || [{left:50, top:50}];
           let coords = coordsList[0];
           for (const c of coordsList) {
             const key = c.left + ',' + c.top;
-            if (!usadosSpatial[key]) {
-              coords = c;
-              usadosSpatial[key] = true;
-              break;
-            }
+            if (!usadosSpatial[key]) { coords = c; usadosSpatial[key] = true; break; }
           }
-          // Si todas ocupadas, desplazar un poco
-          if (usadosSpatial[coords.left+','+coords.top] && Object.keys(usadosSpatial).length > 1) {
+          if (usadosSpatial[coords.left+','+coords.top]) {
             coords = { left: Math.min(90, coords.left + 5), top: Math.min(90, coords.top + 3) };
           }
           usadosSpatial[coords.left+','+coords.top] = true;
 
-          nuevosSlots.push({
-            id,
-            tipo: asig.tipo,
-            left: coords.left,
-            top: coords.top,
-            desiredRole: asig.roleName
-          });
-          lineup[id] = {
-            playerId: asig.player.id,
-            roleName: asig.roleName
-          };
+          nuevosSlots.push({ id, tipo: asig.tipo, left: coords.left, top: coords.top, desiredRole: asig.roleName });
+          lineup[id] = { playerId: asig.player.id, roleName: asig.roleName };
         });
 
-        // Rellenar hasta 11 slots si faltan
         while (nuevosSlots.length < 11) {
           const id = nuevosSlots.length + 1;
-          nuevosSlots.push({
-            id,
-            tipo: 'Mediocentro',
-            left: 50,
-            top: 50 + nuevosSlots.length,
-            desiredRole: ''
-          });
+          nuevosSlots.push({ id, tipo: 'Mediocentro', left: 50, top: 50 + nuevosSlots.length, desiredRole: '' });
         }
 
         slotsConfig = nuevosSlots;
@@ -1507,7 +1521,7 @@
         return;
       }
 
-      // ===== COMPLETAR 11 (solo huecos vacíos, respeta tipos actuales) =====
+      // Completar 11
       const usados = new Set(Object.values(lineup).map(e => e.playerId).filter(Boolean));
       const prio = {
         "Portero":0, "Central":1, "Lateral izquierdo":2, "Lateral derecho":2,
