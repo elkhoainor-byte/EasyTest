@@ -898,18 +898,20 @@ function renderTablaForma() {
     let lineup = {}, slotsConfig = [];
 
     function mostrarTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + tabId).classList.add('active');
-      const botones = document.querySelectorAll('.nav-btn');
-      const map = { 'equipo':0, 'anadir-jugador':1, 'anadir-rol':2, 'hacer-11':3 };
-      if (map[tabId] !== undefined) botones[map[tabId]].classList.add('active');
-if (tabId === 'equipo') {
-  renderizarJugadores();
-  if (typeof renderTablaForma === 'function') renderTablaForma();
-}
-  renderizarJugadores();
-  renderTablaForma();
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  const botones = document.querySelectorAll('.nav-btn');
+  const map = { 'equipo': 0, 'anadir-jugador': 1, 'anadir-rol': 2, 'hacer-11': 3 };
+  if (map[tabId] !== undefined) botones[map[tabId]].classList.add('active');
+
+  if (tabId === 'equipo') {
+    renderizarJugadores();
+    if (typeof renderTablaForma === 'function') renderTablaForma();
+  }
+  if (tabId === 'anadir-rol') renderizarRolesExistentes();
+  if (tabId === 'hacer-11') { construirPitch(); renderPitch(); }
+  if (tabId === 'anadir-jugador') actualizarFormularioAtributos();
 }
       if (tabId === 'anadir-rol') renderizarRolesExistentes();
       if (tabId === 'hacer-11') { construirPitch(); renderPitch(); }
@@ -1325,28 +1327,30 @@ function toggleBajoForma(id, checked) {
       const el = document.getElementById('status'); el.textContent = msg; setTimeout(() => el.textContent = '', 2500);
     }
     function obtenerDatosFormulario() {
-      document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => clampValor(el));
-      let ult5 = parseFloat(document.getElementById('ult5').value);
-let valEnt = parseFloat(document.getElementById('valEnt').value);
-let informe = parseFloat(document.getElementById('informe').value);
-if (isNaN(ult5)) ult5 = 10; ult5 = Math.max(0, Math.min(10, ult5));
-if (isNaN(valEnt)) valEnt = 10; valEnt = Math.max(0, Math.min(10, valEnt));
-if (isNaN(informe)) informe = 0;
-informe = Math.round(informe / 0.2) * 0.2;
-informe = Math.max(-5, Math.min(5, informe));
+  document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => clampValor(el));
+  let ult5 = parseFloat(document.getElementById('ult5').value);
+  let valEnt = parseFloat(document.getElementById('valEnt').value);
+  let informe = parseFloat(document.getElementById('informe').value);
+  if (isNaN(ult5)) ult5 = 10; ult5 = Math.max(0, Math.min(10, ult5));
+  if (isNaN(valEnt)) valEnt = 10; valEnt = Math.max(0, Math.min(10, valEnt));
+  if (isNaN(informe)) informe = 0;
+  informe = Math.round(informe / 0.2) * 0.2;
+  informe = Math.max(-5, Math.min(5, informe));
 
-const data = {
-  id: editandoId || Date.now(),
-  nombre: document.getElementById('nombre').value.trim(),
-  posiciones: obtenerPosicionesSeleccionadas(),
-  ult5: ult5,
-  valEnt: valEnt,
-  informe: informe,
-  bajoForma: document.getElementById('bajoForma') ? document.getElementById('bajoForma').checked : false
-};
-document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => {
-  data[el.id] = parseInt(el.value) || 1;
-});
+  const data = {
+    id: editandoId || Date.now(),
+    nombre: document.getElementById('nombre').value.trim(),
+    posiciones: obtenerPosicionesSeleccionadas(),
+    ult5: ult5,
+    valEnt: valEnt,
+    informe: informe,
+    bajoForma: document.getElementById('bajoForma') ? document.getElementById('bajoForma').checked : false
+  };
+  document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => {
+    data[el.id] = parseInt(el.value) || 1;
+  });
+  return data;  
+}                
     function guardarJugador() {
       const data = obtenerDatosFormulario();
       if (!data.nombre) { alert('El nombre del jugador es obligatorio.'); return; }
