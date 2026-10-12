@@ -147,28 +147,6 @@
       .player-actions { display: flex; gap: 8px; }
       .player-actions button { padding: 8px 14px; font-size: 0.9rem; }
 
-      <div class="form-extras-inline">
-  <div class="fe-item"><label>Últ.5</label>
-    <input type="number" min="0" max="10" step="0.5" value="${u5}"
-      onchange="actualizarFormaJugador(${j.id},'ult5',this.value)"></div>
-  <div class="fe-item"><label>Val.Ent</label>
-    <input type="number" min="0" max="10" step="0.5" value="${ve}"
-      onchange="actualizarFormaJugador(${j.id},'valEnt',this.value)"></div>
-  <div class="fe-item"><label>Informe</label>
-    <input type="number" min="-5" max="5" step="0.20" value="${inf}"
-      onchange="actualizarFormaJugador(${j.id},'informe',this.value)"></div>
-  <div class="fe-item">
-    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-      <input type="checkbox" ${getBajoForma(j) ? 'checked' : ''}
-        onchange="toggleBajoForma(${j.id}, this.checked)"
-        style="width:16px;height:16px;accent-color:#4a9eff;">
-      Bajo forma
-    </label>
-  </div>
-  <div class="fe-item" style="color:#888;font-size:0.8rem;">
-    Factor: ${(factorForma(j)*100).toFixed(0)}%
-  </div>
-</div>
       .form-extras-inline .fe-item { display: flex; align-items: center; gap: 6px; }
       .form-extras-inline label { font-size: 0.8rem; color: #888; white-space: nowrap; }
       .form-extras-inline input {
@@ -579,29 +557,40 @@
             <div class="posiciones-grid" id="posicionesContainer"></div>
           </div>
           <div>
+            <div>
             <label>Forma e informe <small style="color:#888">(influyen en la media del once)</small></label>
-<div class="form-extras">
-  <div>
-    <label>Últ. 5 partidos</label>
-    <input type="number" id="ult5" min="0" max="10" step="0.5" value="10">
-  </div>
-  <div>
-    <label>Val. Entrenamiento</label>
-    <input type="number" id="valEnt" min="0" max="10" step="0.5" value="10">
-  </div>
-  <div>
-    <label>Informe</label>
-    <input type="number" id="informe" min="-5" max="5" step="0.20" value="0">
-    <div class="hint">Pasos de 0.20</div>
-  </div>
-  <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:4px;">
-    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;margin:0;">
-      <input type="checkbox" id="bajoForma" style="width:18px;height:18px;accent-color:#4a9eff;">
-      Bajo de forma
-    </label>
-    <span style="font-size:0.8rem;color:#888;">(Val. Entrenamiento cuenta a la mitad)</span>
-  </div>
-</div>          
+            <div class="form-extras">
+              <div>
+                <label>Últ. 5 partidos</label>
+                <input type="number" id="ult5" min="0" max="10" step="0.5" value="10">
+              </div>
+              <div>
+                <label>Val. Entrenamiento</label>
+                <input type="number" id="valEnt" min="0" max="10" step="0.5" value="10">
+              </div>
+              <div>
+                <label>Informe</label>
+                <input type="number" id="informe" min="-5" max="5" step="0.20" value="0">
+                <div class="hint">Pasos de 0.20</div>
+              </div>
+              <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:4px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;margin:0;">
+                  <input type="checkbox" id="bajoForma" style="width:18px;height:18px;accent-color:#4a9eff;">
+                  Bajo de forma
+                </label>
+                <span style="font-size:0.8rem;color:#888;">(Val. Entrenamiento cuenta a la mitad)</span>
+              </div>
+            </div>
+          </div>   <!-- cierra el div de "Forma e informe" -->
+        </div>     <!-- cierra .basic-info -->
+
+        <div class="attrs-grid" id="attrsGrid"></div>
+        <div class="buttons">
+          ...
+        </div>
+        <div class="status" id="status"></div>
+      </div>       <!-- cierra .form-section -->
+    </div>         <!-- cierra #tab-anadir-jugador -->
         <div class="attrs-grid" id="attrsGrid"></div>
         <div class="buttons">
           <button class="btn-primary" onclick="guardarJugador()">💾 Guardar jugador</button>
@@ -1013,10 +1002,10 @@ function toggleBajoForma(id, checked) {
   if (!j) return;
   j.bajoForma = !!checked;
   localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
-  if (document.getElementById('tab-equipo') && document.getElementById('tab-equipo').classList.contains('active')) {
-    if (typeof renderTablaForma === 'function') renderTablaForma();
+  if (document.getElementById('tab-equipo')?.classList.contains('active')) {
+    renderizarJugadores();
   }
-  if (document.getElementById('tab-hacer-11') && document.getElementById('tab-hacer-11').classList.contains('active')) {
+  if (document.getElementById('tab-hacer-11')?.classList.contains('active')) {
     if (typeof renderPitch === 'function') renderPitch();
   }
 }
@@ -1387,16 +1376,24 @@ function toggleBajoForma(id, checked) {
               </div>
             </div>
           </div>
-          <div class="form-extras-inline">
+                    <div class="form-extras-inline">
             <div class="fe-item"><label>Últ.5</label>
-              <input type="number" min="0" max="10" step="0.01" value="${u5}"
+              <input type="number" min="0" max="10" step="0.5" value="${u5}"
                 onchange="actualizarFormaJugador(${j.id},'ult5',this.value)"></div>
             <div class="fe-item"><label>Val.Ent</label>
-              <input type="number" min="0" max="10" step="0.01" value="${ve}"
+              <input type="number" min="0" max="10" step="0.5" value="${ve}"
                 onchange="actualizarFormaJugador(${j.id},'valEnt',this.value)"></div>
             <div class="fe-item"><label>Informe</label>
               <input type="number" min="-5" max="5" step="0.20" value="${inf}"
                 onchange="actualizarFormaJugador(${j.id},'informe',this.value)"></div>
+            <div class="fe-item">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" ${getBajoForma(j) ? 'checked' : ''}
+                  onchange="toggleBajoForma(${j.id}, this.checked)"
+                  style="width:16px;height:16px;accent-color:#4a9eff;">
+                Bajo forma
+              </label>
+            </div>
             <div class="fe-item" style="color:#888;font-size:0.8rem;">
               Factor: ${(factorForma(j)*100).toFixed(0)}%
             </div>
