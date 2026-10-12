@@ -2010,57 +2010,7 @@ function aplicarFormaTodos(campo, valor) {
   renderTablaForma();
   if (document.getElementById('tab-hacer-11')?.classList.contains('active')) renderPitch();
 }
-    <div class="form-extras">
-  <div>
-    <label>Últ. 5 partidos</label>
-    <div style="display:flex;align-items:center;gap:4px;">
-      <button type="button" class="btn-step" onclick="document.getElementById('ult5').stepDown(1);">−</button>
-      <input type="number" id="ult5" min="0" max="10" step="0.5" value="10">
-      <button type="button" class="btn-step" onclick="document.getElementById('ult5').stepUp(1);">+</button>
-    </div>
-    <div class="forma-presets" style="margin-top:6px;">
-      <button type="button" onclick="document.getElementById('ult5').value=10">10</button>
-      <button type="button" onclick="document.getElementById('ult5').value=9">9</button>
-      <button type="button" onclick="document.getElementById('ult5').value=8">8</button>
-      <button type="button" onclick="document.getElementById('ult5').value=7">7</button>
-    </div>
-  </div>
-  <div>
-    <label>Val. Entrenamiento</label>
-    <div style="display:flex;align-items:center;gap:4px;">
-      <button type="button" class="btn-step" onclick="document.getElementById('valEnt').stepDown(1);">−</button>
-      <input type="number" id="valEnt" min="0" max="10" step="0.5" value="10">
-      <button type="button" class="btn-step" onclick="document.getElementById('valEnt').stepUp(1);">+</button>
-    </div>
-    <div class="forma-presets" style="margin-top:6px;">
-      <button type="button" onclick="document.getElementById('valEnt').value=10">10</button>
-      <button type="button" onclick="document.getElementById('valEnt').value=9">9</button>
-      <button type="button" onclick="document.getElementById('valEnt').value=8">8</button>
-      <button type="button" onclick="document.getElementById('valEnt').value=7">7</button>
-    </div>
-  </div>
-  <div>
-    <label>Informe</label>
-    <div style="display:flex;align-items:center;gap:4px;">
-      <button type="button" class="btn-step" onclick="
-        const el=document.getElementById('informe');
-        el.value=(Math.round((parseFloat(el.value||0)-0.2)/0.2)*0.2).toFixed(1);
-      ">−</button>
-      <input type="number" id="informe" min="-5" max="5" step="0.20" value="0">
-      <button type="button" class="btn-step" onclick="
-        const el=document.getElementById('informe');
-        el.value=(Math.round((parseFloat(el.value||0)+0.2)/0.2)*0.2).toFixed(1);
-      ">+</button>
-    </div>
-    <div class="forma-presets" style="margin-top:6px;">
-      <button type="button" onclick="document.getElementById('informe').value=0">0</button>
-      <button type="button" onclick="document.getElementById('informe').value=0.2">+0.2</button>
-      <button type="button" onclick="document.getElementById('informe').value=0.4">+0.4</button>
-      <button type="button" onclick="document.getElementById('informe').value=-0.2">−0.2</button>
-    </div>
-  </div>
-</div>
-    
+
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
   </script>
