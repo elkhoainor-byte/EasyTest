@@ -921,9 +921,6 @@ function renderTablaForma() {
     actualizarFormularioAtributos();
   }
 }
-      if (tabId === 'anadir-rol') renderizarRolesExistentes();
-      if (tabId === 'hacer-11') { construirPitch(); renderPitch(); }
-      if (tabId === 'anadir-jugador') actualizarFormularioAtributos();
 
     function esPorteroSeleccionado() {
       return Array.from(document.querySelectorAll('input[name="posicion"]:checked')).some(c => c.value === 'Portero');
