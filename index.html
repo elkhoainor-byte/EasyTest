@@ -269,9 +269,20 @@
       }
 
       .once-layout {
-        display: grid; grid-template-columns: 1fr 400px; gap: 16px; align-items: start;
+        display: grid; grid-template-columns: 200px 1fr 360px; gap: 12px; align-items: start;
       }
-      @media (max-width: 1100px) { .once-layout { grid-template-columns: 1fr; } }
+      @media (max-width: 1200px) { .once-layout { grid-template-columns: 1fr 360px; } }
+      @media (max-width: 900px) { .once-layout { grid-template-columns: 1fr; } }
+      .once-filtro-panel {
+        background: #1a1a1a; border: 1px solid var(--border); border-radius: 10px;
+        padding: 12px 10px; position: sticky; top: 12px; max-height: 85vh; overflow-y: auto;
+      }
+      .disp-player .dp-excluir {
+        display: flex; align-items: center; gap: 4px; width: 100%; margin-top: 2px;
+        padding-left: 0; font-size: 0.7rem; color: #f87171;
+      }
+      .disp-player.excluido-row { opacity: 0.55; }
+      .disp-player .dp-excluir input { width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer; }
 
       .pitch-panel {
         background: #1e1e1e; border-radius: 10px; border: 1px solid var(--border); padding: 12px;
@@ -701,6 +712,29 @@
 
     <div id="tab-hacer-11" class="tab-content">
       <div class="once-layout">
+        <div class="once-filtro-panel" id="filtroPanelOnce">
+          <h3 style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin:0 0 8px;padding-bottom:4px;border-bottom:1px solid #333;">Plantillas</h3>
+          <label class="filtro-item"><input type="checkbox" data-filtro="plantilla" value="Primer equipo" checked onchange="aplicarFiltrosOnce()"> Primer equipo</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="plantilla" value="Equipo B" checked onchange="aplicarFiltrosOnce()"> Equipo B</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="plantilla" value="Sub-19" checked onchange="aplicarFiltrosOnce()"> Sub-19</label>
+
+          <h3 style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin:12px 0 8px;padding-bottom:4px;border-bottom:1px solid #333;">Posiciones</h3>
+          <label class="filtro-item"><input type="checkbox" data-filtro="pos" value="Porteros" checked onchange="aplicarFiltrosOnce()"> Porteros</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="pos" value="Defensas" checked onchange="aplicarFiltrosOnce()"> Defensas</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="pos" value="Mediocentros" checked onchange="aplicarFiltrosOnce()"> Mediocentros</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="pos" value="Centrocampista" checked onchange="aplicarFiltrosOnce()"> Centrocampista</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="pos" value="Mediapuntas" checked onchange="aplicarFiltrosOnce()"> Mediapuntas</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="pos" value="Delanteros" checked onchange="aplicarFiltrosOnce()"> Delanteros</label>
+
+          <h3 style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin:12px 0 8px;padding-bottom:4px;border-bottom:1px solid #333;">Lado</h3>
+          <label class="filtro-item"><input type="checkbox" data-filtro="lado" value="Lado izquierdo" checked onchange="aplicarFiltrosOnce()"> Lado izquierdo</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="lado" value="Centro" checked onchange="aplicarFiltrosOnce()"> Centro</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="lado" value="Lado derecho" checked onchange="aplicarFiltrosOnce()"> Lado derecho</label>
+
+          <h3 style="font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin:12px 0 8px;padding-bottom:4px;border-bottom:1px solid #333;">Otros</h3>
+          <label class="filtro-item"><input type="checkbox" id="filtro-once-ocultar-excluidos" onchange="aplicarFiltrosOnce()"> Ocultar excluidos</label>
+          <button class="btn-secondary" style="width:100%;margin-top:10px;padding:7px;font-size:0.75rem;" onclick="resetFiltrosOnce()">↺ Restablecer</button>
+        </div>
         <div class="pitch-panel">
           <div class="pitch-toolbar">
             <div class="actions">
@@ -862,6 +896,48 @@ function setForma(id, campo, valor) {
         if(cb.id==='filtro-ocultar-excluidos') cb.checked=false; else cb.checked=true;
       });
       aplicarFiltros();
+    }
+    // Filtros del once (mismos criterios, leídos del panel de Hacer 11)
+    let filtrosOnce = {
+      plantillas: {'Primer equipo':true,'Equipo B':true,'Sub-19':true},
+      posiciones: {Porteros:true,Defensas:true,Mediocentros:true,Centrocampista:true,Mediapuntas:true,Delanteros:true},
+      lados: {'Lado izquierdo':true,'Centro':true,'Lado derecho':true},
+      ocultarExcluidos: false
+    };
+    function jugadorPasaFiltrosOnce(j){
+      const plant=getPlantilla(j);
+      if(!filtrosOnce.plantillas[plant]) return false;
+      if(filtrosOnce.ocultarExcluidos && getExcluido(j)) return false;
+      const posJ=getPosicionesJugador(j);
+      if(!posJ.length) return true;
+      let matchPos=false;
+      for(const [grupo,lista] of Object.entries(FILTRO_POS)){
+        if(filtrosOnce.posiciones[grupo] && posJ.some(p=>lista.includes(p))){ matchPos=true; break; }
+      }
+      if(!matchPos) return false;
+      let matchLado=false;
+      for(const [lado,lista] of Object.entries(FILTRO_LADO)){
+        if(filtrosOnce.lados[lado] && posJ.some(p=>lista.includes(p))){ matchLado=true; break; }
+      }
+      return matchLado;
+    }
+    function aplicarFiltrosOnce(){
+      document.querySelectorAll('#filtroPanelOnce input[data-filtro="plantilla"]').forEach(cb=>{ filtrosOnce.plantillas[cb.value]=cb.checked; });
+      document.querySelectorAll('#filtroPanelOnce input[data-filtro="pos"]').forEach(cb=>{ filtrosOnce.posiciones[cb.value]=cb.checked; });
+      document.querySelectorAll('#filtroPanelOnce input[data-filtro="lado"]').forEach(cb=>{ filtrosOnce.lados[cb.value]=cb.checked; });
+      const oc=document.getElementById('filtro-once-ocultar-excluidos');
+      filtrosOnce.ocultarExcluidos=oc?oc.checked:false;
+      if(typeof renderPitch==='function') renderPitch();
+    }
+    function resetFiltrosOnce(){
+      document.querySelectorAll('#filtroPanelOnce input[type="checkbox"]').forEach(cb=>{
+        if(cb.id==='filtro-once-ocultar-excluidos') cb.checked=false; else cb.checked=true;
+      });
+      aplicarFiltrosOnce();
+    }
+    function poolParaOnce(){
+      // Solo jugadores que pasan filtros del once y NO están excluidos
+      return jugadores.filter(j => !getExcluido(j) && jugadorPasaFiltrosOnce(j));
     }
     function cambiarPlantilla(id,nueva){
       const j=jugadores.find(p=>p.id==id); if(!j) return;
@@ -1794,10 +1870,11 @@ function toggleBajoForma(id, checked) {
 
     function renderDisponibles() {
       const container = document.getElementById('disponiblesList');
+      if (!container) return;
       const enCampo = new Set(jugadoresEnCampo());
-      const disponibles = jugadores.filter(j => !enCampo.has(j.id));
+      let disponibles = jugadores.filter(j => !enCampo.has(j.id) && jugadorPasaFiltrosOnce(j));
       if (!disponibles.length) {
-        container.innerHTML = '<div class="empty-state" style="padding:16px;font-size:0.85rem;">Todos en el campo.</div>';
+        container.innerHTML = '<div class="empty-state" style="padding:16px;font-size:0.85rem;">Ningún disponible con estos filtros.</div>';
         return;
       }
       disponibles.sort((a,b) => calcularMediaJugador(b) - calcularMediaJugador(a));
@@ -1805,11 +1882,17 @@ function toggleBajoForma(id, checked) {
         const media = calcularMediaJugador(j);
         const mc = colorMedia(media);
         const posT = getPosicionesJugador(j).join(', ') || '—';
-        return `<div class="disp-player" draggable="true" data-pid="${j.id}"
+        const excl = getExcluido(j);
+        return `<div class="disp-player ${excl?'excluido-row':''}" draggable="${excl?'false':'true'}" data-pid="${j.id}"
                      ondragstart="onDragStart(event, ${j.id})" ondragend="onDragEnd(event)">
-          <span class="dp-name">${j.nombre}</span>
+          <span class="dp-name">${j.nombre}${excl?' 🚫':''}</span>
           <span class="dp-pos">${posT}</span>
           <span class="dp-media" style="color:${mc}">${media.toFixed(0)}</span>
+          <label class="dp-excluir" onclick="event.stopPropagation()">
+            <input type="checkbox" ${excl?'checked':''}
+              onchange="toggleExcluido(${j.id}, this.checked)">
+            Excluir del 11 auto
+          </label>
           <div class="fe-mini">
             <label>Ú5</label><input type="number" min="0" max="10" step="0.01" value="${getUlt5(j)}"
               onclick="event.stopPropagation()" onchange="actualizarFormaJugador(${j.id},'ult5',this.value)">
@@ -1975,15 +2058,16 @@ function asignarOptimo(slots, jugadoresPool, yaUsados) {
     }
 
     function autoOnce(full) {
-  if (jugadores.length < 1) {
-    alert('No hay jugadores disponibles.');
+  const pool = typeof poolParaOnce === 'function' ? poolParaOnce() : jugadores.filter(j => !getExcluido(j));
+  if (pool.length < 1) {
+    alert('No hay jugadores disponibles (revisa filtros y exclusiones).');
     return;
   }
 
   if (full) {
     let mejorEval = null;
     for (const form of FORMACIONES_COHERENTES) {
-      const ev = evaluarFormacion(form, jugadores);
+      const ev = evaluarFormacion(form, pool);
       if (!mejorEval || ev.totalScore > mejorEval.totalScore ||
           (ev.totalScore === mejorEval.totalScore && ev.rellenados > mejorEval.rellenados)) {
         mejorEval = ev;
@@ -2025,7 +2109,7 @@ function asignarOptimo(slots, jugadoresPool, yaUsados) {
     Object.values(lineup).map(e => e.playerId).filter(Boolean)
   );
 
-  const { asignaciones } = asignarOptimo(huecosVacios, jugadores, yaUsados);
+  const { asignaciones } = asignarOptimo(huecosVacios, pool, yaUsados);
 
   asignaciones.forEach(asig => {
     const slot = huecosVacios[asig.slotIdx];
