@@ -2132,6 +2132,7 @@ function renderTablaForma() {
           <th>Informe</th>
           <th>Bajo forma</th>
           <th>Factor</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -2164,6 +2165,12 @@ function renderTablaForma() {
                 title="Bajo de forma: Val.Ent a la mitad">
             </td>
             <td class="tf-factor" style="font-weight:700;color:#88aacc">${fac}%</td>
+            <td style="text-align:center;white-space:nowrap;">
+              <button type="button" title="Editar jugador" onclick="editarJugador(${j.id})"
+                style="background:#333;border:1px solid #555;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:1rem;line-height:1;">
+                ✏️
+              </button>
+            </td>
           </tr>`;
         }).join('')}
       </tbody>
