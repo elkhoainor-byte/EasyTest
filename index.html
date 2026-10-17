@@ -206,6 +206,43 @@
       .file-input { display: none; }
       .status { text-align: center; margin-top: 12px; font-size: 0.9rem; color: #4ade80; min-height: 20px; }
 
+      .equipo-layout {
+        display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start;
+      }
+      @media (max-width: 900px) { .equipo-layout { grid-template-columns: 1fr; } }
+      .filtro-panel {
+        background: #1a1a1a; border: 1px solid var(--border); border-radius: 10px;
+        padding: 14px 12px; position: sticky; top: 12px; max-height: 85vh; overflow-y: auto;
+      }
+      .filtro-panel h3 {
+        font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px;
+        color: #888; margin: 12px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #333;
+      }
+      .filtro-panel h3:first-child { margin-top: 0; }
+      .filtro-item {
+        display: flex; align-items: center; gap: 8px; padding: 5px 6px;
+        border-radius: 5px; cursor: pointer; user-select: none; font-size: 0.88rem;
+      }
+      .filtro-item:hover { background: #2a2a2a; }
+      .filtro-item input[type="checkbox"] {
+        width: 16px; height: 16px; accent-color: #f5c518; cursor: pointer; flex-shrink: 0;
+      }
+      .badge-plantilla {
+        display: inline-block; font-size: 0.7rem; padding: 2px 7px; border-radius: 4px;
+        font-weight: 600; margin-left: 6px;
+      }
+      .badge-pe { background: #1e3a5f; color: #7dd3fc; }
+      .badge-eb { background: #3b2f1e; color: #fbbf24; }
+      .badge-s19 { background: #1e3b2f; color: #86efac; }
+      .badge-excluido {
+        display: inline-block; font-size: 0.7rem; padding: 2px 7px; border-radius: 4px;
+        background: #450a0a; color: #fca5a5; font-weight: 600; margin-left: 6px;
+      }
+      .plantilla-select {
+        padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);
+        background: #222; color: var(--text); cursor: pointer; font-size: 0.85rem;
+      }
+
       .roles-existentes { margin-top: 30px; }
       .roles-existentes h3 { margin-bottom: 12px; font-size: 1.1rem; }
       .rol-card {
@@ -525,22 +562,49 @@
     </div>
 
     <div id="tab-equipo" class="tab-content active">
-      <div class="players-list">
-        <h2>Equipo (<span id="count">0</span> jugadores)</h2>
-        <div class="sort-bar">
-          <label for="sort-by">Ordenar por:</label>
-          <select id="sort-by" onchange="aplicarOrden()">
-            <option value="nombre">Nombre</option>
-            <option value="posicion">Posición</option>
-            <option value="media">Media</option>
-          </select>
-          <label for="sort-dir">Dirección:</label>
-          <select id="sort-dir" onchange="aplicarOrden()">
-            <option value="asc">Ascendente</option>
-            <option value="desc">Descendente</option>
-          </select>
+      <div class="equipo-layout">
+        <div class="filtro-panel" id="filtroPanel">
+          <h3>Plantillas</h3>
+          <label class="filtro-item"><input type="checkbox" data-filtro="plantilla" value="Primer equipo" checked onchange="aplicarFiltros()"> Primer equipo</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="plantilla" value="Equipo B" checked onchange="aplicarFiltros()"> Equipo B</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="plantilla" value="Sub-19" checked onchange="aplicarFiltros()"> Plantilla Sub-19</label>
+
+          <h3>Posiciones</h3>
+          <label class="filtro-item"><input type="checkbox" data-filtro="pos" value="Porteros" checked onchange="aplicarFiltros()"> Porteros</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="pos" value="Defensas" checked onchange="aplicarFiltros()"> Defensas</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="pos" value="Mediocentros" checked onchange="aplicarFiltros()"> Mediocentros</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="pos" value="Centrocampista" checked onchange="aplicarFiltros()"> Centrocampista</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="pos" value="Mediapuntas" checked onchange="aplicarFiltros()"> Mediapuntas</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="pos" value="Delanteros" checked onchange="aplicarFiltros()"> Delanteros</label>
+
+          <h3>Lado</h3>
+          <label class="filtro-item"><input type="checkbox" data-filtro="lado" value="Lado izquierdo" checked onchange="aplicarFiltros()"> Lado izquierdo</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="lado" value="Centro" checked onchange="aplicarFiltros()"> Centro</label>
+          <label class="filtro-item"><input type="checkbox" data-filtro="lado" value="Lado derecho" checked onchange="aplicarFiltros()"> Lado derecho</label>
+
+          <h3>Otros</h3>
+          <label class="filtro-item"><input type="checkbox" id="filtro-ocultar-excluidos" onchange="aplicarFiltros()"> Ocultar excluidos del 11</label>
+          <button class="btn-secondary" style="width:100%;margin-top:12px;padding:8px;font-size:0.8rem;" onclick="resetFiltros()">↺ Restablecer filtros</button>
         </div>
-        <div id="playersContainer"><div class="empty-state">No hay jugadores en el equipo todavía.</div></div>
+
+        <div class="players-list">
+          <h2>Equipo (<span id="count">0</span> jugadores)</h2>
+          <div class="sort-bar">
+            <label for="sort-by">Ordenar por:</label>
+            <select id="sort-by" onchange="aplicarOrden()">
+              <option value="nombre">Nombre</option>
+              <option value="posicion">Posición</option>
+              <option value="media">Media</option>
+              <option value="plantilla">Plantilla</option>
+            </select>
+            <label for="sort-dir">Dirección:</label>
+            <select id="sort-dir" onchange="aplicarOrden()">
+              <option value="asc">Ascendente</option>
+              <option value="desc">Descendente</option>
+            </select>
+          </div>
+          <div id="playersContainer"><div class="empty-state">No hay jugadores en el equipo todavía.</div></div>
+        </div>
       </div>
     </div>
 
@@ -553,11 +617,18 @@
             <input type="text" id="nombre" placeholder="Ej: Lionel Messi" required>
           </div>
           <div>
+            <label for="plantilla">Plantilla</label>
+            <select id="plantilla" class="plantilla-select" style="width:100%;padding:10px 12px;font-size:1rem;">
+              <option value="Primer equipo">Primer equipo</option>
+              <option value="Equipo B">Equipo B</option>
+              <option value="Sub-19">Sub-19</option>
+            </select>
+          </div>
+          <div>
             <label>Posición/es <small style="color:#888">(puedes marcar varias)</small></label>
             <div class="posiciones-grid" id="posicionesContainer"></div>
           </div>
           <div>
-            <div>
             <label>Forma e informe <small style="color:#888">(influyen en la media del once)</small></label>
             <div class="form-extras">
               <div>
@@ -573,24 +644,20 @@
                 <input type="number" id="informe" min="-5" max="5" step="0.20" value="0">
                 <div class="hint">Pasos de 0.20</div>
               </div>
-              <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:4px;">
+              <div style="grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:4px;">
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;margin:0;">
                   <input type="checkbox" id="bajoForma" style="width:18px;height:18px;accent-color:#4a9eff;">
                   Bajo de forma
                 </label>
-                <span style="font-size:0.8rem;color:#888;">(Val. Entrenamiento cuenta a la mitad)</span>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;margin:0;color:#f87171;">
+                  <input type="checkbox" id="excluido" style="width:18px;height:18px;accent-color:#ef4444;">
+                  Excluir del 11 automático
+                </label>
               </div>
             </div>
-          </div>   <!-- cierra el div de "Forma e informe" -->
-        </div>     <!-- cierra .basic-info -->
-
-        <div class="attrs-grid" id="attrsGrid"></div>
-        <div class="buttons">
-          ...
+          </div>
         </div>
-        <div class="status" id="status"></div>
-      </div>       <!-- cierra .form-section -->
-    </div>         <!-- cierra #tab-anadir-jugador -->
+
         <div class="attrs-grid" id="attrsGrid"></div>
         <div class="buttons">
           <button class="btn-primary" onclick="guardarJugador()">💾 Guardar jugador</button>
@@ -738,6 +805,76 @@ function setForma(id, campo, valor) {
     ];
     const ORDEN_POSICIONES = {};
     POSICIONES.forEach((p,i) => ORDEN_POSICIONES[p] = i);
+
+    const PLANTILLAS = ['Primer equipo', 'Equipo B', 'Sub-19'];
+    const FILTRO_POS = {
+      'Porteros': ['Portero'],
+      'Defensas': ['Lateral derecho','Central','Lateral izquierdo','Carrilero derecho','Carrilero izquierdo'],
+      'Mediocentros': ['Centrocampista','Mediocentro'],
+      'Centrocampista': ['Medio derecho','Medio izquierdo'],
+      'Mediapuntas': ['Mediapunta','Extremo derecho','Extremo izquierdo'],
+      'Delanteros': ['Delantero centro']
+    };
+    const FILTRO_LADO = {
+      'Lado izquierdo': ['Lateral izquierdo','Carrilero izquierdo','Medio izquierdo','Extremo izquierdo'],
+      'Centro': ['Portero','Central','Centrocampista','Mediocentro','Mediapunta','Delantero centro'],
+      'Lado derecho': ['Lateral derecho','Carrilero derecho','Medio derecho','Extremo derecho']
+    };
+    let filtrosActivos = {
+      plantillas: {'Primer equipo':true,'Equipo B':true,'Sub-19':true},
+      posiciones: {Porteros:true,Defensas:true,Mediocentros:true,Centrocampista:true,Mediapuntas:true,Delanteros:true},
+      lados: {'Lado izquierdo':true,'Centro':true,'Lado derecho':true},
+      ocultarExcluidos: false
+    };
+    function getPlantilla(j){ return j.plantilla || 'Primer equipo'; }
+    function getExcluido(j){ return !!j.excluido; }
+    function badgePlantilla(p){
+      const map={'Primer equipo':'badge-pe','Equipo B':'badge-eb','Sub-19':'badge-s19'};
+      return '<span class="badge-plantilla '+(map[p]||'')+'">'+p+'</span>';
+    }
+    function jugadorPasaFiltros(j){
+      const plant=getPlantilla(j);
+      if(!filtrosActivos.plantillas[plant]) return false;
+      if(filtrosActivos.ocultarExcluidos && getExcluido(j)) return false;
+      const posJ=getPosicionesJugador(j);
+      if(!posJ.length) return true;
+      let matchPos=false;
+      for(const [grupo,lista] of Object.entries(FILTRO_POS)){
+        if(filtrosActivos.posiciones[grupo] && posJ.some(p=>lista.includes(p))){ matchPos=true; break; }
+      }
+      if(!matchPos) return false;
+      let matchLado=false;
+      for(const [lado,lista] of Object.entries(FILTRO_LADO)){
+        if(filtrosActivos.lados[lado] && posJ.some(p=>lista.includes(p))){ matchLado=true; break; }
+      }
+      return matchLado;
+    }
+    function aplicarFiltros(){
+      document.querySelectorAll('#filtroPanel input[data-filtro="plantilla"]').forEach(cb=>{ filtrosActivos.plantillas[cb.value]=cb.checked; });
+      document.querySelectorAll('#filtroPanel input[data-filtro="pos"]').forEach(cb=>{ filtrosActivos.posiciones[cb.value]=cb.checked; });
+      document.querySelectorAll('#filtroPanel input[data-filtro="lado"]').forEach(cb=>{ filtrosActivos.lados[cb.value]=cb.checked; });
+      const oc=document.getElementById('filtro-ocultar-excluidos');
+      filtrosActivos.ocultarExcluidos=oc?oc.checked:false;
+      renderizarJugadores();
+    }
+    function resetFiltros(){
+      document.querySelectorAll('#filtroPanel input[type="checkbox"]').forEach(cb=>{
+        if(cb.id==='filtro-ocultar-excluidos') cb.checked=false; else cb.checked=true;
+      });
+      aplicarFiltros();
+    }
+    function cambiarPlantilla(id,nueva){
+      const j=jugadores.find(p=>p.id==id); if(!j) return;
+      j.plantilla=nueva; localStorage.setItem('jugadoresFM',JSON.stringify(jugadores));
+      renderizarJugadores();
+      if(document.getElementById('tab-hacer-11')?.classList.contains('active')) renderPitch();
+    }
+    function toggleExcluido(id,checked){
+      const j=jugadores.find(p=>p.id==id); if(!j) return;
+      j.excluido=!!checked; localStorage.setItem('jugadoresFM',JSON.stringify(jugadores));
+      renderizarJugadores();
+      if(document.getElementById('tab-hacer-11')?.classList.contains('active')) renderPitch();
+    }
 
     const MAX_POR_TIPO = {
       "Portero": 1, "Lateral derecho": 2, "Central": 3, "Lateral izquierdo": 2,
@@ -921,10 +1058,16 @@ function setForma(id, campo, valor) {
       const criterio = document.getElementById('sort-by')?.value || 'nombre';
       const direccion = document.getElementById('sort-dir')?.value || 'asc';
       const factor = direccion === 'asc' ? 1 : -1;
-      const lista = [...jugadores];
+      let lista = jugadores.filter(j => jugadorPasaFiltros(j));
       lista.sort((a,b) => {
         if (criterio === 'nombre') return ((a.nombre||'').toLowerCase()).localeCompare((b.nombre||'').toLowerCase()) * factor;
         if (criterio === 'media') return (calcularMediaJugador(a) - calcularMediaJugador(b)) * factor;
+        if (criterio === 'plantilla') {
+          const pa = PLANTILLAS.indexOf(getPlantilla(a));
+          const pb = PLANTILLAS.indexOf(getPlantilla(b));
+          if (pa !== pb) return (pa - pb) * factor;
+          return ((a.nombre||'').toLowerCase()).localeCompare((b.nombre||'').toLowerCase());
+        }
         if (criterio === 'posicion') {
           const getP = j => { const pos = getPosicionesJugador(j); return pos.length ? (ORDEN_POSICIONES[pos[0]]??999) : 999; };
           const pa = getP(a), pb = getP(b);
@@ -1338,10 +1481,12 @@ function toggleBajoForma(id, checked) {
     id: editandoId || Date.now(),
     nombre: document.getElementById('nombre').value.trim(),
     posiciones: obtenerPosicionesSeleccionadas(),
+    plantilla: document.getElementById('plantilla')?.value || 'Primer equipo',
     ult5: ult5,
     valEnt: valEnt,
     informe: informe,
-    bajoForma: document.getElementById('bajoForma') ? document.getElementById('bajoForma').checked : false
+    bajoForma: document.getElementById('bajoForma') ? document.getElementById('bajoForma').checked : false,
+    excluido: document.getElementById('excluido') ? document.getElementById('excluido').checked : false
   };
   document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => {
     data[el.id] = parseInt(el.value) || 1;
@@ -1369,6 +1514,8 @@ function toggleBajoForma(id, checked) {
       document.getElementById('valEnt').value = 10;
       document.getElementById('informe').value = 0;
       document.getElementById('bajoForma').checked = false;
+      const ex = document.getElementById('excluido'); if (ex) ex.checked = false;
+      const pl = document.getElementById('plantilla'); if (pl) pl.value = 'Primer equipo';
       marcarPosiciones([]);
       editandoId = null; document.getElementById('form-title').textContent = 'Nuevo jugador';
     }
@@ -1383,6 +1530,10 @@ function toggleBajoForma(id, checked) {
       document.getElementById('bajoForma').checked = !!j.bajoForma;
       const cbBajo = document.getElementById('bajoForma');
       if (cbBajo) cbBajo.checked = !!j.bajoForma;
+      const pl = document.getElementById('plantilla');
+      if (pl) pl.value = getPlantilla(j);
+      const ex = document.getElementById('excluido');
+      if (ex) ex.checked = getExcluido(j);
       marcarPosiciones(j.posiciones || []);
       setTimeout(() => {
         document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => {
@@ -1420,9 +1571,14 @@ function toggleBajoForma(id, checked) {
             <div class="view-column"><h4>Mental</h4>${ATTRS_OUTFIELD.mental.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>
             <div class="view-column"><h4>Físico</h4>${ATTRS_OUTFIELD.fisico.map(a => `<div class="view-row"><span>${LABELS[a]||a}</span><span class="value ${colorValor(j[a]||1)}">${j[a]||1}</span></div>`).join('')}</div>`;
         }
+        const plant = getPlantilla(j);
+        const excl = getExcluido(j);
         return `<div class="player-card">
           <div class="player-header">
-            <div class="player-header-left"><h3>${j.nombre||'Sin nombre'}</h3><div class="pos">${posTexto}</div></div>
+            <div class="player-header-left">
+              <h3>${j.nombre||'Sin nombre'}${excl ? '<span class="badge-excluido">EXCLUIDO</span>' : ''}${badgePlantilla(plant)}</h3>
+              <div class="pos">${posTexto}</div>
+            </div>
             <div class="player-header-right">
               <div class="media-bar-container">
                 <div class="media-bar"><div class="media-bar-fill" style="width:${Math.min(100,media)}%;background:${mc};"></div></div>
@@ -1432,6 +1588,23 @@ function toggleBajoForma(id, checked) {
                 <button class="btn-secondary" onclick="editarJugador(${j.id})">✏️ Editar</button>
                 <button class="btn-danger" onclick="eliminarJugador(${j.id})">🗑️ Eliminar</button>
               </div>
+            </div>
+          </div>
+          <div class="form-extras-inline" style="margin-bottom:8px;gap:12px;align-items:center;">
+            <div class="fe-item">
+              <label>Plantilla</label>
+              <select class="plantilla-select" onchange="cambiarPlantilla(${j.id}, this.value)">
+                <option value="Primer equipo" ${plant==='Primer equipo'?'selected':''}>Primer equipo</option>
+                <option value="Equipo B" ${plant==='Equipo B'?'selected':''}>Equipo B</option>
+                <option value="Sub-19" ${plant==='Sub-19'?'selected':''}>Sub-19</option>
+              </select>
+            </div>
+            <div class="fe-item">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:${excl?'#f87171':'#aaa'};">
+                <input type="checkbox" ${excl?'checked':''} onchange="toggleExcluido(${j.id}, this.checked)"
+                  style="width:16px;height:16px;accent-color:#ef4444;">
+                Excluir del 11
+              </label>
             </div>
           </div>
                     <div class="form-extras-inline">
@@ -1754,6 +1927,7 @@ function asignarOptimo(slots, jugadoresPool, yaUsados) {
     const tipo = slot.tipo;
     jugadoresPool.forEach(j => {
       if (usados.has(j.id)) return;
+      if (getExcluido(j)) return;
       if (!puedeJugarEn(j, tipo)) return;
 
       const rolMejor = mejorRolCompatible(j, tipo);
@@ -1886,6 +2060,8 @@ guardarLineup();
   if (j.valEnt === undefined) j.valEnt = 10;
   if (j.informe === undefined) j.informe = 0;
   if (j.bajoForma === undefined) j.bajoForma = false;
+  if (j.plantilla === undefined) j.plantilla = 'Primer equipo';
+  if (j.excluido === undefined) j.excluido = false;
 });
       } catch(e) { jugadores = []; }
       cargarRolesDesdeStorage();
