@@ -629,6 +629,8 @@
       .int-btn.top { background: #fbbf24; color: #1a1a1a; font-size: 0.62rem; }
       .int-btn.muy-bueno { background: #166534; color: #fff; }
       .int-btn.bueno { background: #4ade80; color: #14532d; }
+      .int-btn.critico { background: #450a0a; color: #fecaca; font-size: 0.62rem; border: 1px solid #f87171; }
+      .int-btn.critico { background: #7f1d1d; color: #fecaca; font-size: 0.58rem; }
       .int-btn.muy-malo { background: #991b1b; color: #fff; }
       .int-btn.malo { background: #f97316; color: #fff; }
       .fuerte-item .attr-name:hover { color: var(--accent); }
@@ -981,7 +983,8 @@
               <div>
                 <label style="display:block;margin-bottom:10px;font-weight:700;color:#f87171;font-size:1.05rem;">Puntos débiles del rival</label>
                 <div style="font-size:0.78rem;color:#888;margin-bottom:8px;">
-                  <span style="display:inline-block;width:12px;height:12px;background:#991b1b;border-radius:3px;margin-right:4px;"></span> Muy malos
+                  <span style="display:inline-block;width:12px;height:12px;background:#7f1d1d;border-radius:3px;margin-right:4px;"></span> Crítico
+                  <span style="display:inline-block;width:12px;height:12px;background:#991b1b;border-radius:3px;margin:0 4px 0 12px;"></span> Muy malos
                   <span style="display:inline-block;width:12px;height:12px;background:#f97316;border-radius:3px;margin:0 4px 0 12px;"></span> Malos
                   <span style="display:block;margin-top:4px;color:#666;">Marca intensidad y pulsa «Añadir»</span>
                 </div>
@@ -2645,10 +2648,19 @@ function aplicarFormaTodos(campo, valor) {
       },
       {
         nombre: "MEDIOCAMPO",
-        plantilla: "{jugador1} es una buena opción en el puesto de mediocentro. {jugador2} es una buena opción en el centro del mediocampo.",
-        campos: [
-          { id: "jugador1", tipo: "jugador", label: "Mediocentro 1" },
-          { id: "jugador2", tipo: "jugador", label: "Mediocentro 2" }
+        plantilla: "",
+        multi: true,
+        opciones: [
+          {
+            id: "mc_mediocentro",
+            plantilla: "{jugador} es una buena opción en el puesto de mediocentro.",
+            campos: [{ id: "jugador", tipo: "jugador", label: "Jugador" }]
+          },
+          {
+            id: "mc_centro",
+            plantilla: "{jugador} es una buena opción en el centro del mediocampo.",
+            campos: [{ id: "jugador", tipo: "jugador", label: "Jugador" }]
+          }
         ]
       },
       {
@@ -2720,41 +2732,58 @@ function aplicarFormaTodos(campo, valor) {
       return html;
     }
 
+    function renderCampoHTML(c, prevVal, prefix) {
+      const campoId = prefix ? prefix + '_' + c.id : c.id;
+      if (c.tipo === 'jugador') {
+        return `<div style="margin-bottom:6px;"><label style="font-size:0.72rem;color:#888;display:block;margin-bottom:2px;">${c.label}</label>${construirSelectJugador(campoId, prevVal || '')}</div>`;
+      }
+      if (c.tipo === 'select') {
+        return `<div style="margin-bottom:6px;"><label style="font-size:0.72rem;color:#888;display:block;margin-bottom:2px;">${c.label}</label>
+          <select data-campo="${campoId}" class="fuerte-campo" style="width:100%;padding:5px 8px;background:#1a1a1a;border:1px solid #444;border-radius:4px;color:#e0e0e0;font-size:0.82rem;">
+            ${(c.opciones||[]).map(o => `<option value="${o}" ${prevVal===o?'selected':''}>${o}</option>`).join('')}
+          </select></div>`;
+      }
+      return `<div style="margin-bottom:6px;"><label style="font-size:0.72rem;color:#888;display:block;margin-bottom:2px;">${c.label}</label>
+        <input type="number" data-campo="${campoId}" class="fuerte-campo" value="${prevVal||''}" step="${c.step||'1'}"
+          style="width:100%;padding:5px 8px;background:#1a1a1a;border:1px solid #444;border-radius:4px;color:#e0e0e0;font-size:0.82rem;"></div>`;
+    }
+
     function construirListasRival() {
       const contF = document.getElementById('rival-fuertes');
       const contD = document.getElementById('rival-debiles');
       if (!contF || !contD) return;
 
-      // Guardar valores actuales de campos antes de reconstruir
       const camposPrevios = {};
       document.querySelectorAll('#rival-fuertes .attr-row-rival').forEach(row => {
         const attr = row.dataset.attr;
         const vals = {};
-        row.querySelectorAll('.fuerte-campo').forEach(el => {
-          vals[el.dataset.campo] = el.value;
-        });
+        row.querySelectorAll('.fuerte-campo').forEach(el => { vals[el.dataset.campo] = el.value; });
+        row.querySelectorAll('.sub-check').forEach(el => { vals['_chk_' + el.dataset.sub] = el.checked ? '1' : ''; });
         if (Object.keys(vals).length) camposPrevios[attr] = vals;
       });
 
       contF.innerHTML = LISTA_FUERTES.map(item => {
         const prev = camposPrevios[item.nombre] || {};
         let camposHTML = '';
-        if (item.campos && item.campos.length) {
-          camposHTML = `<div class="fuerte-campos" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #333;display:none;">
-            ${item.campos.map(c => {
-              if (c.tipo === 'jugador') {
-                return `<div style="margin-bottom:6px;"><label style="font-size:0.72rem;color:#888;display:block;margin-bottom:2px;">${c.label}</label>${construirSelectJugador(c.id, prev[c.id] || '')}</div>`;
-              }
-              if (c.tipo === 'select') {
-                return `<div style="margin-bottom:6px;"><label style="font-size:0.72rem;color:#888;display:block;margin-bottom:2px;">${c.label}</label>
-                  <select data-campo="${c.id}" class="fuerte-campo" style="width:100%;padding:5px 8px;background:#1a1a1a;border:1px solid #444;border-radius:4px;color:#e0e0e0;font-size:0.82rem;">
-                    ${(c.opciones||[]).map(o => `<option value="${o}" ${prev[c.id]===o?'selected':''}>${o}</option>`).join('')}
-                  </select></div>`;
-              }
-              return `<div style="margin-bottom:6px;"><label style="font-size:0.72rem;color:#888;display:block;margin-bottom:2px;">${c.label}</label>
-                <input type="number" data-campo="${c.id}" class="fuerte-campo" value="${prev[c.id]||''}" step="${c.step||'1'}"
-                  style="width:100%;padding:5px 8px;background:#1a1a1a;border:1px solid #444;border-radius:4px;color:#e0e0e0;font-size:0.82rem;"></div>`;
-            }).join('')}
+
+        if (item.multi && item.opciones) {
+          // Varios subtítulos independientes (ej. MEDIOCAMPO)
+          camposHTML = `<div class="fuerte-campos" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #333;">
+            ${item.opciones.map(op => `
+              <div class="sub-opcion" data-sub="${op.id}" style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:8px;margin-bottom:8px;">
+                <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:0.82rem;color:#ddd;margin-bottom:6px;">
+                  <input type="checkbox" class="sub-check" data-sub="${op.id}" ${prev['_chk_'+op.id]==='1'?'checked':''}
+                    style="width:16px;height:16px;margin-top:2px;accent-color:#4a9eff;flex-shrink:0;">
+                  <span>${op.plantilla.replace(/\{[^}]+\}/g, '…')}</span>
+                </label>
+                ${(op.campos||[]).map(c => renderCampoHTML(c, prev[op.id + '_' + c.id], op.id)).join('')}
+              </div>
+            `).join('')}
+            <div class="fuerte-preview" style="font-size:0.78rem;color:#a3e635;margin-top:4px;line-height:1.35;font-style:italic;"></div>
+          </div>`;
+        } else if (item.campos && item.campos.length) {
+          camposHTML = `<div class="fuerte-campos" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #333;">
+            ${item.campos.map(c => renderCampoHTML(c, prev[c.id], '')).join('')}
             <div class="fuerte-preview" style="font-size:0.78rem;color:#a3e635;margin-top:6px;line-height:1.35;font-style:italic;"></div>
           </div>`;
         } else {
@@ -2763,6 +2792,7 @@ function aplicarFormaTodos(campo, valor) {
           </div>`;
         }
 
+        const safeName = item.nombre.replace(/'/g, "\\'");
         return `
         <div class="attr-row-rival fuerte-item" data-attr="${item.nombre}" style="flex-direction:column;align-items:stretch;padding:8px;">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -2772,25 +2802,27 @@ function aplicarFormaTodos(campo, valor) {
               <button type="button" class="int-btn muy-bueno" data-level="muy_bueno" title="Muy buenos" onclick="toggleIntensity(this,'fuerte')">MB</button>
               <button type="button" class="int-btn bueno" data-level="bueno" title="Buenos" onclick="toggleIntensity(this,'fuerte')">B</button>
             </div>
-            <button type="button" class="btn-success" style="padding:4px 10px;font-size:0.72rem;" onclick="anadirAlInforme('fuerte','${item.nombre.replace(/'/g,"\\'")}')">+ Añadir</button>
+            <button type="button" class="btn-success" style="padding:4px 10px;font-size:0.72rem;" onclick="anadirAlInforme('fuerte','${safeName}')">+ Añadir</button>
           </div>
           ${camposHTML}
         </div>`;
       }).join('');
 
-      contD.innerHTML = LISTA_DEBILES.map(nombre => `
+      contD.innerHTML = LISTA_DEBILES.map(nombre => {
+        const safeName = nombre.replace(/'/g, "\\'");
+        return `
         <div class="attr-row-rival" data-attr="${nombre}" style="flex-wrap:wrap;gap:6px;">
           <span class="attr-name" style="flex:1;min-width:100px;">${nombre}</span>
           <div class="intensity-btns">
+            <button type="button" class="int-btn critico" data-level="critico" title="Crítico" onclick="toggleIntensity(this,'debil')">CR</button>
             <button type="button" class="int-btn muy-malo" data-level="muy_malo" title="Muy malos" onclick="toggleIntensity(this,'debil')">MM</button>
             <button type="button" class="int-btn malo" data-level="malo" title="Malos" onclick="toggleIntensity(this,'debil')">M</button>
           </div>
-          <button type="button" class="btn-success" style="padding:4px 10px;font-size:0.72rem;" onclick="anadirAlInforme('debil','${nombre.replace(/'/g,"\\'")}')">+ Añadir</button>
-        </div>
-      `).join('');
+          <button type="button" class="btn-success" style="padding:4px 10px;font-size:0.72rem;" onclick="anadirAlInforme('debil','${safeName}')">+ Añadir</button>
+        </div>`;
+      }).join('');
 
-      // Listeners para actualizar preview
-      contF.querySelectorAll('.fuerte-campo').forEach(el => {
+      contF.querySelectorAll('.fuerte-campo, .sub-check').forEach(el => {
         el.addEventListener('input', () => actualizarPreviewFuerte(el.closest('.attr-row-rival')));
         el.addEventListener('change', () => actualizarPreviewFuerte(el.closest('.attr-row-rival')));
       });
@@ -2812,12 +2844,29 @@ function aplicarFormaTodos(campo, valor) {
       if (!item) return;
       const preview = row.querySelector('.fuerte-preview');
       if (!preview) return;
-      let texto = item.plantilla;
+
+      if (item.multi && item.opciones) {
+        const partes = [];
+        item.opciones.forEach(op => {
+          const chk = row.querySelector(`.sub-check[data-sub="${op.id}"]`);
+          if (!chk || !chk.checked) return;
+          let t = op.plantilla;
+          (op.campos || []).forEach(c => {
+            const el = row.querySelector(`.fuerte-campo[data-campo="${op.id}_${c.id}"]`);
+            const v = el ? el.value : '';
+            t = t.replace(new RegExp('\\{' + c.id + '\\}', 'g'), v || '…');
+          });
+          partes.push(t);
+        });
+        preview.textContent = partes.length ? partes.join(' ') : 'Marca uno o los dos subtítulos.';
+        return;
+      }
+
+      let texto = item.plantilla || '';
       const vals = {};
       row.querySelectorAll('.fuerte-campo').forEach(el => { vals[el.dataset.campo] = el.value; });
       Object.keys(vals).forEach(k => {
-        const v = vals[k] || `«${k}»`;
-        texto = texto.replace(new RegExp('\\{' + k + '\\}', 'g'), v);
+        texto = texto.replace(new RegExp('\\{' + k + '\\}', 'g'), vals[k] || `«${k}»`);
       });
       preview.textContent = texto;
     }
@@ -2894,15 +2943,30 @@ function aplicarFormaTodos(campo, valor) {
     /* ===== INFORME DEL RIVAL ===== */
     let informeRival = []; // [{ id, tipo: 'fuerte'|'debil', attr, level, texto }]
 
+    function sinTildes(s) {
+      return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
     function filtrarListaRival(tipo) {
       const input = document.getElementById(tipo === 'fuertes' ? 'busca-fuertes' : 'busca-debiles');
       const cont = document.getElementById(tipo === 'fuertes' ? 'rival-fuertes' : 'rival-debiles');
       if (!input || !cont) return;
-      const q = (input.value || '').trim().toLowerCase();
+      const q = sinTildes((input.value || '').trim());
       cont.querySelectorAll('.attr-row-rival').forEach(row => {
-        const name = (row.dataset.attr || '').toLowerCase();
+        const name = sinTildes(row.dataset.attr || '');
         row.style.display = (!q || name.includes(q)) ? '' : 'none';
       });
+    }
+
+    function resetListasTrasAnadir() {
+      // Limpiar intensidades, campos y búsquedas; reconstruir listas
+      const bf = document.getElementById('busca-fuertes');
+      const bd = document.getElementById('busca-debiles');
+      if (bf) bf.value = '';
+      if (bd) bd.value = '';
+      construirListasRival();
+      filtrarListaRival('fuertes');
+      filtrarListaRival('debiles');
     }
 
     function anadirAlInforme(tipo, attr) {
@@ -2911,39 +2975,66 @@ function aplicarFormaTodos(campo, valor) {
       if (!row) return;
       const active = row.querySelector('.int-btn.active');
       if (!active) {
-        alert('Primero marca la intensidad (TOP / MB / B o MM / M).');
+        alert('Primero marca la intensidad (TOP / MB / B o CR / MM / M).');
         return;
       }
       const level = active.dataset.level;
-      let texto = attr;
+      const entradas = [];
+
       if (tipo === 'fuerte') {
         const item = LISTA_FUERTES.find(x => x.nombre === attr);
-        if (item) {
+        if (item && item.multi && item.opciones) {
+          // Uno o varios subtítulos marcados
+          item.opciones.forEach(op => {
+            const chk = row.querySelector(`.sub-check[data-sub="${op.id}"]`);
+            if (!chk || !chk.checked) return;
+            let t = op.plantilla;
+            (op.campos || []).forEach(c => {
+              const el = row.querySelector(`.fuerte-campo[data-campo="${op.id}_${c.id}"]`);
+              t = t.replace(new RegExp('\\{' + c.id + '\\}', 'g'), (el && el.value) || '…');
+            });
+            entradas.push({
+              id: Date.now() + Math.random(),
+              tipo: 'fuerte',
+              attr: attr + ' · ' + op.id,
+              attrBase: attr,
+              level,
+              texto: t
+            });
+          });
+          if (!entradas.length) {
+            alert('En MEDIOCAMPO marca al menos un subtítulo (checkbox).');
+            return;
+          }
+        } else if (item) {
           const vals = {};
           row.querySelectorAll('.fuerte-campo').forEach(el => { vals[el.dataset.campo] = el.value; });
-          texto = item.plantilla;
+          let texto = item.plantilla || attr;
           Object.keys(vals).forEach(k => {
             texto = texto.replace(new RegExp('\\{' + k + '\\}', 'g'), vals[k] || '…');
           });
+          entradas.push({ id: Date.now() + Math.random(), tipo: 'fuerte', attr, level, texto });
         }
       } else {
-        const labels = { muy_malo: 'Muy malo', malo: 'Malo' };
-        texto = `${attr}: ${labels[level] || level}`;
+        const labels = { critico: 'Crítico', muy_malo: 'Muy malo', malo: 'Malo' };
+        entradas.push({
+          id: Date.now() + Math.random(),
+          tipo: 'debil',
+          attr,
+          level,
+          texto: `${attr}: ${labels[level] || level}`
+        });
       }
 
-      // Evitar duplicados del mismo atributo+tipo
-      const exists = informeRival.findIndex(x => x.tipo === tipo && x.attr === attr);
-      const entry = {
-        id: Date.now() + Math.random(),
-        tipo,
-        attr,
-        level,
-        texto
-      };
-      if (exists >= 0) informeRival[exists] = entry;
-      else informeRival.push(entry);
+      entradas.forEach(entry => {
+        const key = entry.attr;
+        const exists = informeRival.findIndex(x => x.tipo === entry.tipo && x.attr === key);
+        if (exists >= 0) informeRival[exists] = entry;
+        else informeRival.push(entry);
+      });
 
       renderInformeRival();
+      resetListasTrasAnadir();
     }
 
     function quitarDelInforme(id) {
@@ -2966,11 +3057,11 @@ function aplicarFormaTodos(campo, valor) {
       }
       const levelLabel = {
         top: 'TOP', muy_bueno: 'Muy buenos', bueno: 'Buenos',
-        muy_malo: 'Muy malos', malo: 'Malos'
+        critico: 'Crítico', muy_malo: 'Muy malos', malo: 'Malos'
       };
       const levelColor = {
         top: '#fbbf24', muy_bueno: '#4ade80', bueno: '#86efac',
-        muy_malo: '#f87171', malo: '#fb923c'
+        critico: '#fecaca', muy_malo: '#f87171', malo: '#fb923c'
       };
       cont.innerHTML = informeRival.map(item => `
         <div style="display:flex;gap:10px;align-items:flex-start;background:#222;border:1px solid #333;border-radius:8px;padding:10px 12px;margin-bottom:8px;">
@@ -3356,7 +3447,7 @@ function aplicarFormaTodos(campo, valor) {
         const l = levelFuerte(attr);
         return l === 'muy_bueno' || l === 'top';
       };
-      const esMuyDebil = (attr) => debilesObj[attr] === 'muy_malo';
+      const esMuyDebil = (attr) => debilesObj[attr] === 'muy_malo' || debilesObj[attr] === 'critico';
       const pesoFuerte = (attr) => {
         const l = levelFuerte(attr);
         if (l === 'top') return 3;
@@ -3364,7 +3455,13 @@ function aplicarFormaTodos(campo, valor) {
         if (l === 'bueno') return 1;
         return 0;
       };
-      const pesoDebil = (attr) => esMuyDebil(attr) ? 2 : (tieneDebil(attr) ? 1 : 0);
+      const pesoDebil = (attr) => {
+        const l = debilesObj[attr];
+        if (l === 'critico') return 3;
+        if (l === 'muy_malo') return 2;
+        if (l === 'malo') return 1;
+        return 0;
+      };
 
       const estilo = rival.estilo || 'equilibrado';
       const formRival = rival.formacion || '4-3-3';
