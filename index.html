@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Atributos de Jugadores</title>
+    <title>Gestor FM24 + Rival Tactician</title>
     <style>
       :root {
         --bg: #1a1a1a; --card: #2a2a2a; --border: #3a3a3a;
@@ -559,17 +559,68 @@
         border-radius: 4px; border: 1px solid #3a3a3a; background: #1a1a1a; color: #e0e0e0;
       }
       .tf-nombre { font-weight: 600; }
+
+      /* ===== RIVAL TACTICIAN ===== */
+      .rival-layout { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
+      @media (max-width: 1000px) { .rival-layout { grid-template-columns: 1fr; } }
+      .rival-list { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 16px; max-height: 80vh; overflow-y: auto; }
+      .rival-list h3 { font-size: 0.95rem; margin-bottom: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+      .rival-item {
+        background: #222; border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+        margin-bottom: 10px; cursor: pointer; transition: all 0.15s;
+      }
+      .rival-item:hover, .rival-item.active { border-color: var(--accent); background: #1e2a3a; }
+      .rival-item .ri-name { font-weight: 700; font-size: 1.05rem; color: #fff; }
+      .rival-item .ri-meta { font-size: 0.8rem; color: #888; margin-top: 4px; }
+      .rival-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      @media (max-width: 700px) { .rival-form-grid { grid-template-columns: 1fr; } }
+      .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+      .check-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; }
+      .check-item input { width: 16px; height: 16px; accent-color: var(--accent); }
+      .result-card {
+        background: #1e1e1e; border: 1px solid var(--border); border-radius: 10px;
+        padding: 20px; margin-bottom: 16px;
+      }
+      .result-card h3 { color: var(--accent); margin-bottom: 12px; font-size: 1.15rem; }
+      .result-card .plan-header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
+      .badge-plan {
+        display: inline-block; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.9rem;
+      }
+      .badge-seguro { background: #14532d; color: #86efac; }
+      .badge-equilibrado { background: #1e3a5f; color: #7dd3fc; }
+      .badge-agresivo { background: #7c2d12; color: #fdba74; }
+      .instrucciones-list { list-style: none; padding: 0; }
+      .instrucciones-list li {
+        padding: 8px 12px; margin-bottom: 6px; background: #222; border-radius: 6px;
+        border-left: 3px solid var(--accent); font-size: 0.92rem;
+      }
+      .matchup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+      .matchup-option {
+        background: #222; border: 1px solid var(--border); border-radius: 10px; padding: 16px;
+        cursor: pointer; transition: all 0.15s;
+      }
+      .matchup-option:hover, .matchup-option.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+      .matchup-option .mo-score { font-size: 1.8rem; font-weight: 800; }
+      .matchup-option .mo-label { font-size: 0.8rem; color: #888; text-transform: uppercase; }
+      .key-players { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+      .key-player-tag { background: #333; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; }
+      .textarea-report {
+        width: 100%; min-height: 120px; padding: 12px; border-radius: 8px;
+        border: 1px solid var(--border); background: #1a1a1a; color: var(--text);
+        font-family: inherit; font-size: 0.95rem; resize: vertical;
+      }
     </style>
   </head>
 <body>
   <div class="container">
-    <h1>⚽ Gestor de Atributos de Jugadores</h1>
+    <h1>⚽ Gestor FM24 + Rival Tactician</h1>
 
     <div class="nav-menu">
       <button class="nav-btn active" onclick="mostrarTab('equipo')">Equipo</button>
       <button class="nav-btn" onclick="mostrarTab('anadir-jugador')">Añadir jugador</button>
       <button class="nav-btn" onclick="mostrarTab('anadir-rol')">Añadir rol</button>
       <button class="nav-btn" onclick="mostrarTab('hacer-11')">Hacer 11</button>
+      <button class="nav-btn" onclick="mostrarTab('rival')">Rival Tactician</button>
     </div>
 
     <div id="tab-equipo" class="tab-content active">
@@ -775,6 +826,154 @@
         </div>
       </div>
     </div>
+
+    <!-- ========== RIVAL TACTICIAN ========== -->
+    <div id="tab-rival" class="tab-content">
+      <div class="rival-layout">
+        <!-- Lista de rivales -->
+        <div class="rival-list">
+          <h3>Rivales guardados</h3>
+          <button class="btn-primary" style="width:100%;margin-bottom:14px;padding:10px;" onclick="nuevoRival()">+ Nuevo rival</button>
+          <div id="rivalesList"></div>
+        </div>
+
+        <!-- Panel principal -->
+        <div>
+          <div class="form-section" id="rivalFormSection">
+            <h2 id="rival-form-title">Nuevo rival / Informe de scouting</h2>
+
+            <div class="basic-info">
+              <div>
+                <label>Nombre del rival / equipo</label>
+                <input type="text" id="rival-nombre" placeholder="Ej: Real Madrid">
+              </div>
+            </div>
+
+            <div class="rival-form-grid" style="margin-bottom:20px;">
+              <div>
+                <label style="display:block;margin-bottom:6px;font-weight:600;">Formación habitual</label>
+                <select id="rival-formacion" style="width:100%;padding:10px;background:#222;color:#e0e0e0;border:1px solid #3a3a3a;border-radius:6px;">
+                  <option value="4-3-3">4-3-3</option>
+                  <option value="4-2-3-1">4-2-3-1</option>
+                  <option value="4-4-2">4-4-2</option>
+                  <option value="3-5-2">3-5-2</option>
+                  <option value="5-3-2">5-3-2</option>
+                  <option value="4-1-4-1">4-1-4-1</option>
+                  <option value="3-4-3">3-4-3</option>
+                  <option value="otra">Otra</option>
+                </select>
+              </div>
+              <div>
+                <label style="display:block;margin-bottom:6px;font-weight:600;">Estilo de juego</label>
+                <select id="rival-estilo" style="width:100%;padding:10px;background:#222;color:#e0e0e0;border:1px solid #3a3a3a;border-radius:6px;">
+                  <option value="posesion">Posesión / Tiki-Taka</option>
+                  <option value="vertical">Vertical / Directo</option>
+                  <option value="contraataque">Contraataque</option>
+                  <option value="presion_alta">Presión alta / Gegenpress</option>
+                  <option value="bloque_bajo">Bloque bajo / Reactivo</option>
+                  <option value="equilibrado">Equilibrado</option>
+                </select>
+              </div>
+              <div>
+                <label style="display:block;margin-bottom:6px;font-weight:600;">Mentalidad habitual</label>
+                <select id="rival-mentalidad" style="width:100%;padding:10px;background:#222;color:#e0e0e0;border:1px solid #3a3a3a;border-radius:6px;">
+                  <option value="muy_defensiva">Muy defensiva</option>
+                  <option value="defensiva">Defensiva</option>
+                  <option value="equilibrada" selected>Equilibrada</option>
+                  <option value="ofensiva">Ofensiva</option>
+                  <option value="muy_ofensiva">Muy ofensiva</option>
+                </select>
+              </div>
+              <div>
+                <label style="display:block;margin-bottom:6px;font-weight:600;">Importancia del partido</label>
+                <select id="partido-importancia" style="width:100%;padding:10px;background:#222;color:#e0e0e0;border:1px solid #3a3a3a;border-radius:6px;">
+                  <option value="normal">Normal (liga)</option>
+                  <option value="importante">Importante</option>
+                  <option value="decisivo">Decisivo / Eliminatoria</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+              <label style="display:block;margin-bottom:8px;font-weight:600;">Puntos fuertes del rival</label>
+              <div class="check-grid" id="rival-fuertes">
+                <label class="check-item"><input type="checkbox" value="laterales_ofensivos"> Laterales ofensivos</label>
+                <label class="check-item"><input type="checkbox" value="pivote_creativo"> Pivote creativo</label>
+                <label class="check-item"><input type="checkbox" value="extremos_rapidos"> Extremos rápidos</label>
+                <label class="check-item"><input type="checkbox" value="delantero_target"> Delantero target man</label>
+                <label class="check-item"><input type="checkbox" value="juego_aereo"> Fuertes por alto</label>
+                <label class="check-item"><input type="checkbox" value="balon_parado"> Peligrosos a balón parado</label>
+                <label class="check-item"><input type="checkbox" value="presion_alta"> Presión alta intensa</label>
+                <label class="check-item"><input type="checkbox" value="posesion_dominante"> Dominan la posesión</label>
+                <label class="check-item"><input type="checkbox" value="transiciones"> Muy buenos en transición</label>
+                <label class="check-item"><input type="checkbox" value="defensa_solida"> Defensa muy sólida</label>
+              </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+              <label style="display:block;margin-bottom:8px;font-weight:600;">Puntos débiles del rival</label>
+              <div class="check-grid" id="rival-debiles">
+                <label class="check-item"><input type="checkbox" value="laterales_fragiles"> Laterales frágiles</label>
+                <label class="check-item"><input type="checkbox" value="lentos_centro"> Lentos por el centro</label>
+                <label class="check-item"><input type="checkbox" value="mal_balon_parado"> Malos a balón parado</label>
+                <label class="check-item"><input type="checkbox" value="espacios_espalda"> Dejan espacios a la espalda</label>
+                <label class="check-item"><input type="checkbox" value="poco_agresivos"> Poco agresivos en presión</label>
+                <label class="check-item"><input type="checkbox" value="debiles_aereo"> Débiles por alto</label>
+                <label class="check-item"><input type="checkbox" value="poco_profundidad"> Poca profundidad ofensiva</label>
+                <label class="check-item"><input type="checkbox" value="dependen_estrella"> Dependen de 1-2 estrellas</label>
+                <label class="check-item"><input type="checkbox" value="fatiga"> Problemas de fatiga / rotación</label>
+                <label class="check-item"><input type="checkbox" value="juego_directo_malo"> Malos contra juego directo</label>
+              </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+              <label style="display:block;margin-bottom:6px;font-weight:600;">Jugadores clave del rival (nombre + motivo)</label>
+              <input type="text" id="rival-clave1" placeholder="Ej: Vinicius - Extremo muy rápido y regateador" style="width:100%;padding:10px;margin-bottom:8px;background:#222;border:1px solid #3a3a3a;border-radius:6px;color:#e0e0e0;">
+              <input type="text" id="rival-clave2" placeholder="Ej: Bellingham - Llega mucho al área" style="width:100%;padding:10px;margin-bottom:8px;background:#222;border:1px solid #3a3a3a;border-radius:6px;color:#e0e0e0;">
+              <input type="text" id="rival-clave3" placeholder="Opcional..." style="width:100%;padding:10px;background:#222;border:1px solid #3a3a3a;border-radius:6px;color:#e0e0e0;">
+            </div>
+
+            <div style="margin-bottom:20px;">
+              <label style="display:block;margin-bottom:6px;font-weight:600;">Informe libre (pega aquí el scouting completo si quieres)</label>
+              <textarea id="rival-texto" class="textarea-report" placeholder="Pega el informe de scouting del juego o notas propias..."></textarea>
+            </div>
+
+            <div class="buttons" style="justify-content:flex-start;gap:10px;">
+              <button class="btn-primary" onclick="guardarRival()">💾 Guardar rival</button>
+              <button class="btn-secondary" onclick="limpiarFormularioRival()">🗑️ Limpiar</button>
+              <button class="btn-danger" id="btn-eliminar-rival" style="display:none;" onclick="eliminarRivalActual()">Eliminar</button>
+            </div>
+          </div>
+
+          <!-- Generador de táctica -->
+          <div class="form-section">
+            <h2>Generar plan táctico</h2>
+            <p style="color:#aaa;margin-bottom:16px;font-size:0.95rem;">
+              Usa tu plantilla actual (con forma, fatiga e informes) + el informe del rival para generar la mejor táctica.
+            </p>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:16px;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox" id="usar-lineup-actual" checked style="width:18px;height:18px;accent-color:#4a9eff;">
+                Usar el 11 actual de "Hacer 11" (si está relleno)
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox" id="considerar-forma" checked style="width:18px;height:18px;accent-color:#4a9eff;">
+                Tener en cuenta forma / fatiga / informe
+              </label>
+            </div>
+            <button class="btn-success" style="padding:14px 28px;font-size:1.05rem;" onclick="generarPlanTactico()">
+              ⚡ Generar plan táctico vs Rival
+            </button>
+          </div>
+
+          <!-- Resultados -->
+          <div id="resultadosTactica" style="display:none;">
+            <!-- Se rellena por JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -1080,7 +1279,7 @@ function setForma(id, campo, valor) {
   document.getElementById('tab-' + tabId).classList.add('active');
 
   const botones = document.querySelectorAll('.nav-btn');
-  const map = { 'equipo': 0, 'anadir-jugador': 1, 'anadir-rol': 2, 'hacer-11': 3 };
+  const map = { 'equipo': 0, 'anadir-jugador': 1, 'anadir-rol': 2, 'hacer-11': 3, 'rival': 4 };
   if (map[tabId] !== undefined) botones[map[tabId]].classList.add('active');
 
   if (tabId === 'equipo') {
@@ -1096,6 +1295,9 @@ function setForma(id, campo, valor) {
   }
   if (tabId === 'anadir-jugador') {
     actualizarFormularioAtributos();
+  }
+  if (tabId === 'rival') {
+    renderizarRivales();
   }
 }
 
@@ -2274,6 +2476,445 @@ function aplicarFormaTodos(campo, valor) {
   renderTablaForma();
   if (document.getElementById('tab-hacer-11')?.classList.contains('active')) renderPitch();
     }
+
+      /* ===================== RIVAL TACTICIAN ===================== */
+    let rivales = [];
+    let rivalEditandoId = null;
+
+    function cargarRivales() {
+      try {
+        rivales = JSON.parse(localStorage.getItem('rivalesFM') || '[]');
+        if (!Array.isArray(rivales)) rivales = [];
+      } catch(e) { rivales = []; }
+    }
+    function guardarRivalesStorage() {
+      localStorage.setItem('rivalesFM', JSON.stringify(rivales));
+    }
+
+    function nuevoRival() {
+      rivalEditandoId = null;
+      limpiarFormularioRival();
+      document.getElementById('rival-form-title').textContent = 'Nuevo rival / Informe de scouting';
+      document.getElementById('btn-eliminar-rival').style.display = 'none';
+      document.querySelectorAll('.rival-item').forEach(el => el.classList.remove('active'));
+    }
+
+    function limpiarFormularioRival() {
+      document.getElementById('rival-nombre').value = '';
+      document.getElementById('rival-formacion').value = '4-3-3';
+      document.getElementById('rival-estilo').value = 'equilibrado';
+      document.getElementById('rival-mentalidad').value = 'equilibrada';
+      document.getElementById('partido-importancia').value = 'normal';
+      document.querySelectorAll('#rival-fuertes input, #rival-debiles input').forEach(cb => cb.checked = false);
+      document.getElementById('rival-clave1').value = '';
+      document.getElementById('rival-clave2').value = '';
+      document.getElementById('rival-clave3').value = '';
+      document.getElementById('rival-texto').value = '';
+      rivalEditandoId = null;
+      document.getElementById('btn-eliminar-rival').style.display = 'none';
+    }
+
+    function obtenerDatosRivalForm() {
+      const fuertes = Array.from(document.querySelectorAll('#rival-fuertes input:checked')).map(c => c.value);
+      const debiles = Array.from(document.querySelectorAll('#rival-debiles input:checked')).map(c => c.value);
+      const claves = [
+        document.getElementById('rival-clave1').value.trim(),
+        document.getElementById('rival-clave2').value.trim(),
+        document.getElementById('rival-clave3').value.trim()
+      ].filter(Boolean);
+      return {
+        id: rivalEditandoId || Date.now(),
+        nombre: document.getElementById('rival-nombre').value.trim() || 'Rival sin nombre',
+        formacion: document.getElementById('rival-formacion').value,
+        estilo: document.getElementById('rival-estilo').value,
+        mentalidad: document.getElementById('rival-mentalidad').value,
+        importancia: document.getElementById('partido-importancia').value,
+        fuertes,
+        debiles,
+        claves,
+        texto: document.getElementById('rival-texto').value.trim()
+      };
+    }
+
+    function guardarRival() {
+      const data = obtenerDatosRivalForm();
+      if (!data.nombre || data.nombre === 'Rival sin nombre') {
+        alert('Pon al menos el nombre del rival.');
+        return;
+      }
+      if (rivalEditandoId) {
+        const idx = rivales.findIndex(r => r.id === rivalEditandoId);
+        if (idx !== -1) rivales[idx] = data;
+      } else {
+        rivales.push(data);
+        rivalEditandoId = data.id;
+      }
+      guardarRivalesStorage();
+      renderizarRivales();
+      document.getElementById('btn-eliminar-rival').style.display = 'inline-block';
+      alert('Rival guardado ✅');
+    }
+
+    function cargarRivalEnForm(id) {
+      const r = rivales.find(x => x.id === id);
+      if (!r) return;
+      rivalEditandoId = r.id;
+      document.getElementById('rival-form-title').textContent = 'Editando: ' + r.nombre;
+      document.getElementById('rival-nombre').value = r.nombre || '';
+      document.getElementById('rival-formacion').value = r.formacion || '4-3-3';
+      document.getElementById('rival-estilo').value = r.estilo || 'equilibrado';
+      document.getElementById('rival-mentalidad').value = r.mentalidad || 'equilibrada';
+      document.getElementById('partido-importancia').value = r.importancia || 'normal';
+      document.querySelectorAll('#rival-fuertes input').forEach(cb => cb.checked = (r.fuertes||[]).includes(cb.value));
+      document.querySelectorAll('#rival-debiles input').forEach(cb => cb.checked = (r.debiles||[]).includes(cb.value));
+      document.getElementById('rival-clave1').value = (r.claves||[])[0] || '';
+      document.getElementById('rival-clave2').value = (r.claves||[])[1] || '';
+      document.getElementById('rival-clave3').value = (r.claves||[])[2] || '';
+      document.getElementById('rival-texto').value = r.texto || '';
+      document.getElementById('btn-eliminar-rival').style.display = 'inline-block';
+      document.querySelectorAll('.rival-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.id == id);
+      });
+    }
+
+    function eliminarRivalActual() {
+      if (!rivalEditandoId) return;
+      if (!confirm('¿Eliminar este rival?')) return;
+      rivales = rivales.filter(r => r.id !== rivalEditandoId);
+      guardarRivalesStorage();
+      nuevoRival();
+      renderizarRivales();
+    }
+
+    function renderizarRivales() {
+      const cont = document.getElementById('rivalesList');
+      if (!cont) return;
+      if (!rivales.length) {
+        cont.innerHTML = '<div class="empty-state" style="padding:20px;font-size:0.9rem;">No hay rivales guardados todavía.</div>';
+        return;
+      }
+      cont.innerHTML = rivales.map(r => `
+        <div class="rival-item ${rivalEditandoId === r.id ? 'active' : ''}" data-id="${r.id}" onclick="cargarRivalEnForm(${r.id})">
+          <div class="ri-name">${r.nombre}</div>
+          <div class="ri-meta">${r.formacion} · ${r.estilo} · ${(r.fuertes||[]).length} fuertes / ${(r.debiles||[]).length} débiles</div>
+        </div>
+      `).join('');
+    }
+
+    /* ===== MOTOR DE RECOMENDACIÓN ===== */
+    function generarPlanTactico() {
+      const rival = obtenerDatosRivalForm();
+      if (!rival.nombre || rival.nombre === 'Rival sin nombre') {
+        alert('Primero guarda o rellena los datos del rival.');
+        return;
+      }
+
+      const usarLineup = document.getElementById('usar-lineup-actual')?.checked;
+      const considerarForma = document.getElementById('considerar-forma')?.checked;
+
+      // Construir pool de jugadores disponibles
+      let pool = jugadores.filter(j => !getExcluido(j));
+      if (considerarForma) {
+        // ya usamos mediaEfectiva que incluye forma
+      }
+
+      // Si hay lineup actual, priorizar esos jugadores
+      let titularesIds = [];
+      if (usarLineup && Object.keys(lineup).length > 0) {
+        titularesIds = Object.values(lineup).map(e => e.playerId).filter(Boolean);
+      }
+
+      // Generar 3 planes
+      const planes = generarPlanes(rival, pool, titularesIds, considerarForma);
+
+      // Renderizar resultados
+      renderResultadosTactica(rival, planes);
+    }
+
+    function generarPlanes(rival, pool, titularesIds, considerarForma) {
+      const planes = [];
+
+      // Plan 1: Seguro / Contención
+      planes.push(crearPlan('seguro', rival, pool, titularesIds, considerarForma));
+
+      // Plan 2: Equilibrado (recomendado)
+      planes.push(crearPlan('equilibrado', rival, pool, titularesIds, considerarForma));
+
+      // Plan 3: Agresivo / Explotar debilidades
+      planes.push(crearPlan('agresivo', rival, pool, titularesIds, considerarForma));
+
+      // Ordenar por score de matchup
+      planes.sort((a,b) => b.score - a.score);
+      return planes;
+    }
+
+    function crearPlan(tipo, rival, pool, titularesIds, considerarForma) {
+      const fuertes = new Set(rival.fuertes || []);
+      const debiles = new Set(rival.debiles || []);
+      const estilo = rival.estilo || 'equilibrado';
+      const formRival = rival.formacion || '4-3-3';
+
+      let formacion = '4-2-3-1';
+      let mentalidad = 'Equilibrada';
+      let estiloPresion = 'Estándar';
+      let instrucciones = [];
+      let rolesSugeridos = {};
+      let comoAtacar = [];
+      let comoDefender = [];
+      let score = 60; // base
+
+      // --- Lógica según tipo de plan y debilidades/fuertes ---
+
+      if (tipo === 'seguro') {
+        mentalidad = 'Defensiva';
+        estiloPresion = 'Más baja';
+        formacion = fuertes.has('extremos_rapidos') || fuertes.has('laterales_ofensivos') ? '5-3-2' : '4-1-4-1';
+        instrucciones = [
+          'Evitar cruces fáciles',
+          'Mantener la posesión cuando sea posible',
+          'Presionar solo en zonas concretas',
+          'Defender en bloque medio-bajo',
+          'Salidas rápidas al espacio'
+        ];
+        comoDefender = [
+          'Priorizar solidez defensiva y no encajar',
+          'Marcar de cerca a sus jugadores clave',
+          'Cerrar líneas de pase interiores'
+        ];
+        comoAtacar = [
+          'Buscar contraataques y balones largos',
+          'Aprovechar cualquier error suyo a la salida de balón'
+        ];
+        score += 5;
+        if (debiles.has('espacios_espalda')) score += 8;
+        if (fuertes.has('presion_alta')) score += 6;
+      }
+
+      if (tipo === 'equilibrado') {
+        mentalidad = 'Equilibrada';
+        estiloPresion = 'Estándar';
+        // Elegir formación según rival
+        if (formRival.startsWith('3') || formRival.startsWith('5')) {
+          formacion = '4-3-3';
+        } else if (fuertes.has('posesion_dominante')) {
+          formacion = '4-2-3-1';
+        } else {
+          formacion = '4-2-3-1';
+        }
+        instrucciones = [
+          'Jugar por fuera cuando haya espacio',
+          'Presionar tras pérdida',
+          'Buscar el espacio entre líneas',
+          'Variar el ritmo de juego',
+          'Centrar con criterio'
+        ];
+        comoAtacar = [
+          'Explotar los puntos débiles detectados',
+          'Combinar juego por bandas y por dentro'
+        ];
+        comoDefender = [
+          'Mantener estructura y no desordenarse',
+          'Ayuda mutua en las bandas'
+        ];
+        score += 12;
+      }
+
+      if (tipo === 'agresivo') {
+        mentalidad = 'Ofensiva';
+        estiloPresion = 'Mucho más alta';
+        formacion = debiles.has('laterales_fragiles') || debiles.has('espacios_espalda') ? '4-3-3' : '3-4-3';
+        instrucciones = [
+          'Presión alta intensa',
+          'Jugar muy directo hacia el área',
+          'Superponer laterales/carrileros',
+          'Buscar duelos 1v1 en banda',
+          'Tiros desde fuera del área si hay espacio'
+        ];
+        comoAtacar = [
+          'Castigar sus debilidades desde el primer minuto',
+          'No dejarles salir cómodos desde atrás'
+        ];
+        comoDefender = [
+          'Aceptar más riesgo a cambio de generar ocasiones',
+          'Transiciones rápidas tras robo'
+        ];
+        score += 8;
+        if (debiles.has('laterales_fragiles')) score += 10;
+        if (debiles.has('espacios_espalda')) score += 9;
+        if (debiles.has('poco_agresivos')) score += 7;
+        if (fuertes.has('defensa_solida')) score -= 8;
+      }
+
+      // Ajustes según estilo del rival
+      if (estilo === 'presion_alta') {
+        if (tipo !== 'agresivo') {
+          instrucciones.unshift('Salir en largo si la presión es muy alta');
+          score += 4;
+        }
+      }
+      if (estilo === 'posesion') {
+        instrucciones.push('Intentar recuperar rápido y no dejarles circular');
+      }
+      if (estilo === 'contraataque') {
+        instrucciones.push('No perder la posición al atacar');
+        if (tipo === 'seguro') score += 5;
+      }
+
+      // Ajustes por puntos débiles específicos
+      if (debiles.has('laterales_fragiles')) {
+        comoAtacar.unshift('Atacar mucho por las bandas y buscar 2v1');
+        rolesSugeridos.bandas = 'Extremos o carrileros ofensivos';
+        score += 6;
+      }
+      if (debiles.has('lentos_centro')) {
+        comoAtacar.push('Buscar desmarques a la espalda de los centrales');
+        score += 5;
+      }
+      if (debiles.has('mal_balon_parado')) {
+        instrucciones.push('Córners y faltas ofensivas con varios hombres en el área');
+        score += 4;
+      }
+      if (debiles.has('debiles_aereo')) {
+        comoAtacar.push('Centros al área y juego directo al 9');
+        score += 4;
+      }
+      if (debiles.has('dependen_estrella')) {
+        comoDefender.unshift('Marcado individual o ayuda constante sobre su estrella');
+        score += 5;
+      }
+
+      // Ajustes por puntos fuertes del rival
+      if (fuertes.has('extremos_rapidos')) {
+        comoDefender.push('Laterales no deben quedar aislados; ayuda del mediocentro');
+        if (tipo === 'seguro') score += 3;
+      }
+      if (fuertes.has('balon_parado')) {
+        instrucciones.push('Marcar en zona + hombre a hombre en balón parado defensivo');
+      }
+      if (fuertes.has('juego_aereo')) {
+        comoDefender.push('Evitar centros fáciles y ganar el primer balón');
+      }
+
+      // Bonus por importancia
+      if (rival.importancia === 'decisivo' && tipo === 'seguro') score += 4;
+      if (rival.importancia === 'normal' && tipo === 'agresivo') score += 3;
+
+      // Calcular calidad aproximada del once disponible
+      let mediaPool = 0;
+      if (pool.length) {
+        const top = [...pool].sort((a,b) => {
+          const ma = considerarForma ? mediaEfectiva(a) : calcularMediaJugador(a);
+          const mb = considerarForma ? mediaEfectiva(b) : calcularMediaJugador(b);
+          return mb - ma;
+        }).slice(0, 11);
+        mediaPool = top.reduce((s,j) => s + (considerarForma ? mediaEfectiva(j) : calcularMediaJugador(j)), 0) / top.length;
+      }
+      score += Math.min(15, Math.max(-10, (mediaPool - 55) * 0.4));
+
+      // Roles recomendados genéricos según formación
+      const rolesPorFormacion = {
+        '4-3-3': { POR: 'Portero (Defensa)', LD: 'Lateral (Apoyo/Ataque)', DFC: 'Central (Defensa)', LI: 'Lateral (Apoyo/Ataque)', MC: 'Mediocentro (Apoyo)', ED: 'Extremo (Ataque)', EI: 'Extremo (Ataque)', DC: 'Delantero (Ataque/Completo)' },
+        '4-2-3-1': { POR: 'Portero', LD: 'Lateral', DFC: 'Central', LI: 'Lateral', MCD: 'Pivote (Defensa/Apoyo)', MP: 'Mediapunta (Ataque)', ED: 'Extremo', EI: 'Extremo', DC: 'Delantero' },
+        '5-3-2': { POR: 'Portero', LI: 'Carrilero', DFC: 'Central', LD: 'Carrilero', MC: 'Mediocentro', DC: 'Delantero / Segundo delantero' },
+        '4-1-4-1': { POR: 'Portero', LD: 'Lateral', DFC: 'Central', LI: 'Lateral', MCD: 'Pivote', MC: 'Mediocentro / Interior', DC: 'Delantero' },
+        '3-4-3': { POR: 'Portero', DFC: 'Central', CAD: 'Carrilero', CAI: 'Carrilero', MC: 'Mediocentro', ED: 'Extremo', EI: 'Extremo', DC: 'Delantero' }
+      };
+
+      return {
+        tipo,
+        formacion,
+        mentalidad,
+        estiloPresion,
+        instrucciones: instrucciones.slice(0, 7),
+        rolesSugeridos: rolesPorFormacion[formacion] || rolesPorFormacion['4-2-3-1'],
+        comoAtacar,
+        comoDefender,
+        score: Math.round(Math.max(30, Math.min(98, score))),
+        clavesRival: rival.claves || []
+      };
+    }
+
+    function renderResultadosTactica(rival, planes) {
+      const cont = document.getElementById('resultadosTactica');
+      if (!cont) return;
+      cont.style.display = 'block';
+
+      const mejor = planes[0];
+      const badgeClass = {
+        'seguro': 'badge-seguro',
+        'equilibrado': 'badge-equilibrado',
+        'agresivo': 'badge-agresivo'
+      };
+
+      let html = `
+        <div class="result-card">
+          <h3>🎯 Recomendación principal vs ${rival.nombre}</h3>
+          <div class="plan-header">
+            <span class="badge-plan ${badgeClass[mejor.tipo] || 'badge-equilibrado'}">${mejor.tipo.toUpperCase()}</span>
+            <span style="font-size:1.3rem;font-weight:700;">${mejor.formacion}</span>
+            <span style="color:#aaa;">Mentalidad: <strong style="color:#fff;">${mejor.mentalidad}</strong></span>
+            <span style="color:#aaa;">Presión: <strong style="color:#fff;">${mejor.estiloPresion}</strong></span>
+            <span style="margin-left:auto;font-size:1.4rem;font-weight:800;color:${colorMedia(mejor.score)};">${mejor.score}</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:16px;">
+            <div>
+              <h4 style="color:#4ade80;margin-bottom:8px;">⚔️ Cómo atacarles</h4>
+              <ul class="instrucciones-list">
+                ${mejor.comoAtacar.map(t => `<li>${t}</li>`).join('')}
+              </ul>
+            </div>
+            <div>
+              <h4 style="color:#f87171;margin-bottom:8px;">🛡️ Cómo defenderles</h4>
+              <ul class="instrucciones-list">
+                ${mejor.comoDefender.map(t => `<li>${t}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+
+          <h4 style="margin-bottom:8px;color:#aaa;">Instrucciones de equipo prioritarias</h4>
+          <ul class="instrucciones-list">
+            ${mejor.instrucciones.map(t => `<li>${t}</li>`).join('')}
+          </ul>
+
+          ${mejor.clavesRival.length ? `
+            <h4 style="margin:16px 0 8px;color:#aaa;">Jugadores clave a vigilar</h4>
+            <div class="key-players">
+              ${mejor.clavesRival.map(c => `<span class="key-player-tag">⭐ ${c}</span>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="result-card">
+          <h3>📊 Comparativa de planteamientos (Matchup Simulator)</h3>
+          <p style="color:#888;margin-bottom:16px;font-size:0.9rem;">Elige el que más te convenza según el riesgo que quieras asumir.</p>
+          <div class="matchup-grid">
+            ${planes.map((p, i) => `
+              <div class="matchup-option ${i===0?'selected':''}" onclick="this.parentElement.querySelectorAll('.matchup-option').forEach(e=>e.classList.remove('selected'));this.classList.add('selected');">
+                <div class="mo-label">${p.tipo}</div>
+                <div class="mo-score" style="color:${colorMedia(p.score)}">${p.score}</div>
+                <div style="margin:8px 0;font-weight:700;font-size:1.1rem;">${p.formacion}</div>
+                <div style="font-size:0.85rem;color:#aaa;margin-bottom:8px;">${p.mentalidad} · ${p.estiloPresion}</div>
+                <div style="font-size:0.82rem;color:#ccc;">
+                  ${p.comoAtacar[0] || ''}<br>
+                  ${p.comoDefender[0] || ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      cont.innerHTML = html;
+      cont.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Cargar rivales al init
+    const oldInit = init;
+    init = function() {
+      oldInit();
+      cargarRivales();
+    };
 
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
       else init();
