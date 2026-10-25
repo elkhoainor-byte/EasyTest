@@ -630,6 +630,34 @@
       .int-btn.bueno { background: #4ade80; color: #14532d; }
       .int-btn.muy-malo { background: #991b1b; color: #fff; }
       .int-btn.malo { background: #f97316; color: #fff; }
+
+      /* Rival pitch slots */
+      .rival-slot {
+        position: absolute; width: 86px; min-height: 54px;
+        transform: translate(-50%, -50%); z-index: 2; cursor: pointer;
+      }
+      .rival-slot-card {
+        width: 100%; background: rgba(20,20,20,0.9);
+        border: 1px solid rgba(255,255,255,0.25); border-radius: 6px;
+        padding: 4px 3px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+        transition: border-color 0.15s, background 0.15s;
+      }
+      .rival-slot:hover .rival-slot-card { border-color: var(--accent); background: rgba(30,40,60,0.95); }
+      .rival-slot-card.empty {
+        background: rgba(0,0,0,0.4); border: 1px dashed rgba(255,255,255,0.35);
+        min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      }
+      .rival-slot .rs-pos {
+        font-size: 0.58rem; color: #88aacc; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+      }
+      .rival-slot .rs-name {
+        font-size: 0.68rem; font-weight: 700; color: #fff;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; max-width: 80px;
+      }
+      .rival-slot .rs-rol {
+        font-size: 0.58rem; color: #a3e635; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;
+      }
+      .rival-slot .rs-empty-label { font-size: 0.55rem; color: #777; margin-top: 2px; }
     </style>
   </head>
 <body>
@@ -863,17 +891,23 @@
           <div class="form-section" id="rivalFormSection">
             <h2 id="rival-form-title">Nuevo rival / Informe de scouting</h2>
 
-            <div class="basic-info">
+            <div class="basic-info" style="margin-bottom:20px;">
               <div>
                 <label>Nombre del rival / equipo</label>
                 <input type="text" id="rival-nombre" placeholder="Ej: Real Madrid">
               </div>
             </div>
 
-            <div class="rival-form-grid" style="margin-bottom:20px;">
-              <div>
-                <label style="display:block;margin-bottom:6px;font-weight:600;">Formación habitual</label>
-                <select id="rival-formacion" style="width:100%;padding:10px;background:#222;color:#e0e0e0;border:1px solid #3a3a3a;border-radius:6px;">
+            <!-- 1. 11 DEL RIVAL (campo visual) -->
+            <div style="margin-bottom:28px;">
+              <h3 style="margin-bottom:12px;font-size:1.15rem;color:#fff;">⚽ 11 del rival (dibujo táctico)</h3>
+              <p style="color:#888;font-size:0.9rem;margin-bottom:12px;">
+                Elige formación, haz clic en cada posición y escribe el nombre + rol del jugador rival.
+              </p>
+
+              <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;">
+                <label style="font-weight:600;font-size:0.9rem;">Formación del 11:</label>
+                <select id="rival-once-formacion" onchange="cambiarFormacionRivalOnce()" style="padding:8px 12px;background:#222;color:#e0e0e0;border:1px solid #3a3a3a;border-radius:6px;">
                   <option value="4-3-3">4-3-3</option>
                   <option value="4-2-3-1">4-2-3-1</option>
                   <option value="4-4-2">4-4-2</option>
@@ -881,42 +915,42 @@
                   <option value="5-3-2">5-3-2</option>
                   <option value="4-1-4-1">4-1-4-1</option>
                   <option value="3-4-3">3-4-3</option>
-                  <option value="otra">Otra</option>
+                  <option value="4-1-2-2-1">4-1-2-2-1</option>
                 </select>
+                <button class="btn-secondary" style="padding:8px 14px;font-size:0.85rem;" onclick="limpiarRivalOnce()">🗑️ Limpiar 11</button>
               </div>
-              <div>
-                <label style="display:block;margin-bottom:6px;font-weight:600;">Estilo de juego</label>
-                <select id="rival-estilo" style="width:100%;padding:10px;background:#222;color:#e0e0e0;border:1px solid #3a3a3a;border-radius:6px;">
-                  <option value="posesion">Posesión / Tiki-Taka</option>
-                  <option value="vertical">Vertical / Directo</option>
-                  <option value="contraataque">Contraataque</option>
-                  <option value="presion_alta">Presión alta / Gegenpress</option>
-                  <option value="bloque_bajo">Bloque bajo / Reactivo</option>
-                  <option value="equilibrado">Equilibrado</option>
-                </select>
+
+              <div class="pitch-panel" style="max-width:520px;">
+                <div class="pitch" id="rival-pitch" style="max-width:480px;">
+                  <div class="pitch-half"></div>
+                  <div class="pitch-circle"></div>
+                  <div class="pitch-area-top"></div>
+                  <div class="pitch-area-bot"></div>
+                </div>
               </div>
-              <div>
-                <label style="display:block;margin-bottom:6px;font-weight:600;">Mentalidad habitual</label>
-                <select id="rival-mentalidad" style="width:100%;padding:10px;background:#222;color:#e0e0e0;border:1px solid #3a3a3a;border-radius:6px;">
-                  <option value="muy_defensiva">Muy defensiva</option>
-                  <option value="defensiva">Defensiva</option>
-                  <option value="equilibrada" selected>Equilibrada</option>
-                  <option value="ofensiva">Ofensiva</option>
-                  <option value="muy_ofensiva">Muy ofensiva</option>
-                </select>
-              </div>
-              <div>
-                <label style="display:block;margin-bottom:6px;font-weight:600;">Importancia del partido</label>
-                <select id="partido-importancia" style="width:100%;padding:10px;background:#222;color:#e0e0e0;border:1px solid #3a3a3a;border-radius:6px;">
-                  <option value="normal">Normal (liga)</option>
-                  <option value="importante">Importante</option>
-                  <option value="decisivo">Decisivo / Eliminatoria</option>
-                </select>
+
+              <div id="rival-slot-editor" style="display:none;margin-top:14px;background:#1e1e1e;border:1px solid var(--accent);border-radius:10px;padding:16px;max-width:480px;">
+                <h4 style="margin-bottom:10px;color:var(--accent);" id="rival-slot-title">Editar posición</h4>
+                <div style="display:grid;gap:10px;">
+                  <div>
+                    <label style="font-size:0.85rem;color:#aaa;">Nombre del jugador</label>
+                    <input type="text" id="rival-slot-nombre" placeholder="Ej: Vinicius Jr" style="width:100%;padding:9px;background:#222;border:1px solid #3a3a3a;border-radius:6px;color:#e0e0e0;">
+                  </div>
+                  <div>
+                    <label style="font-size:0.85rem;color:#aaa;">Rol / posición táctica</label>
+                    <input type="text" id="rival-slot-rol" placeholder="Ej: Extremo (Ataque) / Interior" style="width:100%;padding:9px;background:#222;border:1px solid #3a3a3a;border-radius:6px;color:#e0e0e0;">
+                  </div>
+                  <div style="display:flex;gap:8px;">
+                    <button class="btn-primary" style="padding:9px 16px;" onclick="guardarRivalSlot()">Guardar</button>
+                    <button class="btn-danger" style="padding:9px 16px;" onclick="quitarRivalSlot()">Quitar</button>
+                    <button class="btn-secondary" style="padding:9px 16px;" onclick="cerrarRivalSlotEditor()">Cerrar</button>
+                  </div>
+                </div>
               </div>
             </div>
 
+            <!-- 2. PUNTOS FUERTES Y DÉBILES -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
-              <!-- PUNTOS FUERTES -->
               <div>
                 <label style="display:block;margin-bottom:10px;font-weight:700;color:#4ade80;font-size:1.05rem;">Puntos fuertes del rival</label>
                 <div style="font-size:0.78rem;color:#888;margin-bottom:10px;">
@@ -924,11 +958,8 @@
                   <span style="display:inline-block;width:12px;height:12px;background:#4ade80;border-radius:3px;margin:0 4px 0 12px;"></span> Buenos
                 </div>
                 <div id="rival-fuertes" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;padding-right:6px;">
-                  <!-- se rellena por JS -->
                 </div>
               </div>
-
-              <!-- PUNTOS DÉBILES -->
               <div>
                 <label style="display:block;margin-bottom:10px;font-weight:700;color:#f87171;font-size:1.05rem;">Puntos débiles del rival</label>
                 <div style="font-size:0.78rem;color:#888;margin-bottom:10px;">
@@ -936,11 +967,11 @@
                   <span style="display:inline-block;width:12px;height:12px;background:#f97316;border-radius:3px;margin:0 4px 0 12px;"></span> Malos
                 </div>
                 <div id="rival-debiles" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;padding-right:6px;">
-                  <!-- se rellena por JS -->
                 </div>
               </div>
             </div>
 
+            <!-- 3. Jugadores clave + informe libre -->
             <div style="margin-bottom:16px;">
               <label style="display:block;margin-bottom:6px;font-weight:600;">Jugadores clave del rival (nombre + motivo)</label>
               <input type="text" id="rival-clave1" placeholder="Ej: Vinicius - Extremo muy rápido y regateador" style="width:100%;padding:10px;margin-bottom:8px;background:#222;border:1px solid #3a3a3a;border-radius:6px;color:#e0e0e0;">
@@ -1253,6 +1284,19 @@ function setForma(id, campo, valor) {
         {tipo:"Mediocentro",left:62,top:55},{tipo:"Carrilero derecho",left:88,top:55},
         {tipo:"Extremo izquierdo",left:18,top:25},{tipo:"Delantero centro",left:50,top:16},
         {tipo:"Extremo derecho",left:82,top:25}
+      ]},
+      { nombre:"4-1-2-2-1", slots:[
+        {tipo:"Portero",left:50,top:92},
+        {tipo:"Lateral izquierdo",left:12,top:76},
+        {tipo:"Central",left:35,top:80},
+        {tipo:"Central",left:65,top:80},
+        {tipo:"Lateral derecho",left:88,top:76},
+        {tipo:"Mediocentro",left:50,top:62},
+        {tipo:"Medio izquierdo",left:28,top:45},
+        {tipo:"Medio derecho",left:72,top:45},
+        {tipo:"Extremo izquierdo",left:15,top:28},
+        {tipo:"Extremo derecho",left:85,top:28},
+        {tipo:"Delantero centro",left:50,top:14}
       ]}
     ];
 
@@ -1314,6 +1358,8 @@ function setForma(id, campo, valor) {
   if (tabId === 'rival') {
     construirListasRival();
     renderizarRivales();
+    if (!rivalOnceSlots.length) initRivalOnce();
+    else renderRivalPitch();
   }
 }
 
@@ -2619,16 +2665,18 @@ function aplicarFormaTodos(campo, valor) {
 
     function limpiarFormularioRival() {
       document.getElementById('rival-nombre').value = '';
-      document.getElementById('rival-formacion').value = '4-3-3';
-      document.getElementById('rival-estilo').value = 'equilibrado';
-      document.getElementById('rival-mentalidad').value = 'equilibrada';
-      document.getElementById('partido-importancia').value = 'normal';
       aplicarIntensidades('rival-fuertes', {});
       aplicarIntensidades('rival-debiles', {});
       document.getElementById('rival-clave1').value = '';
       document.getElementById('rival-clave2').value = '';
       document.getElementById('rival-clave3').value = '';
       document.getElementById('rival-texto').value = '';
+      // Reset 11
+      const selOnce = document.getElementById('rival-once-formacion');
+      if (selOnce) selOnce.value = '4-3-3';
+      initRivalOnce('4-3-3');
+      limpiarRivalOnce();
+      cerrarRivalSlotEditor();
       rivalEditandoId = null;
       document.getElementById('btn-eliminar-rival').style.display = 'none';
     }
@@ -2641,17 +2689,20 @@ function aplicarFormaTodos(campo, valor) {
         document.getElementById('rival-clave2').value.trim(),
         document.getElementById('rival-clave3').value.trim()
       ].filter(Boolean);
+      const onceFormacion = document.getElementById('rival-once-formacion')?.value || '4-3-3';
       return {
         id: rivalEditandoId || Date.now(),
         nombre: document.getElementById('rival-nombre').value.trim() || 'Rival sin nombre',
-        formacion: document.getElementById('rival-formacion').value,
-        estilo: document.getElementById('rival-estilo').value,
-        mentalidad: document.getElementById('rival-mentalidad').value,
-        importancia: document.getElementById('partido-importancia').value,
-        fuertes,   // objeto { "MARCAJE": "muy_bueno", ... }
-        debiles,   // objeto { "CENTROS": "malo", ... }
+        formacion: onceFormacion,
+        estilo: 'equilibrado',
+        mentalidad: 'equilibrada',
+        importancia: 'normal',
+        fuertes,
+        debiles,
         claves,
-        texto: document.getElementById('rival-texto').value.trim()
+        texto: document.getElementById('rival-texto').value.trim(),
+        once: obtenerRivalOnceData(),
+        onceFormacion
       };
     }
 
@@ -2680,10 +2731,6 @@ function aplicarFormaTodos(campo, valor) {
       rivalEditandoId = r.id;
       document.getElementById('rival-form-title').textContent = 'Editando: ' + r.nombre;
       document.getElementById('rival-nombre').value = r.nombre || '';
-      document.getElementById('rival-formacion').value = r.formacion || '4-3-3';
-      document.getElementById('rival-estilo').value = r.estilo || 'equilibrado';
-      document.getElementById('rival-mentalidad').value = r.mentalidad || 'equilibrada';
-      document.getElementById('partido-importancia').value = r.importancia || 'normal';
       // Compatibilidad con formato antiguo (array) y nuevo (objeto)
       const fuertesObj = Array.isArray(r.fuertes) ? {} : (r.fuertes || {});
       const debilesObj = Array.isArray(r.debiles) ? {} : (r.debiles || {});
@@ -2693,6 +2740,8 @@ function aplicarFormaTodos(campo, valor) {
       document.getElementById('rival-clave2').value = (r.claves||[])[1] || '';
       document.getElementById('rival-clave3').value = (r.claves||[])[2] || '';
       document.getElementById('rival-texto').value = r.texto || '';
+      // Cargar 11 del rival
+      cargarRivalOnceData(r.once || [], r.onceFormacion || r.formacion || '4-3-3');
       document.getElementById('btn-eliminar-rival').style.display = 'inline-block';
       document.querySelectorAll('.rival-item').forEach(el => {
         el.classList.toggle('active', el.dataset.id == id);
@@ -2724,6 +2773,175 @@ function aplicarFormaTodos(campo, valor) {
           <div class="ri-meta">${r.formacion} · ${r.estilo} · ${nF} fuertes / ${nD} débiles</div>
         </div>`;
       }).join('');
+    }
+
+    /* ===== 11 DEL RIVAL (PITCH) ===== */
+    let rivalOnceSlots = [];   // [{id, tipo, left, top, nombre, rol}]
+    let rivalSlotEditando = null;
+
+    function getFormacionSlots(nombreForm) {
+      const f = FORMACIONES_COHERENTES.find(x => x.nombre === nombreForm);
+      if (!f) return FORMACIONES_COHERENTES[0].slots.map((s,i) => ({...s}));
+      return f.slots.map((s,i) => ({...s}));
+    }
+
+    function initRivalOnce(formacionNombre) {
+      const form = formacionNombre || document.getElementById('rival-once-formacion')?.value || '4-3-3';
+      const base = getFormacionSlots(form);
+      // Mantener nombres/roles si ya existían en la misma posición relativa
+      const old = rivalOnceSlots.slice();
+      rivalOnceSlots = base.map((s, i) => ({
+        id: i + 1,
+        tipo: s.tipo,
+        left: s.left,
+        top: s.top,
+        nombre: old[i]?.nombre || '',
+        rol: old[i]?.rol || ''
+      }));
+      renderRivalPitch();
+    }
+
+    function cambiarFormacionRivalOnce() {
+      const form = document.getElementById('rival-once-formacion').value;
+      // Intentar mapear por tipo de posición
+      const oldByTipo = {};
+      rivalOnceSlots.forEach(s => {
+        if (s.nombre) {
+          if (!oldByTipo[s.tipo]) oldByTipo[s.tipo] = [];
+          oldByTipo[s.tipo].push({ nombre: s.nombre, rol: s.rol });
+        }
+      });
+      const base = getFormacionSlots(form);
+      rivalOnceSlots = base.map((s, i) => {
+        const pool = oldByTipo[s.tipo] || [];
+        const taken = pool.shift();
+        return {
+          id: i + 1,
+          tipo: s.tipo,
+          left: s.left,
+          top: s.top,
+          nombre: taken?.nombre || '',
+          rol: taken?.rol || ''
+        };
+      });
+      renderRivalPitch();
+      cerrarRivalSlotEditor();
+    }
+
+    function renderRivalPitch() {
+      const pitch = document.getElementById('rival-pitch');
+      if (!pitch) return;
+      // Limpiar slots anteriores
+      pitch.querySelectorAll('.rival-slot').forEach(el => el.remove());
+      // Asegurar líneas del campo
+      if (!pitch.querySelector('.pitch-half')) {
+        pitch.innerHTML = `<div class="pitch-half"></div><div class="pitch-circle"></div><div class="pitch-area-top"></div><div class="pitch-area-bot"></div>`;
+      }
+      rivalOnceSlots.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'rival-slot';
+        div.style.left = s.left + '%';
+        div.style.top = s.top + '%';
+        div.dataset.slotId = s.id;
+        const abrev = (typeof ABREV !== 'undefined' && ABREV[s.tipo]) ? ABREV[s.tipo] : s.tipo.slice(0,3).toUpperCase();
+        if (s.nombre) {
+          div.innerHTML = `
+            <div class="rival-slot-card">
+              <div class="rs-pos">${abrev}</div>
+              <div class="rs-name" title="${s.nombre}">${s.nombre}</div>
+              <div class="rs-rol" title="${s.rol || ''}">${s.rol || '—'}</div>
+            </div>`;
+        } else {
+          div.innerHTML = `
+            <div class="rival-slot-card empty">
+              <div class="rs-pos">${abrev}</div>
+              <div class="rs-empty-label">+ Añadir</div>
+            </div>`;
+        }
+        div.onclick = () => abrirRivalSlotEditor(s.id);
+        pitch.appendChild(div);
+      });
+    }
+
+    function abrirRivalSlotEditor(slotId) {
+      const slot = rivalOnceSlots.find(s => s.id === slotId);
+      if (!slot) return;
+      rivalSlotEditando = slotId;
+      const abrev = (typeof ABREV !== 'undefined' && ABREV[slot.tipo]) ? ABREV[slot.tipo] : slot.tipo;
+      document.getElementById('rival-slot-title').textContent = `Posición: ${slot.tipo} (${abrev})`;
+      document.getElementById('rival-slot-nombre').value = slot.nombre || '';
+      document.getElementById('rival-slot-rol').value = slot.rol || '';
+      document.getElementById('rival-slot-editor').style.display = 'block';
+      document.getElementById('rival-slot-nombre').focus();
+    }
+
+    function guardarRivalSlot() {
+      if (rivalSlotEditando == null) return;
+      const slot = rivalOnceSlots.find(s => s.id === rivalSlotEditando);
+      if (!slot) return;
+      slot.nombre = document.getElementById('rival-slot-nombre').value.trim();
+      slot.rol = document.getElementById('rival-slot-rol').value.trim();
+      renderRivalPitch();
+      cerrarRivalSlotEditor();
+    }
+
+    function quitarRivalSlot() {
+      if (rivalSlotEditando == null) return;
+      const slot = rivalOnceSlots.find(s => s.id === rivalSlotEditando);
+      if (!slot) return;
+      slot.nombre = '';
+      slot.rol = '';
+      renderRivalPitch();
+      cerrarRivalSlotEditor();
+    }
+
+    function cerrarRivalSlotEditor() {
+      rivalSlotEditando = null;
+      const ed = document.getElementById('rival-slot-editor');
+      if (ed) ed.style.display = 'none';
+    }
+
+    function limpiarRivalOnce() {
+      rivalOnceSlots.forEach(s => { s.nombre = ''; s.rol = ''; });
+      renderRivalPitch();
+      cerrarRivalSlotEditor();
+    }
+
+    function obtenerRivalOnceData() {
+      return rivalOnceSlots
+        .filter(s => s.nombre)
+        .map(s => ({
+          tipo: s.tipo,
+          nombre: s.nombre,
+          rol: s.rol || '',
+          left: s.left,
+          top: s.top
+        }));
+    }
+
+    function cargarRivalOnceData(onceArr, formacion) {
+      if (formacion) {
+        const sel = document.getElementById('rival-once-formacion');
+        if (sel) sel.value = formacion;
+      }
+      initRivalOnce(formacion || document.getElementById('rival-once-formacion')?.value);
+      if (Array.isArray(onceArr) && onceArr.length) {
+        // Mapear por tipo
+        const byTipo = {};
+        onceArr.forEach(p => {
+          if (!byTipo[p.tipo]) byTipo[p.tipo] = [];
+          byTipo[p.tipo].push(p);
+        });
+        rivalOnceSlots.forEach(s => {
+          const pool = byTipo[s.tipo] || [];
+          const taken = pool.shift();
+          if (taken) {
+            s.nombre = taken.nombre || '';
+            s.rol = taken.rol || '';
+          }
+        });
+        renderRivalPitch();
+      }
     }
 
     /* ===== MOTOR DE RECOMENDACIÓN ===== */
@@ -2962,7 +3180,8 @@ function aplicarFormaTodos(campo, valor) {
         '4-2-3-1': { POR: 'Portero', LD: 'Lateral', DFC: 'Central', LI: 'Lateral', MCD: 'Pivote (Defensa/Apoyo)', MP: 'Mediapunta (Ataque)', ED: 'Extremo', EI: 'Extremo', DC: 'Delantero' },
         '5-3-2': { POR: 'Portero', LI: 'Carrilero', DFC: 'Central', LD: 'Carrilero', MC: 'Mediocentro', DC: 'Delantero / Segundo delantero' },
         '4-1-4-1': { POR: 'Portero', LD: 'Lateral', DFC: 'Central', LI: 'Lateral', MCD: 'Pivote', MC: 'Mediocentro / Interior', DC: 'Delantero' },
-        '3-4-3': { POR: 'Portero', DFC: 'Central', CAD: 'Carrilero', CAI: 'Carrilero', MC: 'Mediocentro', ED: 'Extremo', EI: 'Extremo', DC: 'Delantero' }
+        '3-4-3': { POR: 'Portero', DFC: 'Central', CAD: 'Carrilero', CAI: 'Carrilero', MC: 'Mediocentro', ED: 'Extremo', EI: 'Extremo', DC: 'Delantero' },
+        '4-1-2-2-1': { POR: 'Portero', LD: 'Lateral', DFC: 'Central', LI: 'Lateral', MCD: 'Pivote', MC: 'Interior / Mediocentro', ED: 'Extremo', EI: 'Extremo', DC: 'Delantero' }
       };
 
       return {
@@ -3061,6 +3280,7 @@ function aplicarFormaTodos(campo, valor) {
     init = function() {
       oldInit();
       cargarRivales();
+      initRivalOnce();
     };
 
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
