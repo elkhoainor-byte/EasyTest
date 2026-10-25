@@ -626,10 +626,12 @@
       }
       .attr-row-rival .int-btn:hover { opacity: 0.75; }
       .attr-row-rival .int-btn.active { opacity: 1; transform: scale(1.08); }
+      .int-btn.top { background: #fbbf24; color: #1a1a1a; font-size: 0.62rem; }
       .int-btn.muy-bueno { background: #166534; color: #fff; }
       .int-btn.bueno { background: #4ade80; color: #14532d; }
       .int-btn.muy-malo { background: #991b1b; color: #fff; }
       .int-btn.malo { background: #f97316; color: #fff; }
+      .fuerte-item .attr-name:hover { color: var(--accent); }
 
       /* Rival pitch slots */
       .rival-slot {
@@ -949,23 +951,42 @@
               </div>
             </div>
 
+            <!-- INFORME (puntos añadidos) -->
+            <div style="margin-bottom:28px;background:#1a1a1a;border:1px solid var(--border);border-radius:10px;padding:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                <h3 style="font-size:1.1rem;color:#fff;margin:0;">📋 INFORME del rival</h3>
+                <button class="btn-secondary" style="padding:6px 12px;font-size:0.8rem;" onclick="limpiarInformeRival()">Vaciar informe</button>
+              </div>
+              <p style="color:#888;font-size:0.85rem;margin-bottom:10px;">Los puntos que añadas aquí se guardan con el rival y sirven para futuros partidos.</p>
+              <div id="informe-rival-lista">
+                <div class="empty-state" style="padding:16px;font-size:0.9rem;">Aún no hay puntos en el informe. Márcalos abajo y pulsa «Añadir».</div>
+              </div>
+            </div>
+
             <!-- 2. PUNTOS FUERTES Y DÉBILES -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
               <div>
                 <label style="display:block;margin-bottom:10px;font-weight:700;color:#4ade80;font-size:1.05rem;">Puntos fuertes del rival</label>
-                <div style="font-size:0.78rem;color:#888;margin-bottom:10px;">
-                  <span style="display:inline-block;width:12px;height:12px;background:#166534;border-radius:3px;margin-right:4px;"></span> Muy buenos
+                <div style="font-size:0.78rem;color:#888;margin-bottom:8px;">
+                  <span style="display:inline-block;width:12px;height:12px;background:#fbbf24;border-radius:3px;margin-right:4px;"></span> TOP
+                  <span style="display:inline-block;width:12px;height:12px;background:#166534;border-radius:3px;margin:0 4px 0 12px;"></span> Muy buenos
                   <span style="display:inline-block;width:12px;height:12px;background:#4ade80;border-radius:3px;margin:0 4px 0 12px;"></span> Buenos
+                  <span style="display:block;margin-top:4px;color:#666;">Clic en el nombre → subtítulo · Luego «Añadir» al informe</span>
                 </div>
+                <input type="text" id="busca-fuertes" placeholder="🔍 Buscar punto fuerte..." oninput="filtrarListaRival('fuertes')"
+                  style="width:100%;padding:8px 10px;margin-bottom:8px;background:#222;border:1px solid #3a3a3a;border-radius:6px;color:#e0e0e0;font-size:0.9rem;">
                 <div id="rival-fuertes" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;padding-right:6px;">
                 </div>
               </div>
               <div>
                 <label style="display:block;margin-bottom:10px;font-weight:700;color:#f87171;font-size:1.05rem;">Puntos débiles del rival</label>
-                <div style="font-size:0.78rem;color:#888;margin-bottom:10px;">
+                <div style="font-size:0.78rem;color:#888;margin-bottom:8px;">
                   <span style="display:inline-block;width:12px;height:12px;background:#991b1b;border-radius:3px;margin-right:4px;"></span> Muy malos
                   <span style="display:inline-block;width:12px;height:12px;background:#f97316;border-radius:3px;margin:0 4px 0 12px;"></span> Malos
+                  <span style="display:block;margin-top:4px;color:#666;">Marca intensidad y pulsa «Añadir»</span>
                 </div>
+                <input type="text" id="busca-debiles" placeholder="🔍 Buscar punto débil..." oninput="filtrarListaRival('debiles')"
+                  style="width:100%;padding:8px 10px;margin-bottom:8px;background:#222;border:1px solid #3a3a3a;border-radius:6px;color:#e0e0e0;font-size:0.9rem;">
                 <div id="rival-debiles" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;padding-right:6px;">
                 </div>
               </div>
@@ -2544,49 +2565,128 @@ function aplicarFormaTodos(campo, valor) {
     let rivalEditandoId = null;
 
     // Listas oficiales del informe de scouting de FM
+    // Puntos fuertes con subtítulos (orden alfabético)
     const LISTA_FUERTES = [
-      "RECUPERACIÓN FÍSICA",
-      "CREACIÓN DE OPORTUNIDADES A BALÓN PARADO",
-      "MARCAJE",
-      "ENTRADAS",
-      "COMUNICACIÓN",
-      "EXCENTRICIDAD",
-      "DEFENSA",
-      "MEDIOCAMPO",
-      "BLOCAJE",
-      "ALCANCE AÉREO",
-      "COLOCACIÓN",
-      "SALIDAS (TENDENCIA)",
-      "CONCENTRACIÓN",
-      "ACTUACIONES EN LA PRIMERA PARTE",
-      "ESTADO DE FORMA DE JUGADOR CLAVE"
+      {
+        nombre: "ACTUACIONES EN LA PRIMERA PARTE",
+        plantilla: "{n1} de {n2} goles marcados en los últimos {n3} partidos han llegado entre los minutos {n4} y {n5}.",
+        campos: [
+          { id: "n1", tipo: "number", label: "Goles en 1ª parte" },
+          { id: "n2", tipo: "number", label: "Goles totales" },
+          { id: "n3", tipo: "number", label: "Últimos partidos" },
+          { id: "n4", tipo: "number", label: "Minuto desde" },
+          { id: "n5", tipo: "number", label: "Minuto hasta" }
+        ]
+      },
+      {
+        nombre: "ALCANCE AÉREO",
+        plantilla: "Los porteros son buenos en el juego aéreo.",
+        campos: []
+      },
+      {
+        nombre: "BLOCAJE",
+        plantilla: "Hay buen nivel en agarre de balón por parte de los porteros.",
+        campos: []
+      },
+      {
+        nombre: "COLOCACIÓN",
+        plantilla: "El equipo tiene en general un nivel alto en cuanto a colocación.",
+        campos: []
+      },
+      {
+        nombre: "COMUNICACIÓN",
+        plantilla: "Los porteros del equipo se comunican en general bien.",
+        campos: []
+      },
+      {
+        nombre: "CONCENTRACIÓN",
+        plantilla: "El equipo tiene en general un nivel alto en cuanto a concentración.",
+        campos: []
+      },
+      {
+        nombre: "CREACIÓN DE OPORTUNIDADES A BALÓN PARADO",
+        plantilla: "Crea buenas oportunidades a balón parado, con una media de xA de {xa} en {jugadas} jugadas a balón parado por partido, que es la {posicion} {mejorpeor} de toda la división.",
+        campos: [
+          { id: "xa", tipo: "number", label: "xA media", step: "0.01" },
+          { id: "jugadas", tipo: "number", label: "Jugadas BP/partido", step: "0.1" },
+          { id: "posicion", tipo: "number", label: "Posición en liga" },
+          { id: "mejorpeor", tipo: "select", label: "Mejor/Peor", opciones: ["mejor", "peor"] }
+        ]
+      },
+      {
+        nombre: "DEFENSA",
+        plantilla: "{jugador} es una opción bastante buena en el puesto de central.",
+        campos: [
+          { id: "jugador", tipo: "jugador", label: "Jugador rival" }
+        ]
+      },
+      {
+        nombre: "ENTRADAS",
+        plantilla: "El equipo en general es fuerte y está capacitado para hacer entradas.",
+        campos: []
+      },
+      {
+        nombre: "ESTADO DE FORMA DE JUGADOR CLAVE",
+        plantilla: "{jugador} está últimamente en muy buena forma, con una calificación media de {nota} en sus últimos 5 partidos.",
+        campos: [
+          { id: "jugador", tipo: "jugador", label: "Jugador rival" },
+          { id: "nota", tipo: "number", label: "Nota media", step: "0.1" }
+        ]
+      },
+      {
+        nombre: "EXCENTRICIDAD",
+        plantilla: "Los porteros del equipo no son para nada excéntricos.",
+        campos: []
+      },
+      {
+        nombre: "MARCAJE",
+        plantilla: "El equipo en general marca de forma impresionante y trabaja muy duro para impedir que el rival tenga tiempo y espacio.",
+        campos: []
+      },
+      {
+        nombre: "MEDIOCAMPO",
+        plantilla: "{jugador1} es una buena opción en el puesto de mediocentro. {jugador2} es una buena opción en el centro del mediocampo.",
+        campos: [
+          { id: "jugador1", tipo: "jugador", label: "Mediocentro 1" },
+          { id: "jugador2", tipo: "jugador", label: "Mediocentro 2" }
+        ]
+      },
+      {
+        nombre: "RECUPERACIÓN FÍSICA",
+        plantilla: "El equipo tiene en general un nivel alto en cuanto a forma natural.",
+        campos: []
+      },
+      {
+        nombre: "SALIDAS (TENDENCIA)",
+        plantilla: "Las salidas y no quedarse debajo de los palos es uno de los puntos fuertes de los porteros de la plantilla.",
+        campos: []
+      }
     ];
 
     const LISTA_DEBILES = [
+      "ALCANCE DE SALTO",
       "CENTROS",
-      "REFLEJOS",
-      "TÉCNICA",
+      "CONTROL",
+      "DEFENSA",
       "DETERMINACIÓN",
-      "PRIMER TOQUE EN EL PRIMER PALO EN JUGADA DEFENSIVA A BALÓN PARADO",
+      "EQUILIBRIO",
+      "GOLES EN CONTRA",
       "JUGADOR FUERA DE FORMA",
+      "MÁXIMO GOLEADOR",
+      "PENALTIS",
+      "PRIMER TOQUE EN EL PRIMER PALO EN JUGADA DEFENSIVA A BALÓN PARADO",
+      "REFLEJOS",
       "REGATE",
       "REMATE",
-      "CONTROL",
-      "EQUILIBRIO",
-      "MÁXIMO GOLEADOR",
-      "DEFENSA",
-      "GOLES EN CONTRA",
-      "TIROS LEJANOS",
-      "PENALTIS",
+      "RESISTENCIA",
+      "SALIR DE PUÑOS (TENDENCIA)",
       "SAQUES DE ESQUINA",
       "SAQUES LARGOS",
-      "SALIR DE PUÑOS (TENDENCIA)",
+      "TÉCNICA",
+      "TIROS LEJANOS",
       "TIROS LIBRES",
-      "RESISTENCIA",
-      "ALCANCE DE SALTO",
-      "VALENTÍA",
-      "GOLES EN CONTRA"
-    ];
+      "VALENTÍA"
+    ].sort((a,b) => a.localeCompare(b, 'es'));
 
     function cargarRivales() {
       try {
@@ -2599,39 +2699,142 @@ function aplicarFormaTodos(campo, valor) {
       localStorage.setItem('rivalesFM', JSON.stringify(rivales));
     }
 
+    function opcionesJugadoresRival() {
+      const nombres = rivalOnceSlots.filter(s => s.nombre).map(s => s.nombre);
+      // únicos
+      return [...new Set(nombres)];
+    }
+
+    function construirSelectJugador(campoId, valorActual) {
+      const opts = opcionesJugadoresRival();
+      let html = `<select data-campo="${campoId}" class="fuerte-campo" style="width:100%;padding:5px 8px;background:#1a1a1a;border:1px solid #444;border-radius:4px;color:#e0e0e0;font-size:0.82rem;">`;
+      html += `<option value="">— Elegir jugador —</option>`;
+      opts.forEach(n => {
+        html += `<option value="${n}" ${n === valorActual ? 'selected' : ''}>${n}</option>`;
+      });
+      // Si el valor guardado no está en el 11 actual, mostrarlo igual
+      if (valorActual && !opts.includes(valorActual)) {
+        html += `<option value="${valorActual}" selected>${valorActual} (no en 11)</option>`;
+      }
+      html += `</select>`;
+      return html;
+    }
+
     function construirListasRival() {
       const contF = document.getElementById('rival-fuertes');
       const contD = document.getElementById('rival-debiles');
       if (!contF || !contD) return;
 
-      contF.innerHTML = LISTA_FUERTES.map((nombre, i) => `
-        <div class="attr-row-rival" data-attr="${nombre}">
-          <span class="attr-name">${nombre}</span>
-          <div class="intensity-btns">
-            <button type="button" class="int-btn muy-bueno" data-level="muy_bueno" title="Muy buenos" onclick="toggleIntensity(this,'fuerte')">MB</button>
-            <button type="button" class="int-btn bueno" data-level="bueno" title="Buenos" onclick="toggleIntensity(this,'fuerte')">B</button>
-          </div>
-        </div>
-      `).join('');
+      // Guardar valores actuales de campos antes de reconstruir
+      const camposPrevios = {};
+      document.querySelectorAll('#rival-fuertes .attr-row-rival').forEach(row => {
+        const attr = row.dataset.attr;
+        const vals = {};
+        row.querySelectorAll('.fuerte-campo').forEach(el => {
+          vals[el.dataset.campo] = el.value;
+        });
+        if (Object.keys(vals).length) camposPrevios[attr] = vals;
+      });
 
-      contD.innerHTML = LISTA_DEBILES.map((nombre, i) => `
-        <div class="attr-row-rival" data-attr="${nombre}">
-          <span class="attr-name">${nombre}</span>
+      contF.innerHTML = LISTA_FUERTES.map(item => {
+        const prev = camposPrevios[item.nombre] || {};
+        let camposHTML = '';
+        if (item.campos && item.campos.length) {
+          camposHTML = `<div class="fuerte-campos" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #333;display:none;">
+            ${item.campos.map(c => {
+              if (c.tipo === 'jugador') {
+                return `<div style="margin-bottom:6px;"><label style="font-size:0.72rem;color:#888;display:block;margin-bottom:2px;">${c.label}</label>${construirSelectJugador(c.id, prev[c.id] || '')}</div>`;
+              }
+              if (c.tipo === 'select') {
+                return `<div style="margin-bottom:6px;"><label style="font-size:0.72rem;color:#888;display:block;margin-bottom:2px;">${c.label}</label>
+                  <select data-campo="${c.id}" class="fuerte-campo" style="width:100%;padding:5px 8px;background:#1a1a1a;border:1px solid #444;border-radius:4px;color:#e0e0e0;font-size:0.82rem;">
+                    ${(c.opciones||[]).map(o => `<option value="${o}" ${prev[c.id]===o?'selected':''}>${o}</option>`).join('')}
+                  </select></div>`;
+              }
+              return `<div style="margin-bottom:6px;"><label style="font-size:0.72rem;color:#888;display:block;margin-bottom:2px;">${c.label}</label>
+                <input type="number" data-campo="${c.id}" class="fuerte-campo" value="${prev[c.id]||''}" step="${c.step||'1'}"
+                  style="width:100%;padding:5px 8px;background:#1a1a1a;border:1px solid #444;border-radius:4px;color:#e0e0e0;font-size:0.82rem;"></div>`;
+            }).join('')}
+            <div class="fuerte-preview" style="font-size:0.78rem;color:#a3e635;margin-top:6px;line-height:1.35;font-style:italic;"></div>
+          </div>`;
+        } else {
+          camposHTML = `<div class="fuerte-campos" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #333;">
+            <div class="fuerte-preview" style="font-size:0.78rem;color:#a3e635;line-height:1.35;font-style:italic;">${item.plantilla}</div>
+          </div>`;
+        }
+
+        return `
+        <div class="attr-row-rival fuerte-item" data-attr="${item.nombre}" style="flex-direction:column;align-items:stretch;padding:8px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span class="attr-name" style="flex:1;cursor:pointer;min-width:100px;" onclick="toggleFuerteDetalle(this)">${item.nombre}</span>
+            <div class="intensity-btns">
+              <button type="button" class="int-btn top" data-level="top" title="TOP" onclick="toggleIntensity(this,'fuerte')">TOP</button>
+              <button type="button" class="int-btn muy-bueno" data-level="muy_bueno" title="Muy buenos" onclick="toggleIntensity(this,'fuerte')">MB</button>
+              <button type="button" class="int-btn bueno" data-level="bueno" title="Buenos" onclick="toggleIntensity(this,'fuerte')">B</button>
+            </div>
+            <button type="button" class="btn-success" style="padding:4px 10px;font-size:0.72rem;" onclick="anadirAlInforme('fuerte','${item.nombre.replace(/'/g,"\\'")}')">+ Añadir</button>
+          </div>
+          ${camposHTML}
+        </div>`;
+      }).join('');
+
+      contD.innerHTML = LISTA_DEBILES.map(nombre => `
+        <div class="attr-row-rival" data-attr="${nombre}" style="flex-wrap:wrap;gap:6px;">
+          <span class="attr-name" style="flex:1;min-width:100px;">${nombre}</span>
           <div class="intensity-btns">
             <button type="button" class="int-btn muy-malo" data-level="muy_malo" title="Muy malos" onclick="toggleIntensity(this,'debil')">MM</button>
             <button type="button" class="int-btn malo" data-level="malo" title="Malos" onclick="toggleIntensity(this,'debil')">M</button>
           </div>
+          <button type="button" class="btn-success" style="padding:4px 10px;font-size:0.72rem;" onclick="anadirAlInforme('debil','${nombre.replace(/'/g,"\\'")}')">+ Añadir</button>
         </div>
       `).join('');
+
+      // Listeners para actualizar preview
+      contF.querySelectorAll('.fuerte-campo').forEach(el => {
+        el.addEventListener('input', () => actualizarPreviewFuerte(el.closest('.attr-row-rival')));
+        el.addEventListener('change', () => actualizarPreviewFuerte(el.closest('.attr-row-rival')));
+      });
+    }
+
+    function toggleFuerteDetalle(el) {
+      const row = el.closest('.attr-row-rival');
+      const campos = row.querySelector('.fuerte-campos');
+      if (!campos) return;
+      const visible = campos.style.display !== 'none';
+      campos.style.display = visible ? 'none' : 'block';
+      if (!visible) actualizarPreviewFuerte(row);
+    }
+
+    function actualizarPreviewFuerte(row) {
+      if (!row) return;
+      const attr = row.dataset.attr;
+      const item = LISTA_FUERTES.find(x => x.nombre === attr);
+      if (!item) return;
+      const preview = row.querySelector('.fuerte-preview');
+      if (!preview) return;
+      let texto = item.plantilla;
+      const vals = {};
+      row.querySelectorAll('.fuerte-campo').forEach(el => { vals[el.dataset.campo] = el.value; });
+      Object.keys(vals).forEach(k => {
+        const v = vals[k] || `«${k}»`;
+        texto = texto.replace(new RegExp('\\{' + k + '\\}', 'g'), v);
+      });
+      preview.textContent = texto;
     }
 
     function toggleIntensity(btn, tipo) {
       const row = btn.closest('.attr-row-rival');
       const alreadyActive = btn.classList.contains('active');
-      // Quitar todos los active de la fila
       row.querySelectorAll('.int-btn').forEach(b => b.classList.remove('active'));
-      // Si no estaba activo, activarlo (si ya estaba, se desmarca)
-      if (!alreadyActive) btn.classList.add('active');
+      if (!alreadyActive) {
+        btn.classList.add('active');
+        // Abrir detalle al marcar
+        const campos = row.querySelector('.fuerte-campos');
+        if (campos) {
+          campos.style.display = 'block';
+          actualizarPreviewFuerte(row);
+        }
+      }
     }
 
     function obtenerIntensidades(containerId) {
@@ -2644,15 +2847,146 @@ function aplicarFormaTodos(campo, valor) {
       return result;
     }
 
+    function obtenerDetallesFuertes() {
+      const result = {};
+      document.querySelectorAll('#rival-fuertes .attr-row-rival').forEach(row => {
+        const attr = row.dataset.attr;
+        const active = row.querySelector('.int-btn.active');
+        if (!active) return;
+        const item = LISTA_FUERTES.find(x => x.nombre === attr);
+        const vals = {};
+        row.querySelectorAll('.fuerte-campo').forEach(el => { vals[el.dataset.campo] = el.value; });
+        let texto = item ? item.plantilla : attr;
+        Object.keys(vals).forEach(k => {
+          texto = texto.replace(new RegExp('\\{' + k + '\\}', 'g'), vals[k] || '…');
+        });
+        result[attr] = {
+          level: active.dataset.level,
+          campos: vals,
+          texto
+        };
+      });
+      return result;
+    }
+
     function aplicarIntensidades(containerId, data) {
+      // data puede ser { ATTR: "muy_bueno" } o { ATTR: { level, campos, texto } }
       document.querySelectorAll(`#${containerId} .attr-row-rival`).forEach(row => {
         row.querySelectorAll('.int-btn').forEach(b => b.classList.remove('active'));
-        const level = data && data[row.dataset.attr];
-        if (level) {
-          const btn = row.querySelector(`.int-btn[data-level="${level}"]`);
-          if (btn) btn.classList.add('active');
+        const raw = data && data[row.dataset.attr];
+        if (!raw) return;
+        const level = typeof raw === 'string' ? raw : raw.level;
+        const btn = row.querySelector(`.int-btn[data-level="${level}"]`);
+        if (btn) btn.classList.add('active');
+        if (typeof raw === 'object' && raw.campos) {
+          row.querySelectorAll('.fuerte-campo').forEach(el => {
+            if (raw.campos[el.dataset.campo] !== undefined) {
+              el.value = raw.campos[el.dataset.campo];
+            }
+          });
+          const campos = row.querySelector('.fuerte-campos');
+          if (campos) campos.style.display = 'block';
+          actualizarPreviewFuerte(row);
         }
       });
+    }
+
+    /* ===== INFORME DEL RIVAL ===== */
+    let informeRival = []; // [{ id, tipo: 'fuerte'|'debil', attr, level, texto }]
+
+    function filtrarListaRival(tipo) {
+      const input = document.getElementById(tipo === 'fuertes' ? 'busca-fuertes' : 'busca-debiles');
+      const cont = document.getElementById(tipo === 'fuertes' ? 'rival-fuertes' : 'rival-debiles');
+      if (!input || !cont) return;
+      const q = (input.value || '').trim().toLowerCase();
+      cont.querySelectorAll('.attr-row-rival').forEach(row => {
+        const name = (row.dataset.attr || '').toLowerCase();
+        row.style.display = (!q || name.includes(q)) ? '' : 'none';
+      });
+    }
+
+    function anadirAlInforme(tipo, attr) {
+      const contId = tipo === 'fuerte' ? 'rival-fuertes' : 'rival-debiles';
+      const row = document.querySelector(`#${contId} .attr-row-rival[data-attr="${attr}"]`);
+      if (!row) return;
+      const active = row.querySelector('.int-btn.active');
+      if (!active) {
+        alert('Primero marca la intensidad (TOP / MB / B o MM / M).');
+        return;
+      }
+      const level = active.dataset.level;
+      let texto = attr;
+      if (tipo === 'fuerte') {
+        const item = LISTA_FUERTES.find(x => x.nombre === attr);
+        if (item) {
+          const vals = {};
+          row.querySelectorAll('.fuerte-campo').forEach(el => { vals[el.dataset.campo] = el.value; });
+          texto = item.plantilla;
+          Object.keys(vals).forEach(k => {
+            texto = texto.replace(new RegExp('\\{' + k + '\\}', 'g'), vals[k] || '…');
+          });
+        }
+      } else {
+        const labels = { muy_malo: 'Muy malo', malo: 'Malo' };
+        texto = `${attr}: ${labels[level] || level}`;
+      }
+
+      // Evitar duplicados del mismo atributo+tipo
+      const exists = informeRival.findIndex(x => x.tipo === tipo && x.attr === attr);
+      const entry = {
+        id: Date.now() + Math.random(),
+        tipo,
+        attr,
+        level,
+        texto
+      };
+      if (exists >= 0) informeRival[exists] = entry;
+      else informeRival.push(entry);
+
+      renderInformeRival();
+    }
+
+    function quitarDelInforme(id) {
+      informeRival = informeRival.filter(x => String(x.id) !== String(id));
+      renderInformeRival();
+    }
+
+    function limpiarInformeRival() {
+      if (informeRival.length && !confirm('¿Vaciar todo el informe?')) return;
+      informeRival = [];
+      renderInformeRival();
+    }
+
+    function renderInformeRival() {
+      const cont = document.getElementById('informe-rival-lista');
+      if (!cont) return;
+      if (!informeRival.length) {
+        cont.innerHTML = '<div class="empty-state" style="padding:16px;font-size:0.9rem;">Aún no hay puntos en el informe. Márcalos abajo y pulsa «Añadir».</div>';
+        return;
+      }
+      const levelLabel = {
+        top: 'TOP', muy_bueno: 'Muy buenos', bueno: 'Buenos',
+        muy_malo: 'Muy malos', malo: 'Malos'
+      };
+      const levelColor = {
+        top: '#fbbf24', muy_bueno: '#4ade80', bueno: '#86efac',
+        muy_malo: '#f87171', malo: '#fb923c'
+      };
+      cont.innerHTML = informeRival.map(item => `
+        <div style="display:flex;gap:10px;align-items:flex-start;background:#222;border:1px solid #333;border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+          <div style="flex:1;">
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:4px;">
+              <span style="font-weight:700;color:#fff;font-size:0.9rem;">${item.attr}</span>
+              <span style="font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:10px;background:#333;color:${levelColor[item.level]||'#aaa'};">
+                ${levelLabel[item.level] || item.level}
+              </span>
+              <span style="font-size:0.7rem;color:#666;text-transform:uppercase;">${item.tipo === 'fuerte' ? 'Fuerte' : 'Débil'}</span>
+            </div>
+            <div style="font-size:0.84rem;color:#ccc;line-height:1.4;">${item.texto}</div>
+          </div>
+          <button type="button" class="btn-danger" style="padding:4px 10px;font-size:0.75rem;flex-shrink:0;" onclick="quitarDelInforme('${item.id}')">✕</button>
+        </div>
+      `).join('');
     }
 
     function nuevoRival() {
@@ -2677,12 +3011,20 @@ function aplicarFormaTodos(campo, valor) {
       initRivalOnce('4-3-3');
       limpiarRivalOnce();
       cerrarRivalSlotEditor();
+      informeRival = [];
+      renderInformeRival();
+      const bf = document.getElementById('busca-fuertes');
+      const bd = document.getElementById('busca-debiles');
+      if (bf) bf.value = '';
+      if (bd) bd.value = '';
+      filtrarListaRival('fuertes');
+      filtrarListaRival('debiles');
       rivalEditandoId = null;
       document.getElementById('btn-eliminar-rival').style.display = 'none';
     }
 
     function obtenerDatosRivalForm() {
-      const fuertes = obtenerIntensidades('rival-fuertes');
+      const fuertes = obtenerDetallesFuertes(); // { ATTR: { level, campos, texto } }
       const debiles = obtenerIntensidades('rival-debiles');
       const claves = [
         document.getElementById('rival-clave1').value.trim(),
@@ -2702,7 +3044,8 @@ function aplicarFormaTodos(campo, valor) {
         claves,
         texto: document.getElementById('rival-texto').value.trim(),
         once: obtenerRivalOnceData(),
-        onceFormacion
+        onceFormacion,
+        informe: informeRival.slice()
       };
     }
 
@@ -2742,6 +3085,9 @@ function aplicarFormaTodos(campo, valor) {
       document.getElementById('rival-texto').value = r.texto || '';
       // Cargar 11 del rival
       cargarRivalOnceData(r.once || [], r.onceFormacion || r.formacion || '4-3-3');
+      // Cargar informe
+      informeRival = Array.isArray(r.informe) ? r.informe.map(x => ({...x})) : [];
+      renderInformeRival();
       document.getElementById('btn-eliminar-rival').style.display = 'inline-block';
       document.querySelectorAll('.rival-item').forEach(el => {
         el.classList.toggle('active', el.dataset.id == id);
@@ -2883,6 +3229,10 @@ function aplicarFormaTodos(campo, valor) {
       slot.rol = document.getElementById('rival-slot-rol').value.trim();
       renderRivalPitch();
       cerrarRivalSlotEditor();
+      // Actualizar selects de jugadores en puntos fuertes (mantener valores)
+      const detalles = obtenerDetallesFuertes();
+      construirListasRival();
+      aplicarIntensidades('rival-fuertes', detalles);
     }
 
     function quitarRivalSlot() {
@@ -2992,14 +3342,28 @@ function aplicarFormaTodos(campo, valor) {
     }
 
     function crearPlan(tipo, rival, pool, titularesIds, considerarForma) {
-      // Normalizar: ahora fuertes/debiles son objetos { "ATRIBUTO": "muy_bueno"|"bueno"|"muy_malo"|"malo" }
-      const fuertesObj = (rival.fuertes && !Array.isArray(rival.fuertes)) ? rival.fuertes : {};
+      // Normalizar: fuertes puede ser { ATTR: "muy_bueno" } o { ATTR: { level, texto, campos } }
+      const fuertesRaw = (rival.fuertes && !Array.isArray(rival.fuertes)) ? rival.fuertes : {};
       const debilesObj = (rival.debiles && !Array.isArray(rival.debiles)) ? rival.debiles : {};
-      const tieneFuerte = (attr) => !!fuertesObj[attr];
+      const levelFuerte = (attr) => {
+        const v = fuertesRaw[attr];
+        if (!v) return null;
+        return typeof v === 'string' ? v : v.level;
+      };
+      const tieneFuerte = (attr) => !!levelFuerte(attr);
       const tieneDebil = (attr) => !!debilesObj[attr];
-      const esMuyFuerte = (attr) => fuertesObj[attr] === 'muy_bueno';
+      const esMuyFuerte = (attr) => {
+        const l = levelFuerte(attr);
+        return l === 'muy_bueno' || l === 'top';
+      };
       const esMuyDebil = (attr) => debilesObj[attr] === 'muy_malo';
-      const pesoFuerte = (attr) => esMuyFuerte(attr) ? 2 : (tieneFuerte(attr) ? 1 : 0);
+      const pesoFuerte = (attr) => {
+        const l = levelFuerte(attr);
+        if (l === 'top') return 3;
+        if (l === 'muy_bueno') return 2;
+        if (l === 'bueno') return 1;
+        return 0;
+      };
       const pesoDebil = (attr) => esMuyDebil(attr) ? 2 : (tieneDebil(attr) ? 1 : 0);
 
       const estilo = rival.estilo || 'equilibrado';
