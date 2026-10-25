@@ -609,6 +609,27 @@
         border: 1px solid var(--border); background: #1a1a1a; color: var(--text);
         font-family: inherit; font-size: 0.95rem; resize: vertical;
       }
+      .attr-row-rival {
+        display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+        background: #222; border-radius: 6px; border: 1px solid #333;
+      }
+      .attr-row-rival .attr-name {
+        flex: 1; font-size: 0.84rem; color: #ddd; line-height: 1.25;
+      }
+      .attr-row-rival .intensity-btns {
+        display: flex; gap: 4px; flex-shrink: 0;
+      }
+      .attr-row-rival .int-btn {
+        width: 28px; height: 26px; border: none; border-radius: 4px;
+        cursor: pointer; font-size: 0.7rem; font-weight: 700; opacity: 0.35;
+        transition: opacity 0.15s, transform 0.1s;
+      }
+      .attr-row-rival .int-btn:hover { opacity: 0.75; }
+      .attr-row-rival .int-btn.active { opacity: 1; transform: scale(1.08); }
+      .int-btn.muy-bueno { background: #166534; color: #fff; }
+      .int-btn.bueno { background: #4ade80; color: #14532d; }
+      .int-btn.muy-malo { background: #991b1b; color: #fff; }
+      .int-btn.malo { background: #f97316; color: #fff; }
     </style>
   </head>
 <body>
@@ -894,35 +915,29 @@
               </div>
             </div>
 
-            <div style="margin-bottom:16px;">
-              <label style="display:block;margin-bottom:8px;font-weight:600;">Puntos fuertes del rival</label>
-              <div class="check-grid" id="rival-fuertes">
-                <label class="check-item"><input type="checkbox" value="laterales_ofensivos"> Laterales ofensivos</label>
-                <label class="check-item"><input type="checkbox" value="pivote_creativo"> Pivote creativo</label>
-                <label class="check-item"><input type="checkbox" value="extremos_rapidos"> Extremos rápidos</label>
-                <label class="check-item"><input type="checkbox" value="delantero_target"> Delantero target man</label>
-                <label class="check-item"><input type="checkbox" value="juego_aereo"> Fuertes por alto</label>
-                <label class="check-item"><input type="checkbox" value="balon_parado"> Peligrosos a balón parado</label>
-                <label class="check-item"><input type="checkbox" value="presion_alta"> Presión alta intensa</label>
-                <label class="check-item"><input type="checkbox" value="posesion_dominante"> Dominan la posesión</label>
-                <label class="check-item"><input type="checkbox" value="transiciones"> Muy buenos en transición</label>
-                <label class="check-item"><input type="checkbox" value="defensa_solida"> Defensa muy sólida</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+              <!-- PUNTOS FUERTES -->
+              <div>
+                <label style="display:block;margin-bottom:10px;font-weight:700;color:#4ade80;font-size:1.05rem;">Puntos fuertes del rival</label>
+                <div style="font-size:0.78rem;color:#888;margin-bottom:10px;">
+                  <span style="display:inline-block;width:12px;height:12px;background:#166534;border-radius:3px;margin-right:4px;"></span> Muy buenos
+                  <span style="display:inline-block;width:12px;height:12px;background:#4ade80;border-radius:3px;margin:0 4px 0 12px;"></span> Buenos
+                </div>
+                <div id="rival-fuertes" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;padding-right:6px;">
+                  <!-- se rellena por JS -->
+                </div>
               </div>
-            </div>
 
-            <div style="margin-bottom:16px;">
-              <label style="display:block;margin-bottom:8px;font-weight:600;">Puntos débiles del rival</label>
-              <div class="check-grid" id="rival-debiles">
-                <label class="check-item"><input type="checkbox" value="laterales_fragiles"> Laterales frágiles</label>
-                <label class="check-item"><input type="checkbox" value="lentos_centro"> Lentos por el centro</label>
-                <label class="check-item"><input type="checkbox" value="mal_balon_parado"> Malos a balón parado</label>
-                <label class="check-item"><input type="checkbox" value="espacios_espalda"> Dejan espacios a la espalda</label>
-                <label class="check-item"><input type="checkbox" value="poco_agresivos"> Poco agresivos en presión</label>
-                <label class="check-item"><input type="checkbox" value="debiles_aereo"> Débiles por alto</label>
-                <label class="check-item"><input type="checkbox" value="poco_profundidad"> Poca profundidad ofensiva</label>
-                <label class="check-item"><input type="checkbox" value="dependen_estrella"> Dependen de 1-2 estrellas</label>
-                <label class="check-item"><input type="checkbox" value="fatiga"> Problemas de fatiga / rotación</label>
-                <label class="check-item"><input type="checkbox" value="juego_directo_malo"> Malos contra juego directo</label>
+              <!-- PUNTOS DÉBILES -->
+              <div>
+                <label style="display:block;margin-bottom:10px;font-weight:700;color:#f87171;font-size:1.05rem;">Puntos débiles del rival</label>
+                <div style="font-size:0.78rem;color:#888;margin-bottom:10px;">
+                  <span style="display:inline-block;width:12px;height:12px;background:#991b1b;border-radius:3px;margin-right:4px;"></span> Muy malos
+                  <span style="display:inline-block;width:12px;height:12px;background:#f97316;border-radius:3px;margin:0 4px 0 12px;"></span> Malos
+                </div>
+                <div id="rival-debiles" style="display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;padding-right:6px;">
+                  <!-- se rellena por JS -->
+                </div>
               </div>
             </div>
 
@@ -1297,6 +1312,7 @@ function setForma(id, campo, valor) {
     actualizarFormularioAtributos();
   }
   if (tabId === 'rival') {
+    construirListasRival();
     renderizarRivales();
   }
 }
@@ -2481,14 +2497,116 @@ function aplicarFormaTodos(campo, valor) {
     let rivales = [];
     let rivalEditandoId = null;
 
+    // Listas oficiales del informe de scouting de FM
+    const LISTA_FUERTES = [
+      "RECUPERACIÓN FÍSICA",
+      "CREACIÓN DE OPORTUNIDADES A BALÓN PARADO",
+      "MARCAJE",
+      "ENTRADAS",
+      "COMUNICACIÓN",
+      "EXCENTRICIDAD",
+      "DEFENSA",
+      "MEDIOCAMPO",
+      "BLOCAJE",
+      "ALCANCE AÉREO",
+      "COLOCACIÓN",
+      "SALIDAS (TENDENCIA)",
+      "CONCENTRACIÓN",
+      "ACTUACIONES EN LA PRIMERA PARTE",
+      "ESTADO DE FORMA DE JUGADOR CLAVE"
+    ];
+
+    const LISTA_DEBILES = [
+      "CENTROS",
+      "REFLEJOS",
+      "TÉCNICA",
+      "DETERMINACIÓN",
+      "PRIMER TOQUE EN EL PRIMER PALO EN JUGADA DEFENSIVA A BALÓN PARADO",
+      "JUGADOR FUERA DE FORMA",
+      "REGATE",
+      "REMATE",
+      "CONTROL",
+      "EQUILIBRIO",
+      "MÁXIMO GOLEADOR",
+      "DEFENSA",
+      "GOLES EN CONTRA",
+      "TIROS LEJANOS",
+      "PENALTIS",
+      "SAQUES DE ESQUINA",
+      "SAQUES LARGOS",
+      "SALIR DE PUÑOS (TENDENCIA)",
+      "TIROS LIBRES",
+      "RESISTENCIA",
+      "ALCANCE DE SALTO",
+      "VALENTÍA",
+      "GOLES EN CONTRA"
+    ];
+
     function cargarRivales() {
       try {
         rivales = JSON.parse(localStorage.getItem('rivalesFM') || '[]');
         if (!Array.isArray(rivales)) rivales = [];
       } catch(e) { rivales = []; }
+      construirListasRival();
     }
     function guardarRivalesStorage() {
       localStorage.setItem('rivalesFM', JSON.stringify(rivales));
+    }
+
+    function construirListasRival() {
+      const contF = document.getElementById('rival-fuertes');
+      const contD = document.getElementById('rival-debiles');
+      if (!contF || !contD) return;
+
+      contF.innerHTML = LISTA_FUERTES.map((nombre, i) => `
+        <div class="attr-row-rival" data-attr="${nombre}">
+          <span class="attr-name">${nombre}</span>
+          <div class="intensity-btns">
+            <button type="button" class="int-btn muy-bueno" data-level="muy_bueno" title="Muy buenos" onclick="toggleIntensity(this,'fuerte')">MB</button>
+            <button type="button" class="int-btn bueno" data-level="bueno" title="Buenos" onclick="toggleIntensity(this,'fuerte')">B</button>
+          </div>
+        </div>
+      `).join('');
+
+      contD.innerHTML = LISTA_DEBILES.map((nombre, i) => `
+        <div class="attr-row-rival" data-attr="${nombre}">
+          <span class="attr-name">${nombre}</span>
+          <div class="intensity-btns">
+            <button type="button" class="int-btn muy-malo" data-level="muy_malo" title="Muy malos" onclick="toggleIntensity(this,'debil')">MM</button>
+            <button type="button" class="int-btn malo" data-level="malo" title="Malos" onclick="toggleIntensity(this,'debil')">M</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleIntensity(btn, tipo) {
+      const row = btn.closest('.attr-row-rival');
+      const alreadyActive = btn.classList.contains('active');
+      // Quitar todos los active de la fila
+      row.querySelectorAll('.int-btn').forEach(b => b.classList.remove('active'));
+      // Si no estaba activo, activarlo (si ya estaba, se desmarca)
+      if (!alreadyActive) btn.classList.add('active');
+    }
+
+    function obtenerIntensidades(containerId) {
+      const result = {};
+      document.querySelectorAll(`#${containerId} .attr-row-rival`).forEach(row => {
+        const attr = row.dataset.attr;
+        const active = row.querySelector('.int-btn.active');
+        if (active) result[attr] = active.dataset.level;
+      });
+      return result;
+    }
+
+    function aplicarIntensidades(containerId, data) {
+      document.querySelectorAll(`#${containerId} .attr-row-rival`).forEach(row => {
+        row.querySelectorAll('.int-btn').forEach(b => b.classList.remove('active'));
+        const level = data && data[row.dataset.attr];
+        if (level) {
+          const btn = row.querySelector(`.int-btn[data-level="${level}"]`);
+          if (btn) btn.classList.add('active');
+        }
+      });
     }
 
     function nuevoRival() {
@@ -2505,7 +2623,8 @@ function aplicarFormaTodos(campo, valor) {
       document.getElementById('rival-estilo').value = 'equilibrado';
       document.getElementById('rival-mentalidad').value = 'equilibrada';
       document.getElementById('partido-importancia').value = 'normal';
-      document.querySelectorAll('#rival-fuertes input, #rival-debiles input').forEach(cb => cb.checked = false);
+      aplicarIntensidades('rival-fuertes', {});
+      aplicarIntensidades('rival-debiles', {});
       document.getElementById('rival-clave1').value = '';
       document.getElementById('rival-clave2').value = '';
       document.getElementById('rival-clave3').value = '';
@@ -2515,8 +2634,8 @@ function aplicarFormaTodos(campo, valor) {
     }
 
     function obtenerDatosRivalForm() {
-      const fuertes = Array.from(document.querySelectorAll('#rival-fuertes input:checked')).map(c => c.value);
-      const debiles = Array.from(document.querySelectorAll('#rival-debiles input:checked')).map(c => c.value);
+      const fuertes = obtenerIntensidades('rival-fuertes');
+      const debiles = obtenerIntensidades('rival-debiles');
       const claves = [
         document.getElementById('rival-clave1').value.trim(),
         document.getElementById('rival-clave2').value.trim(),
@@ -2529,8 +2648,8 @@ function aplicarFormaTodos(campo, valor) {
         estilo: document.getElementById('rival-estilo').value,
         mentalidad: document.getElementById('rival-mentalidad').value,
         importancia: document.getElementById('partido-importancia').value,
-        fuertes,
-        debiles,
+        fuertes,   // objeto { "MARCAJE": "muy_bueno", ... }
+        debiles,   // objeto { "CENTROS": "malo", ... }
         claves,
         texto: document.getElementById('rival-texto').value.trim()
       };
@@ -2565,8 +2684,11 @@ function aplicarFormaTodos(campo, valor) {
       document.getElementById('rival-estilo').value = r.estilo || 'equilibrado';
       document.getElementById('rival-mentalidad').value = r.mentalidad || 'equilibrada';
       document.getElementById('partido-importancia').value = r.importancia || 'normal';
-      document.querySelectorAll('#rival-fuertes input').forEach(cb => cb.checked = (r.fuertes||[]).includes(cb.value));
-      document.querySelectorAll('#rival-debiles input').forEach(cb => cb.checked = (r.debiles||[]).includes(cb.value));
+      // Compatibilidad con formato antiguo (array) y nuevo (objeto)
+      const fuertesObj = Array.isArray(r.fuertes) ? {} : (r.fuertes || {});
+      const debilesObj = Array.isArray(r.debiles) ? {} : (r.debiles || {});
+      aplicarIntensidades('rival-fuertes', fuertesObj);
+      aplicarIntensidades('rival-debiles', debilesObj);
       document.getElementById('rival-clave1').value = (r.claves||[])[0] || '';
       document.getElementById('rival-clave2').value = (r.claves||[])[1] || '';
       document.getElementById('rival-clave3').value = (r.claves||[])[2] || '';
@@ -2593,12 +2715,15 @@ function aplicarFormaTodos(campo, valor) {
         cont.innerHTML = '<div class="empty-state" style="padding:20px;font-size:0.9rem;">No hay rivales guardados todavía.</div>';
         return;
       }
-      cont.innerHTML = rivales.map(r => `
+      cont.innerHTML = rivales.map(r => {
+        const nF = r.fuertes ? (Array.isArray(r.fuertes) ? r.fuertes.length : Object.keys(r.fuertes).length) : 0;
+        const nD = r.debiles ? (Array.isArray(r.debiles) ? r.debiles.length : Object.keys(r.debiles).length) : 0;
+        return `
         <div class="rival-item ${rivalEditandoId === r.id ? 'active' : ''}" data-id="${r.id}" onclick="cargarRivalEnForm(${r.id})">
           <div class="ri-name">${r.nombre}</div>
-          <div class="ri-meta">${r.formacion} · ${r.estilo} · ${(r.fuertes||[]).length} fuertes / ${(r.debiles||[]).length} débiles</div>
-        </div>
-      `).join('');
+          <div class="ri-meta">${r.formacion} · ${r.estilo} · ${nF} fuertes / ${nD} débiles</div>
+        </div>`;
+      }).join('');
     }
 
     /* ===== MOTOR DE RECOMENDACIÓN ===== */
@@ -2649,8 +2774,16 @@ function aplicarFormaTodos(campo, valor) {
     }
 
     function crearPlan(tipo, rival, pool, titularesIds, considerarForma) {
-      const fuertes = new Set(rival.fuertes || []);
-      const debiles = new Set(rival.debiles || []);
+      // Normalizar: ahora fuertes/debiles son objetos { "ATRIBUTO": "muy_bueno"|"bueno"|"muy_malo"|"malo" }
+      const fuertesObj = (rival.fuertes && !Array.isArray(rival.fuertes)) ? rival.fuertes : {};
+      const debilesObj = (rival.debiles && !Array.isArray(rival.debiles)) ? rival.debiles : {};
+      const tieneFuerte = (attr) => !!fuertesObj[attr];
+      const tieneDebil = (attr) => !!debilesObj[attr];
+      const esMuyFuerte = (attr) => fuertesObj[attr] === 'muy_bueno';
+      const esMuyDebil = (attr) => debilesObj[attr] === 'muy_malo';
+      const pesoFuerte = (attr) => esMuyFuerte(attr) ? 2 : (tieneFuerte(attr) ? 1 : 0);
+      const pesoDebil = (attr) => esMuyDebil(attr) ? 2 : (tieneDebil(attr) ? 1 : 0);
+
       const estilo = rival.estilo || 'equilibrado';
       const formRival = rival.formacion || '4-3-3';
 
@@ -2661,14 +2794,13 @@ function aplicarFormaTodos(campo, valor) {
       let rolesSugeridos = {};
       let comoAtacar = [];
       let comoDefender = [];
-      let score = 60; // base
+      let score = 60;
 
-      // --- Lógica según tipo de plan y debilidades/fuertes ---
-
+      // --- Planes base ---
       if (tipo === 'seguro') {
         mentalidad = 'Defensiva';
         estiloPresion = 'Más baja';
-        formacion = fuertes.has('extremos_rapidos') || fuertes.has('laterales_ofensivos') ? '5-3-2' : '4-1-4-1';
+        formacion = (tieneFuerte('DEFENSA') || tieneFuerte('MARCAJE')) ? '5-3-2' : '4-1-4-1';
         instrucciones = [
           'Evitar cruces fáciles',
           'Mantener la posesión cuando sea posible',
@@ -2676,31 +2808,16 @@ function aplicarFormaTodos(campo, valor) {
           'Defender en bloque medio-bajo',
           'Salidas rápidas al espacio'
         ];
-        comoDefender = [
-          'Priorizar solidez defensiva y no encajar',
-          'Marcar de cerca a sus jugadores clave',
-          'Cerrar líneas de pase interiores'
-        ];
-        comoAtacar = [
-          'Buscar contraataques y balones largos',
-          'Aprovechar cualquier error suyo a la salida de balón'
-        ];
+        comoDefender = ['Priorizar solidez defensiva y no encajar', 'Marcar de cerca a sus jugadores clave', 'Cerrar líneas de pase interiores'];
+        comoAtacar = ['Buscar contraataques y balones largos', 'Aprovechar cualquier error suyo a la salida de balón'];
         score += 5;
-        if (debiles.has('espacios_espalda')) score += 8;
-        if (fuertes.has('presion_alta')) score += 6;
+        if (tieneFuerte('DEFENSA') || tieneFuerte('MARCAJE')) score += 4;
       }
 
       if (tipo === 'equilibrado') {
         mentalidad = 'Equilibrada';
         estiloPresion = 'Estándar';
-        // Elegir formación según rival
-        if (formRival.startsWith('3') || formRival.startsWith('5')) {
-          formacion = '4-3-3';
-        } else if (fuertes.has('posesion_dominante')) {
-          formacion = '4-2-3-1';
-        } else {
-          formacion = '4-2-3-1';
-        }
+        formacion = (formRival.startsWith('3') || formRival.startsWith('5')) ? '4-3-3' : '4-2-3-1';
         instrucciones = [
           'Jugar por fuera cuando haya espacio',
           'Presionar tras pérdida',
@@ -2708,21 +2825,15 @@ function aplicarFormaTodos(campo, valor) {
           'Variar el ritmo de juego',
           'Centrar con criterio'
         ];
-        comoAtacar = [
-          'Explotar los puntos débiles detectados',
-          'Combinar juego por bandas y por dentro'
-        ];
-        comoDefender = [
-          'Mantener estructura y no desordenarse',
-          'Ayuda mutua en las bandas'
-        ];
+        comoAtacar = ['Explotar los puntos débiles detectados', 'Combinar juego por bandas y por dentro'];
+        comoDefender = ['Mantener estructura y no desordenarse', 'Ayuda mutua en las bandas'];
         score += 12;
       }
 
       if (tipo === 'agresivo') {
         mentalidad = 'Ofensiva';
         estiloPresion = 'Mucho más alta';
-        formacion = debiles.has('laterales_fragiles') || debiles.has('espacios_espalda') ? '4-3-3' : '3-4-3';
+        formacion = (tieneDebil('DEFENSA') || tieneDebil('RESISTENCIA')) ? '4-3-3' : '3-4-3';
         instrucciones = [
           'Presión alta intensa',
           'Jugar muy directo hacia el área',
@@ -2730,76 +2841,111 @@ function aplicarFormaTodos(campo, valor) {
           'Buscar duelos 1v1 en banda',
           'Tiros desde fuera del área si hay espacio'
         ];
-        comoAtacar = [
-          'Castigar sus debilidades desde el primer minuto',
-          'No dejarles salir cómodos desde atrás'
-        ];
-        comoDefender = [
-          'Aceptar más riesgo a cambio de generar ocasiones',
-          'Transiciones rápidas tras robo'
-        ];
+        comoAtacar = ['Castigar sus debilidades desde el primer minuto', 'No dejarles salir cómodos desde atrás'];
+        comoDefender = ['Aceptar más riesgo a cambio de generar ocasiones', 'Transiciones rápidas tras robo'];
         score += 8;
-        if (debiles.has('laterales_fragiles')) score += 10;
-        if (debiles.has('espacios_espalda')) score += 9;
-        if (debiles.has('poco_agresivos')) score += 7;
-        if (fuertes.has('defensa_solida')) score -= 8;
+        if (tieneDebil('DEFENSA')) score += 8;
+        if (tieneFuerte('DEFENSA') && esMuyFuerte('DEFENSA')) score -= 6;
       }
 
-      // Ajustes según estilo del rival
-      if (estilo === 'presion_alta') {
-        if (tipo !== 'agresivo') {
-          instrucciones.unshift('Salir en largo si la presión es muy alta');
-          score += 4;
-        }
+      // --- Ajustes por estilo del rival ---
+      if (estilo === 'presion_alta' && tipo !== 'agresivo') {
+        instrucciones.unshift('Salir en largo si la presión es muy alta');
+        score += 4;
       }
-      if (estilo === 'posesion') {
-        instrucciones.push('Intentar recuperar rápido y no dejarles circular');
-      }
+      if (estilo === 'posesion') instrucciones.push('Intentar recuperar rápido y no dejarles circular');
       if (estilo === 'contraataque') {
         instrucciones.push('No perder la posición al atacar');
         if (tipo === 'seguro') score += 5;
       }
 
-      // Ajustes por puntos débiles específicos
-      if (debiles.has('laterales_fragiles')) {
-        comoAtacar.unshift('Atacar mucho por las bandas y buscar 2v1');
-        rolesSugeridos.bandas = 'Extremos o carrileros ofensivos';
-        score += 6;
+      // --- Puntos DÉBILES del rival (explotar) ---
+      if (tieneDebil('CENTROS')) {
+        comoAtacar.unshift('Atacar por el centro o con regates, evitar regalarles centros');
+        score += 3 * pesoDebil('CENTROS');
       }
-      if (debiles.has('lentos_centro')) {
-        comoAtacar.push('Buscar desmarques a la espalda de los centrales');
-        score += 5;
+      if (tieneDebil('REGATE') || tieneDebil('CONTROL') || tieneDebil('TÉCNICA')) {
+        comoAtacar.push('Presionarles en la salida y no dejarles girar');
+        instrucciones.push('Presión agresiva sobre el poseedor');
+        score += 3 * Math.max(pesoDebil('REGATE'), pesoDebil('CONTROL'), pesoDebil('TÉCNICA'));
       }
-      if (debiles.has('mal_balon_parado')) {
+      if (tieneDebil('REMATE') || tieneDebil('TIROS LEJANOS')) {
+        comoDefender.push('Permitir tiros lejanos, cerrar mejor el área');
+        score += 2;
+      }
+      if (tieneDebil('DEFENSA') || tieneDebil('GOLES EN CONTRA')) {
+        comoAtacar.unshift('Ser muy vertical y buscar ocasiones claras pronto');
+        score += 5 * Math.max(pesoDebil('DEFENSA'), pesoDebil('GOLES EN CONTRA'));
+      }
+      if (tieneDebil('RESISTENCIA') || tieneDebil('JUGADOR FUERA DE FORMA')) {
+        comoAtacar.push('Mantener ritmo alto todo el partido para castigar la fatiga');
+        instrucciones.push('Ritmo de partido alto');
+        score += 4 * Math.max(pesoDebil('RESISTENCIA'), pesoDebil('JUGADOR FUERA DE FORMA'));
+      }
+      if (tieneDebil('SAQUES DE ESQUINA') || tieneDebil('TIROS LIBRES') || tieneDebil('PENALTIS') ||
+          tieneDebil('PRIMER TOQUE EN EL PRIMER PALO EN JUGADA DEFENSIVA A BALÓN PARADO')) {
         instrucciones.push('Córners y faltas ofensivas con varios hombres en el área');
+        comoAtacar.push('Buscar faltas y córners en zonas peligrosas');
         score += 4;
       }
-      if (debiles.has('debiles_aereo')) {
-        comoAtacar.push('Centros al área y juego directo al 9');
+      if (tieneDebil('ALCANCE DE SALTO') || tieneDebil('EQUILIBRIO') || tieneDebil('VALENTÍA')) {
+        comoAtacar.push('Juego aéreo y centros al área');
+        score += 3;
+      }
+      if (tieneDebil('REFLEJOS') || tieneDebil('SALIR DE PUÑOS (TENDENCIA)')) {
+        comoAtacar.push('Tiros desde media distancia y centros rasos');
+        score += 3;
+      }
+      if (tieneDebil('MÁXIMO GOLEADOR')) {
+        comoDefender.unshift('Marcado especial / ayuda constante sobre su máximo goleador');
         score += 4;
       }
-      if (debiles.has('dependen_estrella')) {
-        comoDefender.unshift('Marcado individual o ayuda constante sobre su estrella');
-        score += 5;
+      if (tieneDebil('DETERMINACIÓN')) {
+        comoAtacar.push('Mantener la presión psicológica; no bajar el ritmo si vamos ganando');
+        score += 2;
       }
 
-      // Ajustes por puntos fuertes del rival
-      if (fuertes.has('extremos_rapidos')) {
-        comoDefender.push('Laterales no deben quedar aislados; ayuda del mediocentro');
-        if (tipo === 'seguro') score += 3;
+      // --- Puntos FUERTES del rival (neutralizar) ---
+      if (tieneFuerte('MARCAJE') || tieneFuerte('ENTRADAS') || tieneFuerte('DEFENSA')) {
+        comoAtacar.push('Evitar jugadas demasiado elaboradas dentro del área; buscar segundas jugadas');
+        if (tipo === 'agresivo') score -= 3 * Math.max(pesoFuerte('MARCAJE'), pesoFuerte('ENTRADAS'), pesoFuerte('DEFENSA'));
       }
-      if (fuertes.has('balon_parado')) {
+      if (tieneFuerte('CREACIÓN DE OPORTUNIDADES A BALÓN PARADO') || tieneFuerte('ALCANCE AÉREO')) {
         instrucciones.push('Marcar en zona + hombre a hombre en balón parado defensivo');
+        comoDefender.push('Máxima concentración en córners y faltas laterales');
+        score -= 2;
       }
-      if (fuertes.has('juego_aereo')) {
-        comoDefender.push('Evitar centros fáciles y ganar el primer balón');
+      if (tieneFuerte('BLOCAJE') || tieneFuerte('ALCANCE AÉREO') || tieneFuerte('SALIDAS (TENDENCIA)')) {
+        comoAtacar.push('Evitar centros fáciles; buscar combinaciones y tiros rasos');
+      }
+      if (tieneFuerte('COLOCACIÓN') || tieneFuerte('CONCENTRACIÓN')) {
+        comoDefender.push('No regalar espacios entre líneas');
+      }
+      if (tieneFuerte('RECUPERACIÓN FÍSICA') || tieneFuerte('MEDIOCAMPO')) {
+        instrucciones.push('Cuidar las transiciones defensivas');
+        if (tipo === 'agresivo') score -= 3;
+      }
+      if (tieneFuerte('ACTUACIONES EN LA PRIMERA PARTE')) {
+        comoDefender.unshift('Empezar el partido muy concentrados; no encajar pronto');
+        score -= 2;
+      }
+      if (tieneFuerte('ESTADO DE FORMA DE JUGADOR CLAVE')) {
+        comoDefender.unshift('Atención especial a su jugador en gran forma');
+        score -= 2;
+      }
+      if (tieneFuerte('COMUNICACIÓN') || tieneFuerte('EXCENTRICIDAD')) {
+        // Excentricidad alta del portero rival puede ser explotable
+        if (tieneFuerte('EXCENTRICIDAD')) {
+          comoAtacar.push('Probar al portero con tiros y centros desde lejos (excentricidad alta)');
+          score += 2;
+        }
       }
 
-      // Bonus por importancia
+      // Bonus por importancia del partido
       if (rival.importancia === 'decisivo' && tipo === 'seguro') score += 4;
       if (rival.importancia === 'normal' && tipo === 'agresivo') score += 3;
 
-      // Calcular calidad aproximada del once disponible
+      // Calidad del once propio
       let mediaPool = 0;
       if (pool.length) {
         const top = [...pool].sort((a,b) => {
@@ -2811,7 +2957,6 @@ function aplicarFormaTodos(campo, valor) {
       }
       score += Math.min(15, Math.max(-10, (mediaPool - 55) * 0.4));
 
-      // Roles recomendados genéricos según formación
       const rolesPorFormacion = {
         '4-3-3': { POR: 'Portero (Defensa)', LD: 'Lateral (Apoyo/Ataque)', DFC: 'Central (Defensa)', LI: 'Lateral (Apoyo/Ataque)', MC: 'Mediocentro (Apoyo)', ED: 'Extremo (Ataque)', EI: 'Extremo (Ataque)', DC: 'Delantero (Ataque/Completo)' },
         '4-2-3-1': { POR: 'Portero', LD: 'Lateral', DFC: 'Central', LI: 'Lateral', MCD: 'Pivote (Defensa/Apoyo)', MP: 'Mediapunta (Ataque)', ED: 'Extremo', EI: 'Extremo', DC: 'Delantero' },
@@ -2825,12 +2970,14 @@ function aplicarFormaTodos(campo, valor) {
         formacion,
         mentalidad,
         estiloPresion,
-        instrucciones: instrucciones.slice(0, 7),
+        instrucciones: [...new Set(instrucciones)].slice(0, 8),
         rolesSugeridos: rolesPorFormacion[formacion] || rolesPorFormacion['4-2-3-1'],
-        comoAtacar,
-        comoDefender,
+        comoAtacar: [...new Set(comoAtacar)],
+        comoDefender: [...new Set(comoDefender)],
         score: Math.round(Math.max(30, Math.min(98, score))),
-        clavesRival: rival.claves || []
+        clavesRival: rival.claves || [],
+        fuertesUsados: Object.keys(fuertesObj),
+        debilesUsados: Object.keys(debilesObj)
       };
     }
 
