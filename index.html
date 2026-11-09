@@ -1755,6 +1755,31 @@ function toggleBajoForma(id, checked) {
       return (sCon + sSin) / 2;
     }
 
+    /** Busca el mejor hueco libre para un jugador. Prioriza posiciones que puede jugar. */
+    function encontrarMejorHuecoLibre(slots, lineupObj, player, fase, forzarFueraPos = true) {
+      const libres = slots.filter(s => !lineupObj[s.id]?.playerId);
+      if (!libres.length) return null;
+      let candidatos = libres.filter(s => puedeJugarEn(player, s.tipo));
+      if (!candidatos.length) {
+        if (!forzarFueraPos) return null;
+        candidatos = libres; // último recurso: cualquier hueco
+      }
+      let best = null, bestSc = -Infinity, bestRole = '';
+      candidatos.forEach(s => {
+        const m = mejorRolCompatible(player, s.tipo, fase);
+        const role = m ? m.nombre : (s.desiredRole || '');
+        const sc = mediaEfectiva(player, role);
+        // Preferir siempre posiciones naturales (bonus grande)
+        const bonus = puedeJugarEn(player, s.tipo) ? 1000 : 0;
+        if (sc + bonus > bestSc) {
+          bestSc = sc + bonus;
+          best = s;
+          bestRole = role;
+        }
+      });
+      return best ? { slot: best, role: bestRole } : null;
+    }
+
     /** Actualizar forma desde inputs en lista de disponibles/equipo */
     function actualizarFormaJugador(id, campo, valor) {
       const j = jugadores.find(p => p.id === id || p.id == id);
@@ -2514,25 +2539,9 @@ function toggleBajoForma(id, checked) {
       const slots2 = getSlots(otra);
       const yaEnOtra = Object.values(L2).some(e => e?.playerId == playerId);
       if (!yaEnOtra) {
-        // buscar mejor hueco vacío
-        let mejorSlot = null, mejorScore = -1, mejorRole = '';
-        slots2.forEach(s => {
-          if (L2[s.id]?.playerId) return;
-          if (!puedeJugarEn(player, s.tipo)) return;
-          const m = mejorRolCompatible(player, s.tipo, otra);
-          const sc = mediaEfectiva(player, m ? m.nombre : '');
-          if (sc > mejorScore) { mejorScore = sc; mejorSlot = s; mejorRole = m ? m.nombre : (s.desiredRole || ''); }
-        });
-        if (!mejorSlot) {
-          // cualquier vacío
-          mejorSlot = slots2.find(s => !L2[s.id]?.playerId);
-          if (mejorSlot) {
-            const m = mejorRolCompatible(player, mejorSlot.tipo, otra);
-            mejorRole = m ? m.nombre : (mejorSlot.desiredRole || '');
-          }
-        }
-        if (mejorSlot) {
-          L2[mejorSlot.id] = { playerId: Number(playerId) || playerId, role: mejorRole };
+        const found = encontrarMejorHuecoLibre(slots2, L2, player, otra, true);
+        if (found) {
+          L2[found.slot.id] = { playerId: Number(playerId) || playerId, role: found.role };
         }
       }
 
@@ -2682,15 +2691,16 @@ function toggleBajoForma(id, checked) {
           slotsConfigSin[asig.slotIdx].desiredRole = asig.role || '';
           lineupSin[id] = { playerId: asig.player.id, role: asig.role || '' };
         });
-        // Si algún jugador de Con no quedó en Sin, forzar colocación
+        // Si algún jugador de Con no quedó en Sin, colocar en el mejor hueco compatible
         const enSin = new Set(Object.values(lineupSin).map(e => e.playerId));
         Object.values(lineupCon).forEach(e => {
           if (enSin.has(e.playerId)) return;
-          const hueco = slotsConfigSin.find(s => !lineupSin[s.id]?.playerId);
-          if (hueco) {
-            const p = jugadores.find(j => j.id === e.playerId);
-            const m = p ? mejorRolCompatible(p, hueco.tipo, 'sin') : null;
-            lineupSin[hueco.id] = { playerId: e.playerId, role: m ? m.nombre : '' };
+          const p = jugadores.find(j => j.id === e.playerId);
+          if (!p) return;
+          const found = encontrarMejorHuecoLibre(slotsConfigSin, lineupSin, p, 'sin', true);
+          if (found) {
+            lineupSin[found.slot.id] = { playerId: e.playerId, role: found.role };
+            enSin.add(e.playerId);
           }
         });
         lineup = lineupCon; slotsConfig = slotsConfigCon;
@@ -2711,12 +2721,11 @@ function toggleBajoForma(id, checked) {
           if (!slot || lineupCon[slot.id]?.playerId) return;
           lineupCon[slot.id] = { playerId: asig.player.id, role: asig.role || '' };
           usados.add(asig.player.id);
-          // espejo en Sin si no está
+          // espejo en Sin si no está — priorizar posición compatible
           if (![...Object.values(lineupSin)].some(e => e?.playerId === asig.player.id)) {
-            const hueco = slotsConfigSin.find(s => !lineupSin[s.id]?.playerId);
-            if (hueco) {
-              const m = mejorRolCompatible(asig.player, hueco.tipo, 'sin');
-              lineupSin[hueco.id] = { playerId: asig.player.id, role: m ? m.nombre : '' };
+            const found = encontrarMejorHuecoLibre(slotsConfigSin, lineupSin, asig.player, 'sin', true);
+            if (found) {
+              lineupSin[found.slot.id] = { playerId: asig.player.id, role: found.role };
             }
           }
         });
@@ -2725,11 +2734,11 @@ function toggleBajoForma(id, checked) {
       const enSin = new Set(Object.values(lineupSin).map(e => e?.playerId).filter(Boolean));
       Object.values(lineupCon).forEach(e => {
         if (!e?.playerId || enSin.has(e.playerId)) return;
-        const hueco = slotsConfigSin.find(s => !lineupSin[s.id]?.playerId);
-        if (hueco) {
-          const p = jugadores.find(j => j.id === e.playerId);
-          const m = p ? mejorRolCompatible(p, hueco.tipo, 'sin') : null;
-          lineupSin[hueco.id] = { playerId: e.playerId, role: m ? m.nombre : '' };
+        const p = jugadores.find(j => j.id === e.playerId);
+        if (!p) return;
+        const found = encontrarMejorHuecoLibre(slotsConfigSin, lineupSin, p, 'sin', true);
+        if (found) {
+          lineupSin[found.slot.id] = { playerId: e.playerId, role: found.role };
           enSin.add(e.playerId);
         }
       });
@@ -2740,12 +2749,11 @@ function toggleBajoForma(id, checked) {
           const slot = huecosSin[asig.slotIdx];
           if (!slot || lineupSin[slot.id]?.playerId) return;
           lineupSin[slot.id] = { playerId: asig.player.id, role: asig.role || '' };
-          // espejo en Con
+          // espejo en Con — priorizar posición compatible
           if (![...Object.values(lineupCon)].some(e => e?.playerId === asig.player.id)) {
-            const hueco = slotsConfigCon.find(s => !lineupCon[s.id]?.playerId);
-            if (hueco) {
-              const m = mejorRolCompatible(asig.player, hueco.tipo, 'con');
-              lineupCon[hueco.id] = { playerId: asig.player.id, role: m ? m.nombre : '' };
+            const found = encontrarMejorHuecoLibre(slotsConfigCon, lineupCon, asig.player, 'con', true);
+            if (found) {
+              lineupCon[found.slot.id] = { playerId: asig.player.id, role: found.role };
             }
           }
         });
