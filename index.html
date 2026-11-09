@@ -331,7 +331,7 @@
       .pitch-area-bot { bottom: 6%; border-bottom: none; }
 
       .slot {
-        position: absolute; width: 92px; min-height: 70px;
+        position: absolute; width: 100px; min-height: 78px;
         transform: translate(-50%, -50%);
         display: flex; flex-direction: column; align-items: center;
         z-index: 2; cursor: move;
@@ -792,6 +792,23 @@
           <div class="form-group">
             <label for="rol-nombre">Nombre del rol</label>
             <input type="text" id="rol-nombre" placeholder="Ej: Extremo - Ap">
+          </div>
+          <div class="form-group">
+            <label>Aplicabilidad del rol</label>
+            <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:500;">
+                <input type="radio" name="rol-posesion" value="ambos" checked style="width:16px;height:16px;accent-color:var(--accent);">
+                Ambos (con y sin posesión)
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:500;">
+                <input type="radio" name="rol-posesion" value="con" style="width:16px;height:16px;accent-color:var(--accent);">
+                Solo con posesión
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:500;">
+                <input type="radio" name="rol-posesion" value="sin" style="width:16px;height:16px;accent-color:var(--accent);">
+                Solo sin posesión
+              </label>
+            </div>
           </div>
           <div>
             <label>Posiciones del rol <small style="color:#888">(puedes marcar varias)</small></label>
@@ -1325,7 +1342,7 @@ function setForma(id, campo, valor) {
     ];
 
     const DEFAULT_SLOTS = FORMACIONES_COHERENTES[0].slots.map((s,i) => ({
-      id: i+1, tipo: s.tipo, left: s.left, top: s.top, desiredRole: ''
+      id: i+1, tipo: s.tipo, left: s.left, top: s.top, desiredRoleCon: '', desiredRoleSin: ''
     }));
 
     const ATTRS_OUTFIELD = {
@@ -1467,10 +1484,14 @@ function setForma(id, campo, valor) {
       const lista = [];
       roles.forEach(rol => {
         if ((rol.posiciones||[]).some(p => posJ.includes(p))) {
-          lista.push({ nombre: rol.nombre, posiciones: rol.posiciones, valoracion: calcularValoracionRol(jugador, rol.atributos), atributos: rol.atributos });
+          lista.push({ nombre: rol.nombre, posiciones: rol.posiciones, valoracion: calcularValoracionRol(jugador, rol.atributos), atributos: rol.atributos, posesion: rol.posesion || 'ambos' });
         }
       });
       return lista.sort((a,b) => b.valoracion - a.valoracion);
+    }
+    function rolAplicableA(rol, tipoPos) {
+      const p = (rol.posesion || 'ambos');
+      return p === 'ambos' || p === tipoPos;
     }
     function colorScore(s) {
       if (s >= 80) return 'score-excellent'; if (s >= 65) return 'score-good';
@@ -1494,9 +1515,15 @@ function setForma(id, campo, valor) {
       if (!rolesJ.length) return `<div class="roles-section"><h4>Roles aplicables</h4><div class="no-roles">No hay roles definidos.</div></div>`;
       const top3 = rolesJ.slice(0,3), resto = rolesJ.slice(3);
       let html = `<div class="roles-section"><h4>Mejores roles</h4><div class="roles-list">
-        ${top3.map(r => `<div class="role-item"><div class="role-info"><span class="role-name">${r.nombre}</span><span class="role-pos">${(r.posiciones||[]).join(' · ')}</span></div><span class="role-score ${colorScore(r.valoracion)}">${r.valoracion.toFixed(1)}</span></div>`).join('')}`;
+        ${top3.map(r => {
+          const pTag = r.posesion === 'con' ? ' <small style="color:#7dd3fc;">(Con)</small>' : r.posesion === 'sin' ? ' <small style="color:#fbbf24;">(Sin)</small>' : '';
+          return `<div class="role-item"><div class="role-info"><span class="role-name">${r.nombre}${pTag}</span><span class="role-pos">${(r.posiciones||[]).join(' · ')}</span></div><span class="role-score ${colorScore(r.valoracion)}">${r.valoracion.toFixed(1)}</span></div>`;
+        }).join('')}`;
       if (resto.length) {
-        html += `<div class="roles-extra" id="roles-extra-${uid}">${resto.map(r => `<div class="role-item"><div class="role-info"><span class="role-name">${r.nombre}</span><span class="role-pos">${(r.posiciones||[]).join(' · ')}</span></div><span class="role-score ${colorScore(r.valoracion)}">${r.valoracion.toFixed(1)}</span></div>`).join('')}</div></div>
+        html += `<div class="roles-extra" id="roles-extra-${uid}">${resto.map(r => {
+          const pTag = r.posesion === 'con' ? ' <small style="color:#7dd3fc;">(Con)</small>' : r.posesion === 'sin' ? ' <small style="color:#fbbf24;">(Sin)</small>' : '';
+          return `<div class="role-item"><div class="role-info"><span class="role-name">${r.nombre}${pTag}</span><span class="role-pos">${(r.posiciones||[]).join(' · ')}</span></div><span class="role-score ${colorScore(r.valoracion)}">${r.valoracion.toFixed(1)}</span></div>`;
+        }).join('')}</div></div>
           <button class="btn-expand-roles" id="btn-roles-${uid}" data-more-text="▼ Ver más roles (${resto.length})" onclick="toggleRoles(${uid})">▼ Ver más roles (${resto.length})</button>`;
       } else html += `</div>`;
       return html + `</div>`;
@@ -1597,6 +1624,16 @@ function toggleBajoForma(id, checked) {
       return mediaEfectiva(player, roleName);
     }
 
+    function mediaEfectivaDual(player, roleCon, roleSin) {
+      if (!player) return 0;
+      const sCon = mediaEfectiva(player, roleCon || '');
+      const sSin = mediaEfectiva(player, roleSin || '');
+      // Si solo uno tiene rol, usar ese; si ambos, media
+      if (roleCon && roleSin) return (sCon + sSin) / 2;
+      if (roleCon) return sCon;
+      if (roleSin) return sSin;
+      return mediaEfectiva(player, '');
+    }
     function calcularMediaOncePorRoles() {
       let suma = 0, n = 0;
       Object.keys(lineup).forEach(sid => {
@@ -1604,7 +1641,10 @@ function toggleBajoForma(id, checked) {
         if (!entry?.playerId) return;
         const player = jugadores.find(j => j.id === entry.playerId);
         if (!player) return;
-        suma += mediaEfectiva(player, entry.roleName); n++;
+        // Compatibilidad: roleName antiguo → usar en ambos
+        const rCon = entry.roleCon || entry.roleName || '';
+        const rSin = entry.roleSin || entry.roleName || '';
+        suma += mediaEfectivaDual(player, rCon, rSin); n++;
       });
       return n ? suma / n : 0;
     }
@@ -1626,11 +1666,12 @@ function toggleBajoForma(id, checked) {
       const alts = ALTS[tipoSlot] || [tipoSlot];
       return posJ.some(p => alts.includes(p));
     }
-    function mejorRolCompatible(player, tipoSlot) {
+    function mejorRolCompatible(player, tipoSlot, tipoPos) {
       const alts = ALTS[tipoSlot] || [tipoSlot];
       const rolesJ = obtenerRolesDelJugador(player);
       let mejor = null, mejorVal = -1;
       rolesJ.forEach(r => {
+        if (!rolAplicableA(r, tipoPos || 'ambos')) return;
         if ((r.posiciones||[]).some(p => alts.includes(p)) && r.valoracion > mejorVal) {
           mejorVal = r.valoracion; mejor = r;
         }
@@ -1639,9 +1680,11 @@ function toggleBajoForma(id, checked) {
     }
     function scoreEnTipo(player, tipoSlot) {
       if (!puedeJugarEn(player, tipoSlot)) return -1;
-      const rol = mejorRolCompatible(player, tipoSlot);
-      const roleName = rol ? rol.nombre : '';
-      return mediaEfectiva(player, roleName);
+      const rolCon = mejorRolCompatible(player, tipoSlot, 'con');
+      const rolSin = mejorRolCompatible(player, tipoSlot, 'sin');
+      const sCon = mediaEfectiva(player, rolCon ? rolCon.nombre : '');
+      const sSin = mediaEfectiva(player, rolSin ? rolSin.nombre : '');
+      return (sCon + sSin) / 2;
     }
 
     /** Actualizar forma desde inputs en lista de disponibles/equipo */
@@ -1671,7 +1714,10 @@ function toggleBajoForma(id, checked) {
     function cargarRolesDesdeStorage() {
       try {
         const data = JSON.parse(localStorage.getItem('rolesFM_v2') || 'null');
-        if (Array.isArray(data)) { roles = data; return; }
+        if (Array.isArray(data)) {
+          roles = data.map(r => ({ ...r, posesion: r.posesion || 'ambos' }));
+          return;
+        }
         const old = JSON.parse(localStorage.getItem('rolesFM') || '{}');
         if (old && typeof old === 'object') {
           const m = [];
@@ -1679,7 +1725,7 @@ function toggleBajoForma(id, checked) {
             (old[pos]||[]).forEach(r => {
               let ex = m.find(x => x.nombre === r.nombre);
               if (ex) { if (!ex.posiciones.includes(pos)) ex.posiciones.push(pos); }
-              else m.push({ id: Date.now()+Math.random(), nombre: r.nombre, posiciones: [pos], atributos: r.atributos||[] });
+              else m.push({ id: Date.now()+Math.random(), nombre: r.nombre, posiciones: [pos], atributos: r.atributos||[], posesion: 'ambos' });
             });
           });
           roles = m; guardarRolesEnStorage();
@@ -1696,9 +1742,20 @@ function toggleBajoForma(id, checked) {
         if (cb) cb.checked = true;
       });
     }
+    function obtenerPosesionRol() {
+      const checked = document.querySelector('input[name="rol-posesion"]:checked');
+      return checked ? checked.value : 'ambos';
+    }
+    function marcarPosesionRol(val) {
+      const v = val || 'ambos';
+      document.querySelectorAll('input[name="rol-posesion"]').forEach(r => {
+        r.checked = (r.value === v);
+      });
+    }
     function cargarRolEnFormulario(rol, esEdicion = false) {
       document.getElementById('rol-nombre').value = rol.nombre || '';
       marcarPosicionesRol(rol.posiciones || []);
+      marcarPosesionRol(rol.posesion || 'ambos');
       document.querySelectorAll('#rolAtributosContainer input[type="checkbox"]').forEach(c => c.checked = false);
       (rol.atributos||[]).forEach(attr => {
         const cb = document.querySelector(`#rolAtributosContainer input[value="${attr}"]`);
@@ -1712,22 +1769,23 @@ function toggleBajoForma(id, checked) {
     function editarRol(id) { const r = roles.find(x => x.id === id); if (r) cargarRolEnFormulario(r, true); }
     function duplicarRol(id) {
       const r = roles.find(x => x.id === id); if (!r) return;
-      cargarRolEnFormulario({ nombre: r.nombre+' (copia)', posiciones: [...(r.posiciones||[])], atributos: [...(r.atributos||[])] }, false);
+      cargarRolEnFormulario({ nombre: r.nombre+' (copia)', posiciones: [...(r.posiciones||[])], atributos: [...(r.atributos||[])], posesion: r.posesion || 'ambos' }, false);
       mostrarStatusRol('📋 Rol cargado como copia');
     }
     function guardarRol() {
       const nombre = document.getElementById('rol-nombre').value.trim();
       const posiciones = obtenerPosicionesRolSeleccionadas();
       const atributos = Array.from(document.querySelectorAll('#rolAtributosContainer input:checked')).map(c => c.value);
+      const posesion = obtenerPosesionRol();
       if (!nombre) { alert('Escribe el nombre del rol.'); return; }
       if (!posiciones.length) { alert('Selecciona al menos una posición.'); return; }
       if (!atributos.length) { alert('Selecciona al menos un atributo.'); return; }
       if (editandoRolId) {
         const idx = roles.findIndex(r => r.id === editandoRolId);
-        if (idx !== -1) roles[idx] = { id: editandoRolId, nombre, posiciones, atributos };
+        if (idx !== -1) roles[idx] = { id: editandoRolId, nombre, posiciones, atributos, posesion };
         mostrarStatusRol('✅ Rol actualizado');
       } else {
-        roles.push({ id: Date.now()+Math.random(), nombre, posiciones, atributos });
+        roles.push({ id: Date.now()+Math.random(), nombre, posiciones, atributos, posesion });
         mostrarStatusRol('✅ Rol guardado');
       }
       guardarRolesEnStorage(); limpiarFormularioRol(); renderizarRolesExistentes();
@@ -1743,6 +1801,7 @@ function toggleBajoForma(id, checked) {
     }
     function limpiarFormularioRol() {
       document.getElementById('rol-nombre').value = ''; marcarPosicionesRol([]);
+      marcarPosesionRol('ambos');
       document.querySelectorAll('#rolAtributosContainer input').forEach(c => c.checked = false);
       editandoRolId = null;
       document.getElementById('form-rol-title').textContent = 'Añadir rol';
@@ -1773,7 +1832,10 @@ function toggleBajoForma(id, checked) {
         grupos[pos].forEach(rol => {
           const attrsT = (rol.atributos||[]).map(a => LABELS[a]||a).join(', ');
           const tags = (rol.posiciones||[]).map(p => `<span class="pos-tag">${p}</span>`).join('');
-          html += `<div class="rol-card"><div class="info"><div class="nombre">${rol.nombre}</div><div class="posicion-tags">${tags}</div><div class="atributos"><strong>Atributos:</strong> ${attrsT}</div></div>
+          const posTag = rol.posesion === 'con' ? '<span class="pos-tag" style="background:#1e3a5f;color:#7dd3fc;">Con posesión</span>'
+                       : rol.posesion === 'sin' ? '<span class="pos-tag" style="background:#3b2f1e;color:#fbbf24;">Sin posesión</span>'
+                       : '<span class="pos-tag" style="background:#1e3b2f;color:#86efac;">Ambos</span>';
+          html += `<div class="rol-card"><div class="info"><div class="nombre">${rol.nombre} ${posTag}</div><div class="posicion-tags">${tags}</div><div class="atributos"><strong>Atributos:</strong> ${attrsT}</div></div>
             <div class="rol-card-actions">
               <button class="btn-secondary" onclick="editarRol(${rol.id})">✏️ Editar</button>
               <button class="btn-warning" onclick="duplicarRol(${rol.id})">📋 Duplicar</button>
@@ -2034,9 +2096,22 @@ function toggleBajoForma(id, checked) {
       try {
         const d = JSON.parse(localStorage.getItem('lineupFM') || '{}');
         lineup = d && typeof d === 'object' ? d : {};
+        // Migrar entries antiguos con roleName
+        Object.keys(lineup).forEach(k => {
+          const e = lineup[k];
+          if (e && e.roleName && !e.roleCon && !e.roleSin) {
+            e.roleCon = e.roleName;
+            e.roleSin = e.roleName;
+          }
+        });
         const sc = JSON.parse(localStorage.getItem('slotsConfigFM') || 'null');
-        if (Array.isArray(sc) && sc.length === 11) slotsConfig = sc;
-        else slotsConfig = JSON.parse(JSON.stringify(DEFAULT_SLOTS));
+        if (Array.isArray(sc) && sc.length === 11) {
+          slotsConfig = sc.map(s => ({
+            ...s,
+            desiredRoleCon: s.desiredRoleCon || s.desiredRole || '',
+            desiredRoleSin: s.desiredRoleSin || s.desiredRole || ''
+          }));
+        } else slotsConfig = JSON.parse(JSON.stringify(DEFAULT_SLOTS));
       } catch(e) {
         lineup = {}; slotsConfig = JSON.parse(JSON.stringify(DEFAULT_SLOTS));
       }
@@ -2051,31 +2126,40 @@ function toggleBajoForma(id, checked) {
         alert(`Máximo ${MAX_POR_TIPO[nuevoTipo]??2} de "${nuevoTipo}" permitidos.`);
         renderPitch(); return;
       }
-      slot.tipo = nuevoTipo; slot.desiredRole = '';
+      slot.tipo = nuevoTipo;
+      slot.desiredRoleCon = '';
+      slot.desiredRoleSin = '';
       if (lineup[slotId]) {
         const player = jugadores.find(j => j.id === lineup[slotId].playerId);
         if (player) {
-          const mejor = mejorRolCompatible(player, nuevoTipo);
-          lineup[slotId].roleName = mejor ? mejor.nombre : '';
+          const mejorCon = mejorRolCompatible(player, nuevoTipo, 'con');
+          const mejorSin = mejorRolCompatible(player, nuevoTipo, 'sin');
+          lineup[slotId].roleCon = mejorCon ? mejorCon.nombre : '';
+          lineup[slotId].roleSin = mejorSin ? mejorSin.nombre : '';
         }
       }
       guardarLineup(); renderPitch();
     }
-    function cambiarRolDeseado(slotId, roleName) {
+    function cambiarRolDeseado(slotId, roleName, tipoPos) {
       const slot = slotsConfig.find(s => s.id === slotId);
       if (slot) {
-        slot.desiredRole = roleName;
-        if (lineup[slotId]) lineup[slotId].roleName = roleName;
+        if (tipoPos === 'con') slot.desiredRoleCon = roleName;
+        else if (tipoPos === 'sin') slot.desiredRoleSin = roleName;
+        if (lineup[slotId]) {
+          if (tipoPos === 'con') lineup[slotId].roleCon = roleName;
+          else if (tipoPos === 'sin') lineup[slotId].roleSin = roleName;
+        }
         guardarLineup(); renderPitch();
       }
     }
     function jugadoresEnCampo() {
       return Object.values(lineup).map(x => x.playerId).filter(Boolean);
     }
-    function rolesDisponiblesParaTipo(tipo) {
+    function rolesDisponiblesParaTipo(tipo, tipoPos) {
       const alts = ALTS[tipo] || [tipo];
       const set = new Set(), lista = [];
       roles.forEach(r => {
+        if (!rolAplicableA(r, tipoPos || 'ambos')) return;
         if ((r.posiciones||[]).some(p => alts.includes(p)) && !set.has(r.nombre)) {
           set.add(r.nombre); lista.push(r);
         }
@@ -2132,12 +2216,15 @@ function toggleBajoForma(id, checked) {
         if (entry?.playerId) {
           const player = jugadores.find(j => j.id === entry.playerId);
           if (!player) return '';
-          const sc = mediaEfectiva(player, entry.roleName);
+          const rCon = entry.roleCon || entry.roleName || '';
+          const rSin = entry.roleSin || entry.roleName || '';
+          const sc = mediaEfectivaDual(player, rCon, rSin);
           const mc = colorMedia(sc);
+          const rolesTxt = [rCon ? 'C:'+rCon : '', rSin ? 'S:'+rSin : ''].filter(Boolean).join(' · ') || '—';
           return `<div class="lineup-row">
             <span class="lr-pos">${abrev}</span>
             <span class="lr-name">${player.nombre}</span>
-            <span class="lr-role">${entry.roleName || '—'}</span>
+            <span class="lr-role" title="${rolesTxt}">${rolesTxt}</span>
             <span class="lr-score" style="color:${mc}">${sc.toFixed(1)}</span>
             <button class="lr-remove" onclick="quitarDelSlot(${s.id})">✕</button>
             <div class="fe-mini">
@@ -2206,15 +2293,23 @@ function toggleBajoForma(id, checked) {
         ).join('');
 
         if (player) {
-          const rolScore = mediaEfectiva(player, entry.roleName);
+          const rCon = entry.roleCon || entry.roleName || '';
+          const rSin = entry.roleSin || entry.roleName || '';
+          const rolScore = mediaEfectivaDual(player, rCon, rSin);
           const mc = colorMedia(rolScore);
           const rolesDisp = obtenerRolesDelJugador(player);
           const alts = ALTS[cfg.tipo] || [cfg.tipo];
-          let rolesSlot = rolesDisp.filter(r => (r.posiciones||[]).some(p => alts.includes(p)));
-          if (!rolesSlot.length) rolesSlot = rolesDisp;
-          let roleOptions = '<option value="">— Rol —</option>';
-          rolesSlot.forEach(r => {
-            roleOptions += `<option value="${r.nombre}" ${entry.roleName===r.nombre?'selected':''}>${r.nombre}</option>`;
+          let rolesSlotBase = rolesDisp.filter(r => (r.posiciones||[]).some(p => alts.includes(p)));
+          if (!rolesSlotBase.length) rolesSlotBase = rolesDisp;
+          const rolesCon = rolesSlotBase.filter(r => rolAplicableA(r, 'con'));
+          const rolesSin = rolesSlotBase.filter(r => rolAplicableA(r, 'sin'));
+          let optsCon = '<option value="">— Con —</option>';
+          rolesCon.forEach(r => {
+            optsCon += `<option value="${r.nombre}" ${rCon===r.nombre?'selected':''}>${r.nombre}</option>`;
+          });
+          let optsSin = '<option value="">— Sin —</option>';
+          rolesSin.forEach(r => {
+            optsSin += `<option value="${r.nombre}" ${rSin===r.nombre?'selected':''}>${r.nombre}</option>`;
           });
           card.className = 'slot-card';
           card.innerHTML = `
@@ -2223,19 +2318,26 @@ function toggleBajoForma(id, checked) {
                  ondragstart="event.stopPropagation(); event.dataTransfer.setData('text/pid', '${player.id}'); event.dataTransfer.effectAllowed='move';">
               <div class="sp-name">${player.nombre}</div>
               <div class="sp-media" style="color:${mc}">${rolScore.toFixed(1)}</div>
-              <select class="sp-role-select" onchange="cambiarRolSlot(${sid}, this.value)">${roleOptions}</select>
+              <select class="sp-role-select" title="Con posesión" onchange="cambiarRolSlot(${sid}, this.value, 'con')">${optsCon}</select>
+              <select class="sp-role-select" title="Sin posesión" onchange="cambiarRolSlot(${sid}, this.value, 'sin')" style="color:#fbbf24;border-color:#5a4a2a;">${optsSin}</select>
               <button class="sp-remove" onclick="quitarDelSlot(${sid})">✕</button>
             </div>`;
         } else {
-          const rolesTipo = rolesDisponiblesParaTipo(cfg.tipo);
-          let optsRol = '<option value="">— Rol —</option>';
-          rolesTipo.forEach(r => {
-            optsRol += `<option value="${r.nombre}" ${cfg.desiredRole===r.nombre?'selected':''}>${r.nombre}</option>`;
+          const rolesCon = rolesDisponiblesParaTipo(cfg.tipo, 'con');
+          const rolesSin = rolesDisponiblesParaTipo(cfg.tipo, 'sin');
+          let optsCon = '<option value="">— Con —</option>';
+          rolesCon.forEach(r => {
+            optsCon += `<option value="${r.nombre}" ${(cfg.desiredRoleCon||'')===r.nombre?'selected':''}>${r.nombre}</option>`;
+          });
+          let optsSin = '<option value="">— Sin —</option>';
+          rolesSin.forEach(r => {
+            optsSin += `<option value="${r.nombre}" ${(cfg.desiredRoleSin||'')===r.nombre?'selected':''}>${r.nombre}</option>`;
           });
           card.className = 'slot-card empty';
           card.innerHTML = `
             <select class="slot-type-select" onchange="cambiarTipoSlot(${sid}, this.value)">${optsTipo}</select>
-            <select class="slot-role-select" onchange="cambiarRolDeseado(${sid}, this.value)">${optsRol}</select>
+            <select class="slot-role-select" title="Con posesión" onchange="cambiarRolDeseado(${sid}, this.value, 'con')">${optsCon}</select>
+            <select class="slot-role-select" title="Sin posesión" onchange="cambiarRolDeseado(${sid}, this.value, 'sin')" style="color:#fbbf24;border-color:#5a4a2a;">${optsSin}</select>
             <div class="slot-empty-label">Vacío</div>`;
         }
         slotEl.ondragover = e => { e.preventDefault(); slotEl.classList.add('drag-over'); };
@@ -2263,20 +2365,26 @@ function toggleBajoForma(id, checked) {
       const player = jugadores.find(j => j.id == playerId);
       if (!player) return;
       const cfg = slotsConfig.find(s => s.id === slotId);
-      let roleName = '';
+      let roleCon = '', roleSin = '';
       if (cfg) {
-        const mejor = mejorRolCompatible(player, cfg.tipo);
-        roleName = mejor ? mejor.nombre : (cfg.desiredRole || '');
+        const mejorCon = mejorRolCompatible(player, cfg.tipo, 'con');
+        const mejorSin = mejorRolCompatible(player, cfg.tipo, 'sin');
+        roleCon = mejorCon ? mejorCon.nombre : (cfg.desiredRoleCon || '');
+        roleSin = mejorSin ? mejorSin.nombre : (cfg.desiredRoleSin || '');
       }
-      lineup[slotId] = { playerId: Number(playerId) || playerId, roleName };
+      lineup[slotId] = { playerId: Number(playerId) || playerId, roleCon, roleSin };
       guardarLineup(); renderPitch();
     }
     function quitarDelSlot(slotId) { delete lineup[slotId]; guardarLineup(); renderPitch(); }
-    function cambiarRolSlot(slotId, roleName) {
+    function cambiarRolSlot(slotId, roleName, tipoPos) {
       if (lineup[slotId]) {
-        lineup[slotId].roleName = roleName;
+        if (tipoPos === 'con') lineup[slotId].roleCon = roleName;
+        else if (tipoPos === 'sin') lineup[slotId].roleSin = roleName;
         const slot = slotsConfig.find(s => s.id === slotId);
-        if (slot) slot.desiredRole = roleName;
+        if (slot) {
+          if (tipoPos === 'con') slot.desiredRoleCon = roleName;
+          else if (tipoPos === 'sin') slot.desiredRoleSin = roleName;
+        }
         guardarLineup(); renderPitch();
       }
     }
@@ -2301,21 +2409,32 @@ function asignarOptimo(slots, jugadoresPool, yaUsados) {
       if (getExcluido(j)) return;
       if (!puedeJugarEn(j, tipo)) return;
 
-      const rolMejor = mejorRolCompatible(j, tipo);
-      let roleName = rolMejor ? rolMejor.nombre : '';
-      let score = mediaEfectiva(j, roleName);
+      let roleCon = '';
+      let roleSin = '';
+      const rolesJ = obtenerRolesDelJugador(j);
 
-      if (slot.desiredRole) {
-        const rolesJ = obtenerRolesDelJugador(j);
-        const match = rolesJ.find(r => r.nombre === slot.desiredRole);
-        if (match) {
-          roleName = slot.desiredRole;
-          score = mediaEfectiva(j, roleName);
-        }
+      // Prefer desired if set
+      if (slot.desiredRoleCon) {
+        const match = rolesJ.find(r => r.nombre === slot.desiredRoleCon && rolAplicableA(r, 'con'));
+        if (match) roleCon = slot.desiredRoleCon;
+      }
+      if (!roleCon) {
+        const mejorCon = mejorRolCompatible(j, tipo, 'con');
+        roleCon = mejorCon ? mejorCon.nombre : '';
       }
 
+      if (slot.desiredRoleSin) {
+        const match = rolesJ.find(r => r.nombre === slot.desiredRoleSin && rolAplicableA(r, 'sin'));
+        if (match) roleSin = slot.desiredRoleSin;
+      }
+      if (!roleSin) {
+        const mejorSin = mejorRolCompatible(j, tipo, 'sin');
+        roleSin = mejorSin ? mejorSin.nombre : '';
+      }
+
+      const score = mediaEfectivaDual(j, roleCon, roleSin);
       if (score < 0) return;
-      pares.push({ score, player: j, slotIdx: idx, roleName });
+      pares.push({ score, player: j, slotIdx: idx, roleCon, roleSin });
     });
   });
 
@@ -2372,13 +2491,15 @@ function asignarOptimo(slots, jugadoresPool, yaUsados) {
       tipo: s.tipo,
       left: s.left,
       top: s.top,
-      desiredRole: ''
+      desiredRoleCon: '',
+      desiredRoleSin: ''
     }));
 
     mejorEval.asignaciones.forEach(asig => {
       const id = asig.slotIdx + 1;
-      slotsConfig[asig.slotIdx].desiredRole = asig.roleName;
-      lineup[id] = { playerId: asig.player.id, roleName: asig.roleName };
+      slotsConfig[asig.slotIdx].desiredRoleCon = asig.roleCon || '';
+      slotsConfig[asig.slotIdx].desiredRoleSin = asig.roleSin || '';
+      lineup[id] = { playerId: asig.player.id, roleCon: asig.roleCon || '', roleSin: asig.roleSin || '' };
     });
 
     guardarLineup();
@@ -2405,20 +2526,14 @@ function asignarOptimo(slots, jugadoresPool, yaUsados) {
 
     if (lineup[slot.id]?.playerId) return;
 
-    let roleName = asig.roleName;
-    if (slot.desiredRole) {
-      const rolesJ = obtenerRolesDelJugador(asig.player);
-      const compatible = rolesJ.find(r => r.nombre === slot.desiredRole);
-      if (compatible) roleName = slot.desiredRole;
-    }
-
     lineup[slot.id] = {
       playerId: asig.player.id,
-      roleName: roleName
+      roleCon: asig.roleCon || '',
+      roleSin: asig.roleSin || ''
     };
   });
 
-guardarLineup();
+  guardarLineup();
   renderPitch();
 }
 
