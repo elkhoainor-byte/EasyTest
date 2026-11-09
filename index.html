@@ -269,10 +269,26 @@
       }
 
       .once-layout {
-        display: grid; grid-template-columns: 200px 1fr 360px; gap: 12px; align-items: start;
+        display: grid; grid-template-columns: 180px 1fr 320px; gap: 12px; align-items: start;
       }
-      @media (max-width: 1200px) { .once-layout { grid-template-columns: 1fr 360px; } }
-      @media (max-width: 900px) { .once-layout { grid-template-columns: 1fr; } }
+      @media (max-width: 1400px) { .once-layout { grid-template-columns: 160px 1fr 280px; } }
+      @media (max-width: 1100px) { .once-layout { grid-template-columns: 1fr 280px; } }
+      @media (max-width: 800px) { .once-layout { grid-template-columns: 1fr; } }
+      .dual-pitches {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start;
+      }
+      @media (max-width: 1000px) { .dual-pitches { grid-template-columns: 1fr; } }
+      .pitch-panel.pitch-con { border-color: #1e3a5f; }
+      .pitch-panel.pitch-sin { border-color: #3b2f1e; }
+      .pitch-panel .pitch-phase-title {
+        text-align: center; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px;
+        text-transform: uppercase; margin-bottom: 8px; padding: 6px 10px; border-radius: 6px;
+      }
+      .pitch-panel.pitch-con .pitch-phase-title { background: #1e3a5f; color: #7dd3fc; }
+      .pitch-panel.pitch-sin .pitch-phase-title { background: #3b2f1e; color: #fbbf24; }
+      .once-media-badge.badge-con { border-color: #38bdf8; }
+      .once-media-badge.badge-sin { border-color: #fbbf24; }
+      .once-media-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
       .once-filtro-panel {
         background: #1a1a1a; border: 1px solid var(--border); border-radius: 10px;
         padding: 12px 10px; position: sticky; top: 12px; max-height: 85vh; overflow-y: auto;
@@ -856,39 +872,68 @@
           <label class="filtro-item"><input type="checkbox" id="filtro-once-ocultar-excluidos" onchange="aplicarFiltrosOnce()"> Ocultar excluidos</label>
           <button class="btn-secondary" style="width:100%;margin-top:10px;padding:7px;font-size:0.75rem;" onclick="resetFiltrosOnce()">↺ Restablecer</button>
         </div>
-        <div class="pitch-panel">
-          <div class="pitch-toolbar">
+
+        <div>
+          <div class="pitch-toolbar" style="margin-bottom:12px;">
             <div class="actions">
               <div class="tooltip-wrap">
                 <button class="btn-success" onclick="autoOnce(true)">⚡ Once automático</button>
                 <div class="tooltip-text">
-                  Mejor once con formación coherente. Usa media de rol × (Últ.5 + Val.Ent)/20 + Informe.
+                  Elige la mejor formación y coloca los mismos 11 en ambos campos (Con / Sin posesión), optimizando roles de cada fase.
                 </div>
               </div>
               <button class="btn-info" onclick="autoOnce(false)">🔧 Completar 11</button>
-              <button class="btn-secondary" onclick="resetPosicionesSlots()">↺ Reset</button>
+              <button class="btn-secondary" onclick="resetPosicionesSlots()">↺ Reset formaciones</button>
               <button class="btn-danger" onclick="limpiarOnce()">🗑️ Limpiar</button>
             </div>
-            <div class="once-media-badge">
-              <div class="label">Media del 11</div>
-              <div class="value" id="once-media-value" style="color:#888;">—</div>
-              <div class="sub"><span id="once-count">0</span>/11</div>
+            <div class="once-media-row">
+              <div class="once-media-badge badge-con">
+                <div class="label">Media Con</div>
+                <div class="value" id="once-media-con" style="color:#888;">—</div>
+                <div class="sub"><span id="once-count-con">0</span>/11</div>
+              </div>
+              <div class="once-media-badge badge-sin">
+                <div class="label">Media Sin</div>
+                <div class="value" id="once-media-sin" style="color:#888;">—</div>
+                <div class="sub"><span id="once-count-sin">0</span>/11</div>
+              </div>
+              <div class="once-media-badge">
+                <div class="label">Media 11</div>
+                <div class="value" id="once-media-value" style="color:#888;">—</div>
+                <div class="sub"><span id="once-count">0</span> jug.</div>
+              </div>
             </div>
           </div>
-          <div class="pitch" id="pitch">
-            <div class="pitch-half"></div>
-            <div class="pitch-circle"></div>
-            <div class="pitch-area-top"></div>
-            <div class="pitch-area-bot"></div>
+
+          <div class="dual-pitches">
+            <div class="pitch-panel pitch-con">
+              <div class="pitch-phase-title">⚡ Con posesión</div>
+              <div class="pitch" id="pitch-con">
+                <div class="pitch-half"></div>
+                <div class="pitch-circle"></div>
+                <div class="pitch-area-top"></div>
+                <div class="pitch-area-bot"></div>
+              </div>
+            </div>
+            <div class="pitch-panel pitch-sin">
+              <div class="pitch-phase-title">🛡️ Sin posesión</div>
+              <div class="pitch" id="pitch-sin">
+                <div class="pitch-half"></div>
+                <div class="pitch-circle"></div>
+                <div class="pitch-area-top"></div>
+                <div class="pitch-area-bot"></div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="once-sidebar">
           <div class="once-sidebar-header">
-            <h3>Alineación</h3>
+            <h3>Alineación dual</h3>
+            <p style="font-size:0.72rem;color:#888;margin-top:4px;line-height:1.3;">Mismos jugadores en ambos campos. Posiciones y roles independientes.</p>
           </div>
           <div class="sidebar-scroll">
-            <div class="lineup-section-title">Titulares</div>
+            <div class="lineup-section-title">Titulares (11 compartidos)</div>
             <div class="lineup-list" id="lineupList"></div>
             <div class="lineup-section-title">Disponibles (edita forma aquí)</div>
             <div class="disponibles-list" id="disponiblesList"></div>
@@ -1268,6 +1313,7 @@ function setForma(id, campo, valor) {
       "Medio derecho":"MD", "Mediocentro":"MC", "Medio izquierdo":"MI",
       "Extremo derecho":"ED", "Mediapunta":"MP", "Extremo izquierdo":"EI", "Delantero centro":"DC"
     };
+    const TIPOS_SLOT = Object.keys(ABREV);
 
     const FORMACIONES_COHERENTES = [
       { nombre:"4-3-3", slots:[
@@ -1374,7 +1420,10 @@ function setForma(id, campo, valor) {
     };
 
     let jugadores = [], roles = [], editandoId = null, editandoRolId = null;
-    let lineup = {}, slotsConfig = [];
+    let lineupCon = {}, lineupSin = {};
+    let slotsConfigCon = [], slotsConfigSin = [];
+    // Compat: alias antiguos apuntan al de "con" para no romper referencias residuales
+    let lineup = lineupCon, slotsConfig = slotsConfigCon;
 
     function mostrarTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -1638,30 +1687,45 @@ function toggleBajoForma(id, checked) {
       if (roleSin) return sSin;
       return mediaEfectiva(player, '');
     }
-    function calcularMediaOncePorRoles() {
+    function mediaFase(lineupObj, fase) {
       let suma = 0, n = 0;
-      Object.keys(lineup).forEach(sid => {
-        const entry = lineup[sid];
+      Object.keys(lineupObj || {}).forEach(sid => {
+        const entry = lineupObj[sid];
         if (!entry?.playerId) return;
         const player = jugadores.find(j => j.id === entry.playerId);
         if (!player) return;
-        // Compatibilidad: roleName antiguo → usar en ambos
-        const rCon = entry.roleCon || entry.roleName || '';
-        const rSin = entry.roleSin || entry.roleName || '';
-        suma += mediaEfectivaDual(player, rCon, rSin); n++;
+        const role = entry.role || entry.roleName || '';
+        suma += mediaEfectiva(player, role); n++;
       });
-      return n ? suma / n : 0;
+      return { media: n ? suma / n : 0, count: n };
     }
-
+    function calcularMediaOncePorRoles() {
+      const c = mediaFase(lineupCon, 'con');
+      const s = mediaFase(lineupSin, 'sin');
+      if (!c.count && !s.count) return 0;
+      if (!c.count) return s.media;
+      if (!s.count) return c.media;
+      return (c.media + s.media) / 2;
+    }
     function actualizarBadgeMediaOnce() {
-      const media = calcularMediaOncePorRoles();
-      const count = Object.keys(lineup).filter(k => lineup[k]?.playerId).length;
-      const el = document.getElementById('once-media-value');
-      const countEl = document.getElementById('once-count');
-      if (countEl) countEl.textContent = count;
-      if (!el) return;
-      if (count === 0) { el.textContent = '—'; el.style.color = '#888'; }
-      else { el.textContent = media.toFixed(1); el.style.color = colorMedia(media); }
+      const c = mediaFase(lineupCon, 'con');
+      const s = mediaFase(lineupSin, 'sin');
+      const setIds = new Set([
+        ...Object.values(lineupCon).map(e => e?.playerId).filter(Boolean),
+        ...Object.values(lineupSin).map(e => e?.playerId).filter(Boolean)
+      ]);
+      const setMedia = (idVal, idCount, media, count) => {
+        const el = document.getElementById(idVal);
+        const ce = document.getElementById(idCount);
+        if (ce) ce.textContent = count;
+        if (!el) return;
+        if (count === 0) { el.textContent = '—'; el.style.color = '#888'; }
+        else { el.textContent = media.toFixed(1); el.style.color = colorMedia(media); }
+      };
+      setMedia('once-media-con', 'once-count-con', c.media, c.count);
+      setMedia('once-media-sin', 'once-count-sin', s.media, s.count);
+      const combined = (!c.count && !s.count) ? 0 : (!c.count ? s.media : (!s.count ? c.media : (c.media + s.media) / 2));
+      setMedia('once-media-value', 'once-count', combined, setIds.size);
     }
 
     function puedeJugarEn(player, tipoSlot) {
@@ -1974,9 +2038,12 @@ function toggleBajoForma(id, checked) {
     function eliminarJugador(id) {
       if (!confirm('¿Eliminar este jugador?')) return;
       jugadores = jugadores.filter(j => j.id !== id);
-      Object.keys(lineup).forEach(s => { if (lineup[s]?.playerId === id) delete lineup[s]; });
+      Object.keys(lineupCon).forEach(s => { if (lineupCon[s]?.playerId === id) delete lineupCon[s]; });
+      Object.keys(lineupSin).forEach(s => { if (lineupSin[s]?.playerId === id) delete lineupSin[s]; });
+      lineup = lineupCon;
       guardarLineup(); localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
       renderizarJugadores();
+      if (document.getElementById('tab-hacer-11')?.classList.contains('active')) renderPitch();
     }
     function colorValor(v) { if (v >= 15) return 'high'; if (v >= 10) return 'mid'; return 'low'; }
 
@@ -2092,73 +2159,124 @@ function toggleBajoForma(id, checked) {
       reader.readAsText(file); event.target.value = '';
     }
 
-    /* HACER 11 */
+    /* HACER 11 — dual pitch (Con posesión / Sin posesión) */
+    function cloneDefaultSlots() {
+      return FORMACIONES_COHERENTES[0].slots.map((s, i) => ({
+        id: i + 1, tipo: s.tipo, left: s.left, top: s.top, desiredRole: ''
+      }));
+    }
+    function getSlots(fase) { return fase === 'sin' ? slotsConfigSin : slotsConfigCon; }
+    function getLineup(fase) { return fase === 'sin' ? lineupSin : lineupCon; }
+    function setLineup(fase, obj) {
+      if (fase === 'sin') { lineupSin = obj; } else { lineupCon = obj; }
+      // keep legacy aliases in sync
+      lineup = lineupCon; slotsConfig = slotsConfigCon;
+    }
+
+    function jugadoresEnCampo() {
+      const ids = new Set();
+      Object.values(lineupCon).forEach(e => { if (e?.playerId) ids.add(e.playerId); });
+      Object.values(lineupSin).forEach(e => { if (e?.playerId) ids.add(e.playerId); });
+      return Array.from(ids);
+    }
+    function jugadoresEnFase(fase) {
+      return Object.values(getLineup(fase)).map(e => e?.playerId).filter(Boolean);
+    }
+
     function guardarLineup() {
-      localStorage.setItem('lineupFM', JSON.stringify(lineup));
-      localStorage.setItem('slotsConfigFM', JSON.stringify(slotsConfig));
+      localStorage.setItem('lineupConFM', JSON.stringify(lineupCon));
+      localStorage.setItem('lineupSinFM', JSON.stringify(lineupSin));
+      localStorage.setItem('slotsConfigConFM', JSON.stringify(slotsConfigCon));
+      localStorage.setItem('slotsConfigSinFM', JSON.stringify(slotsConfigSin));
+      // legacy keys
+      localStorage.setItem('lineupFM', JSON.stringify(lineupCon));
+      localStorage.setItem('slotsConfigFM', JSON.stringify(slotsConfigCon));
+    }
+    function migrarEntry(e) {
+      if (!e) return e;
+      if (e.role) return e;
+      // antiguo: roleCon / roleSin / roleName
+      return {
+        playerId: e.playerId,
+        role: e.roleCon || e.roleSin || e.roleName || ''
+      };
     }
     function cargarLineup() {
       try {
-        const d = JSON.parse(localStorage.getItem('lineupFM') || '{}');
-        lineup = d && typeof d === 'object' ? d : {};
-        // Migrar entries antiguos con roleName
-        Object.keys(lineup).forEach(k => {
-          const e = lineup[k];
-          if (e && e.roleName && !e.roleCon && !e.roleSin) {
-            e.roleCon = e.roleName;
-            e.roleSin = e.roleName;
-          }
-        });
-        const sc = JSON.parse(localStorage.getItem('slotsConfigFM') || 'null');
-        if (Array.isArray(sc) && sc.length === 11) {
-          slotsConfig = sc.map(s => ({
-            ...s,
-            desiredRoleCon: s.desiredRoleCon || s.desiredRole || '',
-            desiredRoleSin: s.desiredRoleSin || s.desiredRole || ''
+        const lc = JSON.parse(localStorage.getItem('lineupConFM') || localStorage.getItem('lineupFM') || '{}');
+        const ls = JSON.parse(localStorage.getItem('lineupSinFM') || '{}');
+        lineupCon = {};
+        lineupSin = {};
+        Object.keys(lc || {}).forEach(k => { lineupCon[k] = migrarEntry(lc[k]); });
+        Object.keys(ls || {}).forEach(k => { lineupSin[k] = migrarEntry(ls[k]); });
+
+        // Si solo hay lineup antiguo, copiar jugadores a Sin con rol sin
+        if (!Object.keys(lineupSin).length && Object.keys(lineupCon).length) {
+          Object.keys(lineupCon).forEach(k => {
+            const e = lc[k];
+            lineupSin[k] = { playerId: e.playerId, role: e.roleSin || e.roleName || e.roleCon || '' };
+            lineupCon[k] = { playerId: e.playerId, role: e.roleCon || e.roleName || e.roleSin || '' };
+          });
+        }
+
+        const scC = JSON.parse(localStorage.getItem('slotsConfigConFM') || localStorage.getItem('slotsConfigFM') || 'null');
+        const scS = JSON.parse(localStorage.getItem('slotsConfigSinFM') || 'null');
+        if (scC && Array.isArray(scC) && scC.length) {
+          slotsConfigCon = scC.map(s => ({
+            id: s.id, tipo: s.tipo, left: s.left, top: s.top,
+            desiredRole: s.desiredRole || s.desiredRoleCon || ''
           }));
-        } else slotsConfig = JSON.parse(JSON.stringify(DEFAULT_SLOTS));
-      } catch(e) {
-        lineup = {}; slotsConfig = JSON.parse(JSON.stringify(DEFAULT_SLOTS));
+        } else {
+          slotsConfigCon = cloneDefaultSlots();
+        }
+        if (scS && Array.isArray(scS) && scS.length) {
+          slotsConfigSin = scS.map(s => ({
+            id: s.id, tipo: s.tipo, left: s.left, top: s.top,
+            desiredRole: s.desiredRole || s.desiredRoleSin || ''
+          }));
+        } else {
+          // clonar posiciones del con si no hay sin
+          slotsConfigSin = slotsConfigCon.map(s => ({ ...s, desiredRole: s.desiredRole || '' }));
+        }
+        lineup = lineupCon; slotsConfig = slotsConfigCon;
+      } catch (e) {
+        lineupCon = {}; lineupSin = {};
+        slotsConfigCon = cloneDefaultSlots();
+        slotsConfigSin = cloneDefaultSlots();
+        lineup = lineupCon; slotsConfig = slotsConfigCon;
       }
     }
-    function contarTipo(tipo, excludeId) {
-      return slotsConfig.filter(s => s.tipo === tipo && s.id !== excludeId).length;
+
+    function contarTipo(fase, tipo, excludeId) {
+      return getSlots(fase).filter(s => s.tipo === tipo && s.id !== excludeId).length;
     }
-    function cambiarTipoSlot(slotId, nuevoTipo) {
-      const slot = slotsConfig.find(s => s.id === slotId);
+    function cambiarTipoSlot(fase, slotId, nuevoTipo) {
+      const slots = getSlots(fase);
+      const slot = slots.find(s => s.id === slotId);
       if (!slot) return;
-      if (contarTipo(nuevoTipo, slotId) >= (MAX_POR_TIPO[nuevoTipo] ?? 2)) {
+      if (contarTipo(fase, nuevoTipo, slotId) >= (MAX_POR_TIPO[nuevoTipo] ?? 2)) {
         alert(`Máximo ${MAX_POR_TIPO[nuevoTipo]??2} de "${nuevoTipo}" permitidos.`);
         renderPitch(); return;
       }
       slot.tipo = nuevoTipo;
-      slot.desiredRoleCon = '';
-      slot.desiredRoleSin = '';
-      if (lineup[slotId]) {
-        const player = jugadores.find(j => j.id === lineup[slotId].playerId);
+      slot.desiredRole = '';
+      const L = getLineup(fase);
+      if (L[slotId]) {
+        const player = jugadores.find(j => j.id === L[slotId].playerId);
         if (player) {
-          const mejorCon = mejorRolCompatible(player, nuevoTipo, 'con');
-          const mejorSin = mejorRolCompatible(player, nuevoTipo, 'sin');
-          lineup[slotId].roleCon = mejorCon ? mejorCon.nombre : '';
-          lineup[slotId].roleSin = mejorSin ? mejorSin.nombre : '';
+          const mejor = mejorRolCompatible(player, nuevoTipo, fase);
+          L[slotId].role = mejor ? mejor.nombre : '';
         }
       }
       guardarLineup(); renderPitch();
     }
-    function cambiarRolDeseado(slotId, roleName, tipoPos) {
-      const slot = slotsConfig.find(s => s.id === slotId);
-      if (slot) {
-        if (tipoPos === 'con') slot.desiredRoleCon = roleName;
-        else if (tipoPos === 'sin') slot.desiredRoleSin = roleName;
-        if (lineup[slotId]) {
-          if (tipoPos === 'con') lineup[slotId].roleCon = roleName;
-          else if (tipoPos === 'sin') lineup[slotId].roleSin = roleName;
-        }
-        guardarLineup(); renderPitch();
-      }
-    }
-    function jugadoresEnCampo() {
-      return Object.values(lineup).map(x => x.playerId).filter(Boolean);
+    function cambiarRolDeseado(fase, slotId, roleName) {
+      const slots = getSlots(fase);
+      const slot = slots.find(s => s.id === slotId);
+      if (slot) slot.desiredRole = roleName;
+      const L = getLineup(fase);
+      if (L[slotId]) L[slotId].role = roleName;
+      guardarLineup(); renderPitch();
     }
     function rolesDisponiblesParaTipo(tipo, tipoPos) {
       const alts = ALTS[tipo] || [tipo];
@@ -2173,20 +2291,25 @@ function toggleBajoForma(id, checked) {
     }
 
     function construirPitch() {
-      const pitch = document.getElementById('pitch');
-      pitch.innerHTML = `<div class="pitch-half"></div><div class="pitch-circle"></div><div class="pitch-area-top"></div><div class="pitch-area-bot"></div>`;
-      slotsConfig.forEach(s => {
-        const div = document.createElement('div');
-        div.className = 'slot';
-        div.dataset.slot = s.id;
-        div.style.left = s.left + '%';
-        div.style.top = s.top + '%';
-        div.innerHTML = `<div class="slot-card empty" data-card></div>`;
-        makeSlotDraggable(div, s);
-        pitch.appendChild(div);
+      ['con', 'sin'].forEach(fase => {
+        const pitch = document.getElementById(fase === 'sin' ? 'pitch-sin' : 'pitch-con');
+        if (!pitch) return;
+        const slots = getSlots(fase);
+        pitch.innerHTML = `<div class="pitch-half"></div><div class="pitch-circle"></div><div class="pitch-area-top"></div><div class="pitch-area-bot"></div>`;
+        slots.forEach(s => {
+          const div = document.createElement('div');
+          div.className = 'slot';
+          div.dataset.slot = s.id;
+          div.dataset.fase = fase;
+          div.style.left = s.left + '%';
+          div.style.top = s.top + '%';
+          div.innerHTML = `<div class="slot-card empty" data-card></div>`;
+          makeSlotDraggable(div, s, fase);
+          pitch.appendChild(div);
+        });
       });
     }
-    function makeSlotDraggable(el, slotData) {
+    function makeSlotDraggable(el, slotData, fase) {
       let startX, startY, origLeft, origTop, dragging = false;
       el.addEventListener('pointerdown', e => {
         if (e.target.closest('select') || e.target.closest('button') || e.target.closest('.slot-player')) return;
@@ -2198,7 +2321,8 @@ function toggleBajoForma(id, checked) {
       });
       el.addEventListener('pointermove', e => {
         if (!dragging) return;
-        const rect = document.getElementById('pitch').getBoundingClientRect();
+        const pitchId = fase === 'sin' ? 'pitch-sin' : 'pitch-con';
+        const rect = document.getElementById(pitchId).getBoundingClientRect();
         const newLeft = Math.max(5, Math.min(95, origLeft + ((e.clientX - startX) / rect.width) * 100));
         const newTop  = Math.max(5, Math.min(95, origTop  + ((e.clientY - startY) / rect.height) * 100));
         el.style.left = newLeft + '%'; el.style.top = newTop + '%';
@@ -2214,36 +2338,41 @@ function toggleBajoForma(id, checked) {
     function renderLineupList() {
       const container = document.getElementById('lineupList');
       if (!container) return;
-      const ordenados = [...slotsConfig].sort((a,b) => b.top - a.top || a.left - b.left);
-      container.innerHTML = ordenados.map(s => {
-        const entry = lineup[s.id];
-        const abrev = ABREV[s.tipo] || s.tipo.slice(0,3).toUpperCase();
-        if (entry?.playerId) {
-          const player = jugadores.find(j => j.id === entry.playerId);
-          if (!player) return '';
-          const rCon = entry.roleCon || entry.roleName || '';
-          const rSin = entry.roleSin || entry.roleName || '';
-          const sc = mediaEfectivaDual(player, rCon, rSin);
-          const mc = colorMedia(sc);
-          const rolesTxt = [rCon ? 'C:'+rCon : '', rSin ? 'S:'+rSin : ''].filter(Boolean).join(' · ') || '—';
-          return `<div class="lineup-row">
-            <span class="lr-pos">${abrev}</span>
-            <span class="lr-name">${player.nombre}</span>
-            <span class="lr-role" title="${rolesTxt}">${rolesTxt}</span>
-            <span class="lr-score" style="color:${mc}">${sc.toFixed(1)}</span>
-            <button class="lr-remove" onclick="quitarDelSlot(${s.id})">✕</button>
-            <div class="fe-mini">
-              <label>Ú5</label><input type="number" min="0" max="10" step="0.01" value="${getUlt5(player)}"
-                onchange="actualizarFormaJugador(${player.id},'ult5',this.value)">
-              <label>VE</label><input type="number" min="0" max="10" step="0.01" value="${getValEnt(player)}"
-                onchange="actualizarFormaJugador(${player.id},'valEnt',this.value)">
-              <label>Inf</label><input type="number" min="-5" max="5" step="0.20" value="${getInforme(player)}"
-                onchange="actualizarFormaJugador(${player.id},'informe',this.value)">
-            </div>
-          </div>`;
-        }
-        return `<div class="lineup-row empty-slot">
-          <span class="lr-pos">${abrev}</span><span class="lr-name">Vacío</span>
+      const ids = jugadoresEnCampo();
+      if (!ids.length) {
+        container.innerHTML = '<div class="empty-state" style="padding:12px;font-size:0.85rem;">Arrastra jugadores a cualquiera de los dos campos.</div>';
+        return;
+      }
+      container.innerHTML = ids.map(pid => {
+        const player = jugadores.find(j => j.id == pid);
+        if (!player) return '';
+        // encontrar slots en cada fase
+        let slotCon = null, slotSin = null, roleCon = '', roleSin = '';
+        Object.keys(lineupCon).forEach(sid => {
+          if (lineupCon[sid]?.playerId == pid) {
+            slotCon = slotsConfigCon.find(s => s.id == sid);
+            roleCon = lineupCon[sid].role || '';
+          }
+        });
+        Object.keys(lineupSin).forEach(sid => {
+          if (lineupSin[sid]?.playerId == pid) {
+            slotSin = slotsConfigSin.find(s => s.id == sid);
+            roleSin = lineupSin[sid].role || '';
+          }
+        });
+        const abCon = slotCon ? (ABREV[slotCon.tipo] || slotCon.tipo.slice(0,3)) : '—';
+        const abSin = slotSin ? (ABREV[slotSin.tipo] || slotSin.tipo.slice(0,3)) : '—';
+        const sc = mediaEfectiva(player, roleCon);
+        const ss = mediaEfectiva(player, roleSin);
+        return `<div class="lineup-row">
+          <span class="lr-name">${player.nombre}</span>
+          <span class="lr-pos" title="Con posesión" style="color:#7dd3fc;">${abCon}</span>
+          <span class="lr-role" style="color:#7dd3fc;" title="${roleCon}">${roleCon || '—'}</span>
+          <span class="lr-score" style="color:${colorMedia(sc)}">${sc ? sc.toFixed(0) : '—'}</span>
+          <span class="lr-pos" title="Sin posesión" style="color:#fbbf24;">${abSin}</span>
+          <span class="lr-role" style="color:#fbbf24;" title="${roleSin}">${roleSin || '—'}</span>
+          <span class="lr-score" style="color:${colorMedia(ss)}">${ss ? ss.toFixed(0) : '—'}</span>
+          <button class="lr-remove" title="Quitar de ambos campos" onclick="quitarJugadorDeAmbos(${pid})">✕</button>
         </div>`;
       }).join('');
     }
@@ -2251,107 +2380,103 @@ function toggleBajoForma(id, checked) {
     function renderDisponibles() {
       const container = document.getElementById('disponiblesList');
       if (!container) return;
-      const enCampo = new Set(jugadoresEnCampo());
-      let disponibles = jugadores.filter(j => !enCampo.has(j.id) && jugadorPasaFiltrosOnce(j));
-      if (!disponibles.length) {
-        container.innerHTML = '<div class="empty-state" style="padding:16px;font-size:0.85rem;">Ningún disponible con estos filtros.</div>';
+      const usados = new Set(jugadoresEnCampo());
+      const pool = (typeof poolParaOnce === 'function' ? poolParaOnce() : jugadores)
+        .filter(j => !usados.has(j.id) && !usados.has(String(j.id)));
+      if (!pool.length) {
+        container.innerHTML = '<div class="empty-state" style="padding:12px;font-size:0.85rem;">No hay más disponibles con los filtros actuales.</div>';
         return;
       }
-      disponibles.sort((a,b) => calcularMediaJugador(b) - calcularMediaJugador(a));
-      container.innerHTML = disponibles.map(j => {
-        const media = calcularMediaJugador(j);
-        const mc = colorMedia(media);
-        const posT = getPosicionesJugador(j).join(', ') || '—';
-        const excl = getExcluido(j);
-        return `<div class="disp-player ${excl?'excluido-row':''}" draggable="${excl?'false':'true'}" data-pid="${j.id}"
-                     ondragstart="onDragStart(event, ${j.id})" ondragend="onDragEnd(event)">
-          <span class="dp-name">${j.nombre}${excl?' 🚫':''}</span>
-          <span class="dp-pos">${posT}</span>
-          <span class="dp-media" style="color:${mc}">${media.toFixed(0)}</span>
+      const sorted = [...pool].sort((a,b) => mediaEfectiva(b,'') - mediaEfectiva(a,''));
+      container.innerHTML = sorted.map(j => {
+        const m = mediaEfectiva(j, '');
+        const pos = (getPosicionesJugador(j) || []).slice(0,3).join(', ');
+        const excl = getExcluido(j) ? ' excluido-row' : '';
+        return `<div class="disp-player${excl}" draggable="true"
+          ondragstart="onDragStart(event, ${j.id})" ondragend="onDragEnd(event)">
+          <span class="dp-name">${j.nombre}</span>
+          <span class="dp-pos">${pos}</span>
+          <span class="dp-media" style="color:${colorMedia(m)}">${m.toFixed(0)}</span>
           <label class="dp-excluir" onclick="event.stopPropagation()">
-            <input type="checkbox" ${excl?'checked':''}
-              onchange="toggleExcluido(${j.id}, this.checked)">
-            Excluir del 11 auto
+            <input type="checkbox" ${getExcluido(j)?'checked':''} onchange="toggleExcluido(${j.id}, this.checked)"> Excluir
           </label>
-          <div class="fe-mini">
-            <label>Ú5</label><input type="number" min="0" max="10" step="0.01" value="${getUlt5(j)}"
-              onclick="event.stopPropagation()" onchange="actualizarFormaJugador(${j.id},'ult5',this.value)">
-            <label>VE</label><input type="number" min="0" max="10" step="0.01" value="${getValEnt(j)}"
-              onclick="event.stopPropagation()" onchange="actualizarFormaJugador(${j.id},'valEnt',this.value)">
-            <label>Inf</label><input type="number" min="-5" max="5" step="0.20" value="${getInforme(j)}"
-              onclick="event.stopPropagation()" onchange="actualizarFormaJugador(${j.id},'informe',this.value)">
+          <div class="fe-mini" onclick="event.stopPropagation()">
+            <label>U5</label><input type="number" min="0" max="10" step="0.5" value="${getUlt5(j)}"
+              onchange="actualizarFormaJugador(${j.id},'ult5',this.value)">
+            <label>VE</label><input type="number" min="0" max="10" step="0.5" value="${getValEnt(j)}"
+              onchange="actualizarFormaJugador(${j.id},'valEnt',this.value)">
+            <label>Inf</label><input type="number" min="-5" max="5" step="0.2" value="${getInforme(j)}"
+              onchange="actualizarFormaJugador(${j.id},'informe',this.value)">
           </div>
         </div>`;
       }).join('');
     }
 
     function renderPitch() {
-      document.querySelectorAll('.slot').forEach(slotEl => {
-        const sid = parseInt(slotEl.dataset.slot);
-        const cfg = slotsConfig.find(s => s.id === sid);
-        if (!cfg) return;
-        const card = slotEl.querySelector('[data-card]') || slotEl;
-        const entry = lineup[sid];
-        const player = entry ? jugadores.find(j => j.id === entry.playerId) : null;
-        const optsTipo = POSICIONES.map(p =>
-          `<option value="${p}" ${p===cfg.tipo?'selected':''}>${ABREV[p]||p}</option>`
-        ).join('');
+      ['con', 'sin'].forEach(fase => {
+        const pitch = document.getElementById(fase === 'sin' ? 'pitch-sin' : 'pitch-con');
+        if (!pitch) return;
+        const slots = getSlots(fase);
+        const L = getLineup(fase);
+        const colorRol = fase === 'sin' ? '#fbbf24' : '#a3e635';
+        const borderRol = fase === 'sin' ? '#5a4a2a' : '#3a5a3a';
 
-        if (player) {
-          const rCon = entry.roleCon || entry.roleName || '';
-          const rSin = entry.roleSin || entry.roleName || '';
-          const rolScore = mediaEfectivaDual(player, rCon, rSin);
-          const mc = colorMedia(rolScore);
-          const rolesDisp = obtenerRolesDelJugador(player);
-          const alts = ALTS[cfg.tipo] || [cfg.tipo];
-          let rolesSlotBase = rolesDisp.filter(r => (r.posiciones||[]).some(p => alts.includes(p)));
-          if (!rolesSlotBase.length) rolesSlotBase = rolesDisp;
-          const rolesCon = rolesSlotBase.filter(r => rolAplicableA(r, 'con'));
-          const rolesSin = rolesSlotBase.filter(r => rolAplicableA(r, 'sin'));
-          let optsCon = '<option value="">— Con —</option>';
-          rolesCon.forEach(r => {
-            optsCon += `<option value="${r.nombre}" ${rCon===r.nombre?'selected':''}>${r.nombre}</option>`;
-          });
-          let optsSin = '<option value="">— Sin —</option>';
-          rolesSin.forEach(r => {
-            optsSin += `<option value="${r.nombre}" ${rSin===r.nombre?'selected':''}>${r.nombre}</option>`;
-          });
-          card.className = 'slot-card';
-          card.innerHTML = `
-            <select class="slot-type-select" onchange="cambiarTipoSlot(${sid}, this.value)">${optsTipo}</select>
-            <div class="slot-player" draggable="true"
-                 ondragstart="event.stopPropagation(); event.dataTransfer.setData('text/pid', '${player.id}'); event.dataTransfer.effectAllowed='move';">
-              <div class="sp-name">${player.nombre}</div>
-              <div class="sp-media" style="color:${mc}">${rolScore.toFixed(1)}</div>
-              <select class="sp-role-select" title="Con posesión" onchange="cambiarRolSlot(${sid}, this.value, 'con')">${optsCon}</select>
-              <select class="sp-role-select" title="Sin posesión" onchange="cambiarRolSlot(${sid}, this.value, 'sin')" style="color:#fbbf24;border-color:#5a4a2a;">${optsSin}</select>
-              <button class="sp-remove" onclick="quitarDelSlot(${sid})">✕</button>
-            </div>`;
-        } else {
-          const rolesCon = rolesDisponiblesParaTipo(cfg.tipo, 'con');
-          const rolesSin = rolesDisponiblesParaTipo(cfg.tipo, 'sin');
-          let optsCon = '<option value="">— Con —</option>';
-          rolesCon.forEach(r => {
-            optsCon += `<option value="${r.nombre}" ${(cfg.desiredRoleCon||'')===r.nombre?'selected':''}>${r.nombre}</option>`;
-          });
-          let optsSin = '<option value="">— Sin —</option>';
-          rolesSin.forEach(r => {
-            optsSin += `<option value="${r.nombre}" ${(cfg.desiredRoleSin||'')===r.nombre?'selected':''}>${r.nombre}</option>`;
-          });
-          card.className = 'slot-card empty';
-          card.innerHTML = `
-            <select class="slot-type-select" onchange="cambiarTipoSlot(${sid}, this.value)">${optsTipo}</select>
-            <select class="slot-role-select" title="Con posesión" onchange="cambiarRolDeseado(${sid}, this.value, 'con')">${optsCon}</select>
-            <select class="slot-role-select" title="Sin posesión" onchange="cambiarRolDeseado(${sid}, this.value, 'sin')" style="color:#fbbf24;border-color:#5a4a2a;">${optsSin}</select>
-            <div class="slot-empty-label">Vacío</div>`;
-        }
-        slotEl.ondragover = e => { e.preventDefault(); slotEl.classList.add('drag-over'); };
-        slotEl.ondragleave = () => slotEl.classList.remove('drag-over');
-        slotEl.ondrop = e => {
-          e.preventDefault(); slotEl.classList.remove('drag-over');
-          const pid = parseFloat(e.dataTransfer.getData('text/pid'));
-          if (pid) colocarJugador(sid, pid);
-        };
+        pitch.querySelectorAll('.slot').forEach(slotEl => {
+          const sid = Number(slotEl.dataset.slot);
+          const cfg = slots.find(s => s.id === sid);
+          if (!cfg) return;
+          slotEl.style.left = cfg.left + '%';
+          slotEl.style.top = cfg.top + '%';
+          const card = slotEl.querySelector('[data-card]') || slotEl.querySelector('.slot-card');
+          if (!card) return;
+
+          const tiposOpts = Object.keys(ABREV || {}).map(t =>
+            `<option value="${t}" ${cfg.tipo===t?'selected':''}>${ABREV[t]||t}</option>`
+          ).join('');
+          // fallback si ABREV no tiene todas
+          const tipoSelect = `<select class="slot-type-select" onchange="cambiarTipoSlot('${fase}', ${sid}, this.value)">${
+            (typeof TIPOS_SLOT !== 'undefined' ? TIPOS_SLOT : Object.keys(ABREV||{})).map(t =>
+              `<option value="${t}" ${cfg.tipo===t?'selected':''}>${(ABREV&&ABREV[t])||t}</option>`
+            ).join('')
+          }</select>`;
+
+          const rolesOpts = rolesDisponiblesParaTipo(cfg.tipo, fase);
+          const entry = L[sid];
+          const currentRole = entry?.role || cfg.desiredRole || '';
+          let optsRoles = `<option value="">— Rol —</option>` + rolesOpts.map(r =>
+            `<option value="${r.nombre}" ${currentRole===r.nombre?'selected':''}>${r.nombre}</option>`
+          ).join('');
+
+          if (entry?.playerId) {
+            const player = jugadores.find(j => j.id == entry.playerId);
+            if (!player) {
+              card.className = 'slot-card empty';
+              card.innerHTML = `${tipoSelect}<select class="slot-role-select" style="color:${colorRol};border-color:${borderRol};" onchange="cambiarRolDeseado('${fase}', ${sid}, this.value)">${optsRoles}</select><div class="slot-empty-label">Vacío</div>`;
+            } else {
+              const score = mediaEfectiva(player, entry.role || '');
+              card.className = 'slot-card';
+              card.innerHTML = `
+                ${tipoSelect}
+                <select class="slot-role-select" style="color:${colorRol};border-color:${borderRol};" onchange="cambiarRolSlot('${fase}', ${sid}, this.value)">${optsRoles}</select>
+                <div class="slot-player" draggable="true" ondragstart="onDragStart(event, ${player.id})" ondragend="onDragEnd(event)">
+                  <div class="sp-name" title="${player.nombre}">${player.nombre}</div>
+                  <div class="sp-media" style="color:${colorMedia(score)}">${score.toFixed(1)}</div>
+                  <button class="sp-remove" onclick="event.stopPropagation();quitarDelSlot('${fase}', ${sid})">Quitar</button>
+                </div>`;
+            }
+          } else {
+            card.className = 'slot-card empty';
+            card.innerHTML = `${tipoSelect}<select class="slot-role-select" style="color:${colorRol};border-color:${borderRol};" onchange="cambiarRolDeseado('${fase}', ${sid}, this.value)">${optsRoles}</select><div class="slot-empty-label">Vacío</div>`;
+          }
+
+          slotEl.ondragover = e => { e.preventDefault(); slotEl.classList.add('drag-over'); };
+          slotEl.ondragleave = () => slotEl.classList.remove('drag-over');
+          slotEl.ondrop = e => {
+            e.preventDefault(); slotEl.classList.remove('drag-over');
+            const pid = parseFloat(e.dataTransfer.getData('text/pid'));
+            if (pid) colocarJugador(fase, sid, pid);
+          };
+        });
       });
       actualizarBadgeMediaOnce();
       renderLineupList();
@@ -2361,186 +2486,274 @@ function toggleBajoForma(id, checked) {
     function onDragStart(e, pid) {
       e.dataTransfer.setData('text/pid', String(pid));
       e.dataTransfer.effectAllowed = 'move';
-      e.target.classList.add('dragging');
+      if (e.target.classList) e.target.classList.add('dragging');
     }
-    function onDragEnd(e) { e.target.classList.remove('dragging'); }
+    function onDragEnd(e) { if (e.target.classList) e.target.classList.remove('dragging'); }
 
-    function colocarJugador(slotId, playerId) {
-      Object.keys(lineup).forEach(s => { if (lineup[s]?.playerId == playerId) delete lineup[s]; });
+    /** Coloca jugador en una fase. Si no está en la otra, lo coloca también en el mejor hueco libre. */
+    function colocarJugador(fase, slotId, playerId) {
       const player = jugadores.find(j => j.id == playerId);
       if (!player) return;
-      const cfg = slotsConfig.find(s => s.id === slotId);
-      let roleCon = '', roleSin = '';
+      const L = getLineup(fase);
+      const slots = getSlots(fase);
+
+      // quitar de cualquier slot de ESTA fase
+      Object.keys(L).forEach(s => { if (L[s]?.playerId == playerId) delete L[s]; });
+
+      const cfg = slots.find(s => s.id === slotId);
+      let role = '';
       if (cfg) {
-        const mejorCon = mejorRolCompatible(player, cfg.tipo, 'con');
-        const mejorSin = mejorRolCompatible(player, cfg.tipo, 'sin');
-        roleCon = mejorCon ? mejorCon.nombre : (cfg.desiredRoleCon || '');
-        roleSin = mejorSin ? mejorSin.nombre : (cfg.desiredRoleSin || '');
+        const mejor = mejorRolCompatible(player, cfg.tipo, fase);
+        role = mejor ? mejor.nombre : (cfg.desiredRole || '');
       }
-      lineup[slotId] = { playerId: Number(playerId) || playerId, roleCon, roleSin };
+      L[slotId] = { playerId: Number(playerId) || playerId, role };
+
+      // Sincronizar presencia en la otra fase
+      const otra = fase === 'con' ? 'sin' : 'con';
+      const L2 = getLineup(otra);
+      const slots2 = getSlots(otra);
+      const yaEnOtra = Object.values(L2).some(e => e?.playerId == playerId);
+      if (!yaEnOtra) {
+        // buscar mejor hueco vacío
+        let mejorSlot = null, mejorScore = -1, mejorRole = '';
+        slots2.forEach(s => {
+          if (L2[s.id]?.playerId) return;
+          if (!puedeJugarEn(player, s.tipo)) return;
+          const m = mejorRolCompatible(player, s.tipo, otra);
+          const sc = mediaEfectiva(player, m ? m.nombre : '');
+          if (sc > mejorScore) { mejorScore = sc; mejorSlot = s; mejorRole = m ? m.nombre : (s.desiredRole || ''); }
+        });
+        if (!mejorSlot) {
+          // cualquier vacío
+          mejorSlot = slots2.find(s => !L2[s.id]?.playerId);
+          if (mejorSlot) {
+            const m = mejorRolCompatible(player, mejorSlot.tipo, otra);
+            mejorRole = m ? m.nombre : (mejorSlot.desiredRole || '');
+          }
+        }
+        if (mejorSlot) {
+          L2[mejorSlot.id] = { playerId: Number(playerId) || playerId, role: mejorRole };
+        }
+      }
+
       guardarLineup(); renderPitch();
     }
-    function quitarDelSlot(slotId) { delete lineup[slotId]; guardarLineup(); renderPitch(); }
-    function cambiarRolSlot(slotId, roleName, tipoPos) {
-      if (lineup[slotId]) {
-        if (tipoPos === 'con') lineup[slotId].roleCon = roleName;
-        else if (tipoPos === 'sin') lineup[slotId].roleSin = roleName;
-        const slot = slotsConfig.find(s => s.id === slotId);
-        if (slot) {
-          if (tipoPos === 'con') slot.desiredRoleCon = roleName;
-          else if (tipoPos === 'sin') slot.desiredRoleSin = roleName;
-        }
+
+    function quitarDelSlot(fase, slotId) {
+      const L = getLineup(fase);
+      const entry = L[slotId];
+      if (!entry?.playerId) { delete L[slotId]; guardarLineup(); renderPitch(); return; }
+      const pid = entry.playerId;
+      delete L[slotId];
+      // quitar también de la otra fase (mismos jugadores siempre)
+      const otra = fase === 'con' ? 'sin' : 'con';
+      const L2 = getLineup(otra);
+      Object.keys(L2).forEach(s => { if (L2[s]?.playerId == pid) delete L2[s]; });
+      guardarLineup(); renderPitch();
+    }
+    function quitarJugadorDeAmbos(playerId) {
+      Object.keys(lineupCon).forEach(s => { if (lineupCon[s]?.playerId == playerId) delete lineupCon[s]; });
+      Object.keys(lineupSin).forEach(s => { if (lineupSin[s]?.playerId == playerId) delete lineupSin[s]; });
+      guardarLineup(); renderPitch();
+    }
+    function cambiarRolSlot(fase, slotId, roleName) {
+      const L = getLineup(fase);
+      if (L[slotId]) {
+        L[slotId].role = roleName;
+        const slot = getSlots(fase).find(s => s.id === slotId);
+        if (slot) slot.desiredRole = roleName;
         guardarLineup(); renderPitch();
       }
     }
     function limpiarOnce() {
-      if (!confirm('¿Quitar todos los jugadores del campo?')) return;
-      lineup = {}; guardarLineup(); renderPitch();
+      if (!confirm('¿Quitar todos los jugadores de ambos campos?')) return;
+      lineupCon = {}; lineupSin = {};
+      lineup = lineupCon;
+      guardarLineup(); renderPitch();
     }
     function resetPosicionesSlots() {
-      if (!confirm('¿Restablecer al layout 4-3-3?')) return;
-      slotsConfig = JSON.parse(JSON.stringify(DEFAULT_SLOTS));
+      if (!confirm('¿Restablecer ambos campos al layout 4-3-3? (se mantienen los jugadores si es posible)')) return;
+      const idsCon = {};
+      Object.keys(lineupCon).forEach(k => { idsCon[k] = lineupCon[k]; });
+      const idsSin = {};
+      Object.keys(lineupSin).forEach(k => { idsSin[k] = lineupSin[k]; });
+      slotsConfigCon = cloneDefaultSlots();
+      slotsConfigSin = cloneDefaultSlots();
+      // reubicar por índice de slot
+      lineupCon = {}; lineupSin = {};
+      Object.keys(idsCon).forEach(k => { if (slotsConfigCon.find(s => s.id == k)) lineupCon[k] = idsCon[k]; });
+      Object.keys(idsSin).forEach(k => { if (slotsConfigSin.find(s => s.id == k)) lineupSin[k] = idsSin[k]; });
+      lineup = lineupCon; slotsConfig = slotsConfigCon;
       guardarLineup(); construirPitch(); renderPitch();
     }
-    
-function asignarOptimo(slots, jugadoresPool, yaUsados) {
-  const usados = new Set(yaUsados || []);
-  const pares = [];
 
-  slots.forEach((slot, idx) => {
-    const tipo = slot.tipo;
-    jugadoresPool.forEach(j => {
-      if (usados.has(j.id)) return;
-      if (getExcluido(j)) return;
-      if (!puedeJugarEn(j, tipo)) return;
-
-      let roleCon = '';
-      let roleSin = '';
-      const rolesJ = obtenerRolesDelJugador(j);
-
-      // Prefer desired if set
-      if (slot.desiredRoleCon) {
-        const match = rolesJ.find(r => r.nombre === slot.desiredRoleCon && rolAplicableA(r, 'con'));
-        if (match) roleCon = slot.desiredRoleCon;
+    function asignarOptimoFase(slots, jugadoresPool, yaUsados, fase) {
+      const usados = new Set(yaUsados || []);
+      const pares = [];
+      slots.forEach((slot, idx) => {
+        jugadoresPool.forEach(j => {
+          if (usados.has(j.id)) return;
+          if (getExcluido(j)) return;
+          if (!puedeJugarEn(j, slot.tipo)) return;
+          let role = '';
+          const rolesJ = obtenerRolesDelJugador(j);
+          if (slot.desiredRole) {
+            const match = rolesJ.find(r => r.nombre === slot.desiredRole && rolAplicableA(r, fase));
+            if (match) role = slot.desiredRole;
+          }
+          if (!role) {
+            const mejor = mejorRolCompatible(j, slot.tipo, fase);
+            role = mejor ? mejor.nombre : '';
+          }
+          const score = mediaEfectiva(j, role);
+          if (score < 0) return;
+          pares.push({ score, player: j, slotIdx: idx, role });
+        });
+      });
+      pares.sort((a, b) => b.score - a.score);
+      const asignadosSlot = new Set();
+      const asignadosPlayer = new Set();
+      const resultado = [];
+      let totalScore = 0;
+      for (const p of pares) {
+        if (asignadosSlot.has(p.slotIdx) || asignadosPlayer.has(p.player.id)) continue;
+        asignadosSlot.add(p.slotIdx);
+        asignadosPlayer.add(p.player.id);
+        usados.add(p.player.id);
+        resultado.push(p);
+        totalScore += p.score;
       }
-      if (!roleCon) {
-        const mejorCon = mejorRolCompatible(j, tipo, 'con');
-        roleCon = mejorCon ? mejorCon.nombre : '';
-      }
+      return { asignaciones: resultado, totalScore, usados };
+    }
 
-      if (slot.desiredRoleSin) {
-        const match = rolesJ.find(r => r.nombre === slot.desiredRoleSin && rolAplicableA(r, 'sin'));
-        if (match) roleSin = slot.desiredRoleSin;
-      }
-      if (!roleSin) {
-        const mejorSin = mejorRolCompatible(j, tipo, 'sin');
-        roleSin = mejorSin ? mejorSin.nombre : '';
-      }
-
-      const score = mediaEfectivaDual(j, roleCon, roleSin);
-      if (score < 0) return;
-      pares.push({ score, player: j, slotIdx: idx, roleCon, roleSin });
-    });
-  });
-
-  pares.sort((a, b) => b.score - a.score);
-
-  const asignadosSlot = new Set();
-  const asignadosPlayer = new Set();
-  const resultado = [];
-  let totalScore = 0;
-
-  for (const p of pares) {
-    if (asignadosSlot.has(p.slotIdx) || asignadosPlayer.has(p.player.id)) continue;
-    asignadosSlot.add(p.slotIdx);
-    asignadosPlayer.add(p.player.id);
-    usados.add(p.player.id);
-    resultado.push(p);
-    totalScore += p.score;
-  }
-
-  return { asignaciones: resultado, totalScore, usados };
-}
-
-    function evaluarFormacion(formacion, jugadoresPool) {
-      const { asignaciones, totalScore } = asignarOptimo(formacion.slots, jugadoresPool, []);
-      const rellenados = asignaciones.length;
-      const score = totalScore - (11 - rellenados) * 20;
-      return { score, rellenados, asignaciones, formacion, totalScore };
+    function evaluarFormacionDual(formacion, jugadoresPool) {
+      // Primero optimizar Con posesión; esos jugadores se usan también en Sin
+      const slotsTmp = formacion.slots.map((s, i) => ({ id: i+1, tipo: s.tipo, left: s.left, top: s.top, desiredRole: '' }));
+      const resCon = asignarOptimoFase(slotsTmp, jugadoresPool, [], 'con');
+      const idsElegidos = resCon.asignaciones.map(a => a.player.id);
+      const poolFijo = jugadoresPool.filter(j => idsElegidos.includes(j.id));
+      // Para Sin: reasignar los MISMOS jugadores a slots (pueden cambiar de posición)
+      const resSin = asignarOptimoFase(slotsTmp, poolFijo, [], 'sin');
+      const totalScore = resCon.totalScore + resSin.totalScore;
+      return {
+        score: totalScore - (11 - resCon.asignaciones.length) * 40,
+        rellenados: resCon.asignaciones.length,
+        formacion,
+        asigCon: resCon.asignaciones,
+        asigSin: resSin.asignaciones,
+        totalScore
+      };
     }
 
     function autoOnce(full) {
-  const pool = typeof poolParaOnce === 'function' ? poolParaOnce() : jugadores.filter(j => !getExcluido(j));
-  if (pool.length < 1) {
-    alert('No hay jugadores disponibles (revisa filtros y exclusiones).');
-    return;
-  }
-
-  if (full) {
-    let mejorEval = null;
-    for (const form of FORMACIONES_COHERENTES) {
-      const ev = evaluarFormacion(form, pool);
-      if (!mejorEval || ev.totalScore > mejorEval.totalScore ||
-          (ev.totalScore === mejorEval.totalScore && ev.rellenados > mejorEval.rellenados)) {
-        mejorEval = ev;
+      const pool = typeof poolParaOnce === 'function' ? poolParaOnce() : jugadores.filter(j => !getExcluido(j));
+      if (pool.length < 1) {
+        alert('No hay jugadores disponibles (revisa filtros y exclusiones).');
+        return;
       }
+
+      if (full) {
+        let mejorEval = null;
+        for (const form of FORMACIONES_COHERENTES) {
+          const ev = evaluarFormacionDual(form, pool);
+          if (!mejorEval || ev.totalScore > mejorEval.totalScore ||
+              (ev.totalScore === mejorEval.totalScore && ev.rellenados > mejorEval.rellenados)) {
+            mejorEval = ev;
+          }
+        }
+        if (!mejorEval || mejorEval.rellenados === 0) {
+          alert('No se pudo formar un once con las posiciones disponibles.');
+          return;
+        }
+        const baseSlots = mejorEval.formacion.slots.map((s, i) => ({
+          id: i + 1, tipo: s.tipo, left: s.left, top: s.top, desiredRole: ''
+        }));
+        slotsConfigCon = baseSlots.map(s => ({ ...s }));
+        slotsConfigSin = baseSlots.map(s => ({ ...s }));
+        lineupCon = {};
+        lineupSin = {};
+        mejorEval.asigCon.forEach(asig => {
+          const id = asig.slotIdx + 1;
+          slotsConfigCon[asig.slotIdx].desiredRole = asig.role || '';
+          lineupCon[id] = { playerId: asig.player.id, role: asig.role || '' };
+        });
+        mejorEval.asigSin.forEach(asig => {
+          const id = asig.slotIdx + 1;
+          slotsConfigSin[asig.slotIdx].desiredRole = asig.role || '';
+          lineupSin[id] = { playerId: asig.player.id, role: asig.role || '' };
+        });
+        // Si algún jugador de Con no quedó en Sin, forzar colocación
+        const enSin = new Set(Object.values(lineupSin).map(e => e.playerId));
+        Object.values(lineupCon).forEach(e => {
+          if (enSin.has(e.playerId)) return;
+          const hueco = slotsConfigSin.find(s => !lineupSin[s.id]?.playerId);
+          if (hueco) {
+            const p = jugadores.find(j => j.id === e.playerId);
+            const m = p ? mejorRolCompatible(p, hueco.tipo, 'sin') : null;
+            lineupSin[hueco.id] = { playerId: e.playerId, role: m ? m.nombre : '' };
+          }
+        });
+        lineup = lineupCon; slotsConfig = slotsConfigCon;
+        guardarLineup();
+        construirPitch();
+        renderPitch();
+        return;
+      }
+
+      // Completar: rellenar huecos manteniendo el conjunto de jugadores
+      const usados = new Set(jugadoresEnCampo());
+      // Rellenar Con
+      const huecosCon = slotsConfigCon.filter(s => !lineupCon[s.id]?.playerId);
+      if (huecosCon.length) {
+        const { asignaciones } = asignarOptimoFase(huecosCon, pool, usados, 'con');
+        asignaciones.forEach(asig => {
+          const slot = huecosCon[asig.slotIdx];
+          if (!slot || lineupCon[slot.id]?.playerId) return;
+          lineupCon[slot.id] = { playerId: asig.player.id, role: asig.role || '' };
+          usados.add(asig.player.id);
+          // espejo en Sin si no está
+          if (![...Object.values(lineupSin)].some(e => e?.playerId === asig.player.id)) {
+            const hueco = slotsConfigSin.find(s => !lineupSin[s.id]?.playerId);
+            if (hueco) {
+              const m = mejorRolCompatible(asig.player, hueco.tipo, 'sin');
+              lineupSin[hueco.id] = { playerId: asig.player.id, role: m ? m.nombre : '' };
+            }
+          }
+        });
+      }
+      // Rellenar Sin con jugadores ya en Con que falten, o nuevos
+      const enSin = new Set(Object.values(lineupSin).map(e => e?.playerId).filter(Boolean));
+      Object.values(lineupCon).forEach(e => {
+        if (!e?.playerId || enSin.has(e.playerId)) return;
+        const hueco = slotsConfigSin.find(s => !lineupSin[s.id]?.playerId);
+        if (hueco) {
+          const p = jugadores.find(j => j.id === e.playerId);
+          const m = p ? mejorRolCompatible(p, hueco.tipo, 'sin') : null;
+          lineupSin[hueco.id] = { playerId: e.playerId, role: m ? m.nombre : '' };
+          enSin.add(e.playerId);
+        }
+      });
+      const huecosSin = slotsConfigSin.filter(s => !lineupSin[s.id]?.playerId);
+      if (huecosSin.length) {
+        const { asignaciones } = asignarOptimoFase(huecosSin, pool, enSin, 'sin');
+        asignaciones.forEach(asig => {
+          const slot = huecosSin[asig.slotIdx];
+          if (!slot || lineupSin[slot.id]?.playerId) return;
+          lineupSin[slot.id] = { playerId: asig.player.id, role: asig.role || '' };
+          // espejo en Con
+          if (![...Object.values(lineupCon)].some(e => e?.playerId === asig.player.id)) {
+            const hueco = slotsConfigCon.find(s => !lineupCon[s.id]?.playerId);
+            if (hueco) {
+              const m = mejorRolCompatible(asig.player, hueco.tipo, 'con');
+              lineupCon[hueco.id] = { playerId: asig.player.id, role: m ? m.nombre : '' };
+            }
+          }
+        });
+      }
+      lineup = lineupCon; slotsConfig = slotsConfigCon;
+      guardarLineup();
+      renderPitch();
     }
-    if (!mejorEval || mejorEval.rellenados === 0) {
-      alert('No se pudo formar un once con las posiciones disponibles.');
-      return;
-    }
-
-    lineup = {};
-    slotsConfig = mejorEval.formacion.slots.map((s, i) => ({
-      id: i + 1,
-      tipo: s.tipo,
-      left: s.left,
-      top: s.top,
-      desiredRoleCon: '',
-      desiredRoleSin: ''
-    }));
-
-    mejorEval.asignaciones.forEach(asig => {
-      const id = asig.slotIdx + 1;
-      slotsConfig[asig.slotIdx].desiredRoleCon = asig.roleCon || '';
-      slotsConfig[asig.slotIdx].desiredRoleSin = asig.roleSin || '';
-      lineup[id] = { playerId: asig.player.id, roleCon: asig.roleCon || '', roleSin: asig.roleSin || '' };
-    });
-
-    guardarLineup();
-    construirPitch();
-    renderPitch();
-    return;
-  }
-
-  const huecosVacios = slotsConfig.filter(s => !lineup[s.id]?.playerId);
-  if (!huecosVacios.length) {
-    renderPitch();
-    return;
-  }
-
-  const yaUsados = new Set(
-    Object.values(lineup).map(e => e.playerId).filter(Boolean)
-  );
-
-  const { asignaciones } = asignarOptimo(huecosVacios, pool, yaUsados);
-
-  asignaciones.forEach(asig => {
-    const slot = huecosVacios[asig.slotIdx];
-    if (!slot) return;
-
-    if (lineup[slot.id]?.playerId) return;
-
-    lineup[slot.id] = {
-      playerId: asig.player.id,
-      roleCon: asig.roleCon || '',
-      roleSin: asig.roleSin || ''
-    };
-  });
-
-  guardarLineup();
-  renderPitch();
-}
 
     function init() {
       try {
@@ -3524,8 +3737,10 @@ function aplicarFormaTodos(campo, valor) {
 
       // Si hay lineup actual, priorizar esos jugadores
       let titularesIds = [];
-      if (usarLineup && Object.keys(lineup).length > 0) {
-        titularesIds = Object.values(lineup).map(e => e.playerId).filter(Boolean);
+      if (usarLineup && typeof jugadoresEnCampo === 'function') {
+        titularesIds = jugadoresEnCampo();
+      } else if (usarLineup && Object.keys(lineupCon || {}).length > 0) {
+        titularesIds = Object.values(lineupCon).map(e => e.playerId).filter(Boolean);
       }
 
       // Generar 3 planes
