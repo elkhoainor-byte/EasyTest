@@ -1267,8 +1267,12 @@ function setForma(id, campo, valor) {
       aplicarFiltrosOnce();
     }
     function poolParaOnce(){
-      // Solo jugadores que pasan filtros del once y NO están excluidos
+      // Para auto-once: solo no excluidos que pasan filtros
       return jugadores.filter(j => !getExcluido(j) && jugadorPasaFiltrosOnce(j));
+    }
+    /** Lista de disponibles en el panel lateral (puede incluir excluidos si el filtro lo permite) */
+    function poolDisponiblesOnce(){
+      return jugadores.filter(j => jugadorPasaFiltrosOnce(j));
     }
     function cambiarPlantilla(id,nueva){
       const j=jugadores.find(p=>p.id==id); if(!j) return;
@@ -2406,24 +2410,35 @@ function toggleBajoForma(id, checked) {
       const container = document.getElementById('disponiblesList');
       if (!container) return;
       const usados = new Set(jugadoresEnCampo());
-      const pool = (typeof poolParaOnce === 'function' ? poolParaOnce() : jugadores)
+      // Incluye excluidos si el filtro "Ocultar excluidos" está desmarcado
+      const pool = (typeof poolDisponiblesOnce === 'function' ? poolDisponiblesOnce() : jugadores)
         .filter(j => !usados.has(j.id) && !usados.has(String(j.id)));
       if (!pool.length) {
-        container.innerHTML = '<div class="empty-state" style="padding:12px;font-size:0.85rem;">No hay más disponibles con los filtros actuales.</div>';
+        const hayExcluidosOcultos = filtrosOnce.ocultarExcluidos && jugadores.some(j => getExcluido(j) && !usados.has(j.id) && !usados.has(String(j.id)));
+        container.innerHTML = '<div class="empty-state" style="padding:12px;font-size:0.85rem;">No hay más disponibles con los filtros actuales.' +
+          (hayExcluidosOcultos ? '<br><small style="color:#f87171;">Hay jugadores excluidos ocultos. Desmarca «Ocultar excluidos» para verlos y poder reactivarles.</small>' : '') +
+          '</div>';
         return;
       }
-      const sorted = [...pool].sort((a,b) => mediaEfectiva(b,'') - mediaEfectiva(a,''));
+      // Orden: primero no excluidos (por media), luego excluidos
+      const sorted = [...pool].sort((a,b) => {
+        const ea = getExcluido(a) ? 1 : 0;
+        const eb = getExcluido(b) ? 1 : 0;
+        if (ea !== eb) return ea - eb;
+        return mediaEfectiva(b,'') - mediaEfectiva(a,'');
+      });
       container.innerHTML = sorted.map(j => {
         const m = mediaEfectiva(j, '');
         const pos = (getPosicionesJugador(j) || []).slice(0,3).join(', ');
-        const excl = getExcluido(j) ? ' excluido-row' : '';
-        return `<div class="disp-player${excl}" draggable="true"
-          ondragstart="onDragStart(event, ${j.id})" ondragend="onDragEnd(event)">
-          <span class="dp-name">${j.nombre}</span>
+        const excl = getExcluido(j);
+        const exclClass = excl ? ' excluido-row' : '';
+        return `<div class="disp-player${exclClass}" draggable="${excl ? 'false' : 'true'}"
+          ${excl ? '' : `ondragstart="onDragStart(event, ${j.id})" ondragend="onDragEnd(event)"`}>
+          <span class="dp-name">${j.nombre}${excl ? ' <span style="color:#f87171;font-size:0.7rem;">(excluido)</span>' : ''}</span>
           <span class="dp-pos">${pos}</span>
           <span class="dp-media" style="color:${colorMedia(m)}">${m.toFixed(0)}</span>
-          <label class="dp-excluir" onclick="event.stopPropagation()">
-            <input type="checkbox" ${getExcluido(j)?'checked':''} onchange="toggleExcluido(${j.id}, this.checked)"> Excluir
+          <label class="dp-excluir" onclick="event.stopPropagation()" title="${excl ? 'Desmarcar para volver a poder usarlo en el 11' : 'Marcar para no incluirlo en el 11 automático'}">
+            <input type="checkbox" ${excl ? 'checked' : ''} onchange="toggleExcluido(${j.id}, this.checked)"> Excluir
           </label>
           <div class="fe-mini" onclick="event.stopPropagation()">
             <label>U5</label><input type="number" min="0" max="10" step="0.5" value="${getUlt5(j)}"
