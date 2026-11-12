@@ -678,6 +678,55 @@
         font-size: 0.58rem; color: #a3e635; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;
       }
       .rival-slot .rs-empty-label { font-size: 0.55rem; color: #777; margin-top: 2px; }
+
+      /* ===== MENÚ PRINCIPAL / PARTIDAS ===== */
+      #menu-principal {
+        display: none; position: fixed; inset: 0; z-index: 9999;
+        background: linear-gradient(160deg, #0f0f14 0%, #1a1a2e 50%, #16213e 100%);
+        overflow-y: auto; padding: 24px 16px;
+      }
+      #menu-principal.visible { display: block; }
+      .menu-box {
+        max-width: 720px; margin: 40px auto; background: #1e1e28;
+        border: 1px solid #3a3a4a; border-radius: 16px; padding: 28px 24px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+      }
+      .menu-box h1 { text-align: center; font-size: 1.7rem; color: #fff; margin-bottom: 6px; }
+      .menu-box .menu-sub { text-align: center; color: #888; font-size: 0.95rem; margin-bottom: 24px; }
+      .partida-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; max-height: 50vh; overflow-y: auto; }
+      .partida-card {
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        background: #252532; border: 1px solid #3a3a4a; border-radius: 10px;
+        padding: 14px 16px; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      }
+      .partida-card:hover { border-color: #4a9eff; background: #2a2a3a; }
+      .partida-card .pc-info { flex: 1; min-width: 160px; }
+      .partida-card .pc-name { font-weight: 700; font-size: 1.1rem; color: #fff; }
+      .partida-card .pc-meta { font-size: 0.8rem; color: #888; margin-top: 4px; }
+      .partida-card .pc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+      .partida-card .pc-actions button { padding: 7px 12px; font-size: 0.8rem; }
+      .menu-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+      .menu-actions button { padding: 12px 22px; font-size: 1rem; }
+      .menu-hint { text-align: center; color: #666; font-size: 0.8rem; margin-top: 16px; line-height: 1.4; }
+      #app-header-bar {
+        display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+        gap: 10px; margin-bottom: 12px;
+      }
+      #app-header-bar h1 { margin: 0; flex: 1; text-align: center; }
+      .partida-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: #222; border: 1px solid #3a3a3a; border-radius: 8px;
+        padding: 6px 12px; font-size: 0.85rem; color: #aaa;
+      }
+      .partida-badge strong { color: #7dd3fc; }
+      .autosave-dot {
+        width: 8px; height: 8px; border-radius: 50%; background: #4ade80;
+        display: inline-block; transition: background 0.3s;
+      }
+      .autosave-dot.saving { background: #fbbf24; }
+      .autosave-dot.error { background: #f87171; }
+      body.menu-open .container > *:not(#menu-principal) { display: none !important; }
+
     </style>
   </head>
 <body>
@@ -1109,6 +1158,413 @@
   </div>
 
   <script>
+
+    /* ===================== SISTEMA DE PARTIDAS ===================== */
+    const PARTIDAS_META_KEY = 'fm24_partidas_meta';
+    const PARTIDA_PREFIX = 'fm24_partida_';
+    const LEGACY_KEYS = [
+      'jugadoresFM','rolesFM_v2','rolesFM','lineupConFM','lineupSinFM',
+      'slotsConfigConFM','slotsConfigSinFM','lineupFM','slotsConfigFM','rivalesFM'
+    ];
+
+    let partidaActualId = null;
+    let partidaActualNombre = '';
+    let _autoSaveTimer = null;
+    let _autoSavePending = false;
+
+    function leerMetaPartidas() {
+      try {
+        const m = JSON.parse(localStorage.getItem(PARTIDAS_META_KEY) || '[]');
+        return Array.isArray(m) ? m : [];
+      } catch(e) { return []; }
+    }
+    function escribirMetaPartidas(lista) {
+      localStorage.setItem(PARTIDAS_META_KEY, JSON.stringify(lista));
+    }
+
+    function snapshotEstadoActual() {
+      return {
+        version: 2,
+        jugadores: jugadores || [],
+        roles: roles || [],
+        lineupCon: lineupCon || {},
+        lineupSin: lineupSin || {},
+        slotsConfigCon: slotsConfigCon || [],
+        slotsConfigSin: slotsConfigSin || [],
+        rivales: rivales || [],
+        informeRival: typeof informeRival !== 'undefined' ? informeRival : [],
+        rivalOnceSlots: typeof rivalOnceSlots !== 'undefined' ? rivalOnceSlots : []
+      };
+    }
+
+    function aplicarSnapshot(data) {
+      jugadores = Array.isArray(data.jugadores) ? data.jugadores : [];
+      jugadores.forEach(j => {
+        if (j.ult5 === undefined) j.ult5 = 10;
+        if (j.valEnt === undefined) j.valEnt = 10;
+        if (j.informe === undefined) j.informe = 0;
+        if (j.bajoForma === undefined) j.bajoForma = false;
+        if (j.plantilla === undefined) j.plantilla = 'Primer equipo';
+        if (j.excluido === undefined) j.excluido = false;
+      });
+      roles = Array.isArray(data.roles) ? data.roles.map(r => ({ ...r, posesion: r.posesion || 'ambos' })) : [];
+      lineupCon = data.lineupCon && typeof data.lineupCon === 'object' ? data.lineupCon : {};
+      lineupSin = data.lineupSin && typeof data.lineupSin === 'object' ? data.lineupSin : {};
+      // migrar entries antiguas (roleCon/roleSin -> role)
+      const _mig = (e) => {
+        if (!e) return e;
+        if (e.role !== undefined) return e;
+        return { playerId: e.playerId, role: e.roleCon || e.roleSin || e.roleName || '' };
+      };
+      Object.keys(lineupCon).forEach(k => { lineupCon[k] = _mig(lineupCon[k]); });
+      Object.keys(lineupSin).forEach(k => { lineupSin[k] = _mig(lineupSin[k]); });
+      if (Array.isArray(data.slotsConfigCon) && data.slotsConfigCon.length) {
+        slotsConfigCon = data.slotsConfigCon.map(s => ({
+          id: s.id, tipo: s.tipo, left: s.left, top: s.top,
+          desiredRole: s.desiredRole || s.desiredRoleCon || ''
+        }));
+      } else if (typeof cloneDefaultSlots === 'function') {
+        slotsConfigCon = cloneDefaultSlots();
+      } else {
+        slotsConfigCon = [];
+      }
+      if (Array.isArray(data.slotsConfigSin) && data.slotsConfigSin.length) {
+        slotsConfigSin = data.slotsConfigSin.map(s => ({
+          id: s.id, tipo: s.tipo, left: s.left, top: s.top,
+          desiredRole: s.desiredRole || s.desiredRoleSin || ''
+        }));
+      } else {
+        slotsConfigSin = (slotsConfigCon || []).map(s => ({ ...s, desiredRole: s.desiredRole || '' }));
+      }
+      lineup = lineupCon; slotsConfig = slotsConfigCon;
+      rivales = Array.isArray(data.rivales) ? data.rivales : [];
+      if (typeof informeRival !== 'undefined') informeRival = Array.isArray(data.informeRival) ? data.informeRival : [];
+      if (typeof rivalOnceSlots !== 'undefined' && Array.isArray(data.rivalOnceSlots)) {
+        rivalOnceSlots = data.rivalOnceSlots;
+      }
+    }
+
+    function guardarPartidaAhora() {
+      if (!partidaActualId) return false;
+      const dot = document.getElementById('autosave-dot');
+      if (dot) { dot.classList.add('saving'); dot.classList.remove('error'); }
+      try {
+        const snap = snapshotEstadoActual();
+        localStorage.setItem(PARTIDA_PREFIX + partidaActualId, JSON.stringify(snap));
+        const meta = leerMetaPartidas();
+        const idx = meta.findIndex(p => p.id === partidaActualId);
+        const now = new Date().toISOString();
+        if (idx >= 0) {
+          meta[idx].updatedAt = now;
+          meta[idx].nombre = partidaActualNombre || meta[idx].nombre;
+          meta[idx].jugadoresCount = (snap.jugadores || []).length;
+        }
+        escribirMetaPartidas(meta);
+        if (dot) setTimeout(() => dot.classList.remove('saving'), 400);
+        return true;
+      } catch (e) {
+        console.error('Error auto-guardando partida', e);
+        if (dot) { dot.classList.remove('saving'); dot.classList.add('error'); }
+        return false;
+      }
+    }
+
+    function autoGuardarPartida() {
+      if (!partidaActualId) return;
+      _autoSavePending = true;
+      if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
+      _autoSaveTimer = setTimeout(() => {
+        _autoSavePending = false;
+        guardarPartidaAhora();
+      }, 350);
+    }
+
+    // Alias usado en todo el código en lugar de localStorage disperso
+    function persistirJugadores() { autoGuardarPartida(); }
+    function persistirRoles() { autoGuardarPartida(); }
+    function persistirLineup() { autoGuardarPartida(); }
+    function persistirRivales() { autoGuardarPartida(); }
+
+    function migrarDatosLegacySiExisten() {
+      const meta = leerMetaPartidas();
+      if (meta.length) return; // ya hay sistema de partidas
+      let tieneLegacy = false;
+      try {
+        const j = JSON.parse(localStorage.getItem('jugadoresFM') || '[]');
+        if (Array.isArray(j) && j.length) tieneLegacy = true;
+      } catch(e) {}
+      if (!tieneLegacy) {
+        try {
+          const r = JSON.parse(localStorage.getItem('rolesFM_v2') || 'null');
+          if (r && (Array.isArray(r) ? r.length : Object.keys(r||{}).length)) tieneLegacy = true;
+        } catch(e) {}
+      }
+      if (!tieneLegacy) return;
+
+      // Cargar legacy en memoria temporal
+      let legJ = [], legR = [], legLC = {}, legLS = {}, legSC = null, legSS = null, legRiv = [];
+      try { legJ = JSON.parse(localStorage.getItem('jugadoresFM') || '[]') || []; } catch(e) {}
+      try {
+        const d = JSON.parse(localStorage.getItem('rolesFM_v2') || 'null');
+        if (Array.isArray(d)) legR = d;
+        else {
+          const old = JSON.parse(localStorage.getItem('rolesFM') || '{}');
+          if (old && typeof old === 'object') {
+            const m = [];
+            Object.keys(old).forEach(pos => {
+              (old[pos]||[]).forEach(r => {
+                let ex = m.find(x => x.nombre === r.nombre);
+                if (ex) { if (!ex.posiciones.includes(pos)) ex.posiciones.push(pos); }
+                else m.push({ id: Date.now()+Math.random(), nombre: r.nombre, posiciones: [pos], atributos: r.atributos||[], posesion: 'ambos' });
+              });
+            });
+            legR = m;
+          }
+        }
+      } catch(e) {}
+      try { legLC = JSON.parse(localStorage.getItem('lineupConFM') || localStorage.getItem('lineupFM') || '{}') || {}; } catch(e) {}
+      try { legLS = JSON.parse(localStorage.getItem('lineupSinFM') || '{}') || {}; } catch(e) {}
+      try { legSC = JSON.parse(localStorage.getItem('slotsConfigConFM') || localStorage.getItem('slotsConfigFM') || 'null'); } catch(e) {}
+      try { legSS = JSON.parse(localStorage.getItem('slotsConfigSinFM') || 'null'); } catch(e) {}
+      try { legRiv = JSON.parse(localStorage.getItem('rivalesFM') || '[]') || []; } catch(e) {}
+
+      const id = 'legacy_' + Date.now();
+      const now = new Date().toISOString();
+      const snap = {
+        version: 2,
+        jugadores: Array.isArray(legJ) ? legJ : [],
+        roles: Array.isArray(legR) ? legR : [],
+        lineupCon: legLC || {},
+        lineupSin: legLS || {},
+        slotsConfigCon: Array.isArray(legSC) ? legSC : [],
+        slotsConfigSin: Array.isArray(legSS) ? legSS : [],
+        rivales: Array.isArray(legRiv) ? legRiv : [],
+        informeRival: [],
+        rivalOnceSlots: []
+      };
+      localStorage.setItem(PARTIDA_PREFIX + id, JSON.stringify(snap));
+      escribirMetaPartidas([{
+        id, nombre: 'Partida migrada', createdAt: now, updatedAt: now,
+        jugadoresCount: snap.jugadores.length
+      }]);
+    }
+
+    function formatearFecha(iso) {
+      if (!iso) return '—';
+      try {
+        const d = new Date(iso);
+        return d.toLocaleString('es-ES', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      } catch(e) { return iso; }
+    }
+
+    function renderMenuPartidas() {
+      const cont = document.getElementById('partida-list');
+      if (!cont) return;
+      migrarDatosLegacySiExisten();
+      const meta = leerMetaPartidas().slice().sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||''));
+      if (!meta.length) {
+        cont.innerHTML = '<div class="empty-state" style="padding:24px;">No hay partidas guardadas.<br>Pulsa «Nueva partida» para empezar.</div>';
+        return;
+      }
+      cont.innerHTML = meta.map(p => `
+        <div class="partida-card" data-id="${p.id}">
+          <div class="pc-info" onclick="cargarPartida('${p.id}')">
+            <div class="pc-name">${escapeHtml(p.nombre || 'Sin nombre')}</div>
+            <div class="pc-meta">${p.jugadoresCount || 0} jugadores · Actualizada: ${formatearFecha(p.updatedAt)}</div>
+          </div>
+          <div class="pc-actions">
+            <button class="btn-primary" onclick="event.stopPropagation();cargarPartida('${p.id}')">Abrir</button>
+            <button class="btn-secondary" onclick="event.stopPropagation();renombrarPartida('${p.id}')">✏️</button>
+            <button class="btn-info" onclick="event.stopPropagation();exportarPartida('${p.id}')">📥</button>
+            <button class="btn-danger" onclick="event.stopPropagation();eliminarPartida('${p.id}')">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function mostrarMenuPartidas() {
+      document.body.classList.add('menu-open');
+      const m = document.getElementById('menu-principal');
+      if (m) m.classList.add('visible');
+      renderMenuPartidas();
+    }
+
+    function ocultarMenuPartidas() {
+      document.body.classList.remove('menu-open');
+      const m = document.getElementById('menu-principal');
+      if (m) m.classList.remove('visible');
+    }
+
+    function volverAlMenuPartidas() {
+      if (partidaActualId) {
+        if (_autoSaveTimer) { clearTimeout(_autoSaveTimer); _autoSaveTimer = null; }
+        guardarPartidaAhora();
+      }
+      partidaActualId = null;
+      partidaActualNombre = '';
+      mostrarMenuPartidas();
+    }
+
+    function crearNuevaPartida() {
+      const nombre = prompt('Nombre de la nueva partida:', 'Mi partida FM24');
+      if (nombre === null) return;
+      const nom = (nombre || '').trim() || 'Partida sin nombre';
+      const id = 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      const now = new Date().toISOString();
+      const snap = {
+        version: 2,
+        jugadores: [],
+        roles: [],
+        lineupCon: {},
+        lineupSin: {},
+        slotsConfigCon: [],
+        slotsConfigSin: [],
+        rivales: [],
+        informeRival: [],
+        rivalOnceSlots: []
+      };
+      localStorage.setItem(PARTIDA_PREFIX + id, JSON.stringify(snap));
+      const meta = leerMetaPartidas();
+      meta.push({ id, nombre: nom, createdAt: now, updatedAt: now, jugadoresCount: 0 });
+      escribirMetaPartidas(meta);
+      cargarPartida(id);
+    }
+
+    function cargarPartida(id) {
+      let data = null;
+      try {
+        data = JSON.parse(localStorage.getItem(PARTIDA_PREFIX + id) || 'null');
+      } catch(e) { data = null; }
+      if (!data) {
+        alert('No se pudo cargar la partida.');
+        return;
+      }
+      // Asegurar que funciones de slots existen (init parcial)
+      partidaActualId = id;
+      const meta = leerMetaPartidas().find(p => p.id === id);
+      partidaActualNombre = meta ? meta.nombre : 'Partida';
+      const badge = document.getElementById('partida-nombre-badge');
+      if (badge) badge.textContent = partidaActualNombre;
+
+      // Reset estado rival editor
+      if (typeof rivalEditandoId !== 'undefined') rivalEditandoId = null;
+
+      aplicarSnapshot(data);
+
+      // UI init
+      if (typeof crearCheckboxesPosiciones === 'function') crearCheckboxesPosiciones();
+      if (typeof crearCheckboxesPosicionesRol === 'function') crearCheckboxesPosicionesRol();
+      if (typeof crearCheckboxesAtributosRol === 'function') crearCheckboxesAtributosRol();
+      if (typeof actualizarFormularioAtributos === 'function') actualizarFormularioAtributos();
+      if (typeof renderizarJugadores === 'function') renderizarJugadores();
+      if (typeof renderizarRolesExistentes === 'function') renderizarRolesExistentes();
+      if (typeof renderizarRivales === 'function') renderizarRivales();
+      if (typeof construirListasRival === 'function') construirListasRival();
+      if (typeof initRivalOnce === 'function') {
+        if (!rivalOnceSlots || !rivalOnceSlots.length) initRivalOnce();
+        else if (typeof renderRivalPitch === 'function') renderRivalPitch();
+      }
+      if (typeof renderInformeRival === 'function') renderInformeRival();
+      if (typeof construirPitch === 'function') construirPitch();
+      if (typeof renderPitch === 'function') renderPitch();
+
+      ocultarMenuPartidas();
+      if (typeof mostrarTab === 'function') mostrarTab('equipo');
+    }
+
+    function renombrarPartida(id) {
+      const meta = leerMetaPartidas();
+      const p = meta.find(x => x.id === id);
+      if (!p) return;
+      const nuevo = prompt('Nuevo nombre:', p.nombre);
+      if (nuevo === null) return;
+      p.nombre = (nuevo || '').trim() || p.nombre;
+      p.updatedAt = new Date().toISOString();
+      escribirMetaPartidas(meta);
+      if (partidaActualId === id) {
+        partidaActualNombre = p.nombre;
+        const badge = document.getElementById('partida-nombre-badge');
+        if (badge) badge.textContent = partidaActualNombre;
+      }
+      renderMenuPartidas();
+    }
+
+    function eliminarPartida(id) {
+      if (!confirm('¿Eliminar esta partida de forma permanente?')) return;
+      localStorage.removeItem(PARTIDA_PREFIX + id);
+      let meta = leerMetaPartidas().filter(p => p.id !== id);
+      escribirMetaPartidas(meta);
+      if (partidaActualId === id) {
+        partidaActualId = null;
+        partidaActualNombre = '';
+      }
+      renderMenuPartidas();
+    }
+
+    function exportarPartida(id) {
+      try {
+        const data = JSON.parse(localStorage.getItem(PARTIDA_PREFIX + id) || 'null');
+        const meta = leerMetaPartidas().find(p => p.id === id);
+        if (!data) { alert('Partida vacía o no encontrada.'); return; }
+        const blob = new Blob([JSON.stringify({ meta: meta || { id }, data }, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'partida_' + (meta?.nombre || id).replace(/[^\w\-]+/g, '_') + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch(e) { alert('Error al exportar.'); }
+    }
+
+    function importarPartidaJSON() {
+      document.getElementById('importPartidaFile')?.click();
+    }
+
+    function onImportPartidaFile(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          const data = parsed.data || parsed;
+          if (!data || typeof data !== 'object') throw new Error('formato');
+          const id = 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+          const now = new Date().toISOString();
+          const nombre = (parsed.meta && parsed.meta.nombre) || prompt('Nombre para la partida importada:', 'Partida importada') || 'Partida importada';
+          const snap = {
+            version: 2,
+            jugadores: data.jugadores || [],
+            roles: data.roles || [],
+            lineupCon: data.lineupCon || {},
+            lineupSin: data.lineupSin || {},
+            slotsConfigCon: data.slotsConfigCon || [],
+            slotsConfigSin: data.slotsConfigSin || [],
+            rivales: data.rivales || [],
+            informeRival: data.informeRival || [],
+            rivalOnceSlots: data.rivalOnceSlots || []
+          };
+          localStorage.setItem(PARTIDA_PREFIX + id, JSON.stringify(snap));
+          const meta = leerMetaPartidas();
+          meta.push({ id, nombre, createdAt: now, updatedAt: now, jugadoresCount: (snap.jugadores||[]).length });
+          escribirMetaPartidas(meta);
+          renderMenuPartidas();
+          alert('Partida importada ✅');
+        } catch(err) {
+          alert('No se pudo importar el JSON de partida.');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    /* ===================== FIN SISTEMA DE PARTIDAS ===================== */
+
+
     function stepForma(id, campo, delta) {
   const j = jugadores.find(p => p.id == id);
   if (!j) return;
@@ -1120,7 +1576,7 @@
     let v = Math.round((getInforme(j) + delta) / 0.2) * 0.2;
     j.informe = Math.max(-5, Math.min(5, +v.toFixed(2)));
   }
-  localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+  autoGuardarPartida();
   renderTablaForma();
   if (document.getElementById('tab-hacer-11') && document.getElementById('tab-hacer-11').classList.contains('active')) {
     renderPitch();
@@ -1276,13 +1732,13 @@ function setForma(id, campo, valor) {
     }
     function cambiarPlantilla(id,nueva){
       const j=jugadores.find(p=>p.id==id); if(!j) return;
-      j.plantilla=nueva; localStorage.setItem('jugadoresFM',JSON.stringify(jugadores));
+      j.plantilla=nueva; autoGuardarPartida();
       renderizarJugadores();
       if(document.getElementById('tab-hacer-11')?.classList.contains('active')) renderPitch();
     }
     function toggleExcluido(id,checked){
       const j=jugadores.find(p=>p.id==id); if(!j) return;
-      j.excluido=!!checked; localStorage.setItem('jugadoresFM',JSON.stringify(jugadores));
+      j.excluido=!!checked; autoGuardarPartida();
       renderizarJugadores();
       if(document.getElementById('tab-hacer-11')?.classList.contains('active')) renderPitch();
     }
@@ -1646,7 +2102,7 @@ function toggleBajoForma(id, checked) {
   const j = jugadores.find(p => p.id == id);
   if (!j) return;
   j.bajoForma = !!checked;
-  localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+  autoGuardarPartida();
 
   // Solo actualizar la fila de la tabla de forma
   const fila = document.querySelector(`#tabla-forma-wrap tr[data-id="${id}"]`);
@@ -1823,7 +2279,7 @@ function toggleBajoForma(id, checked) {
         v = Math.max(-5, Math.min(5, v));
       }
       j[campo] = v;
-      localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+      autoGuardarPartida();
       // refrescar once si estamos ahí
       if (document.getElementById('tab-hacer-11').classList.contains('active')) {
         renderPitch();
@@ -1831,27 +2287,9 @@ function toggleBajoForma(id, checked) {
     }
 
     /* ROLES */
-    function guardarRolesEnStorage() { localStorage.setItem('rolesFM_v2', JSON.stringify(roles)); }
+    function guardarRolesEnStorage() { autoGuardarPartida(); }
     function cargarRolesDesdeStorage() {
-      try {
-        const data = JSON.parse(localStorage.getItem('rolesFM_v2') || 'null');
-        if (Array.isArray(data)) {
-          roles = data.map(r => ({ ...r, posesion: r.posesion || 'ambos' }));
-          return;
-        }
-        const old = JSON.parse(localStorage.getItem('rolesFM') || '{}');
-        if (old && typeof old === 'object') {
-          const m = [];
-          Object.keys(old).forEach(pos => {
-            (old[pos]||[]).forEach(r => {
-              let ex = m.find(x => x.nombre === r.nombre);
-              if (ex) { if (!ex.posiciones.includes(pos)) ex.posiciones.push(pos); }
-              else m.push({ id: Date.now()+Math.random(), nombre: r.nombre, posiciones: [pos], atributos: r.atributos||[], posesion: 'ambos' });
-            });
-          });
-          roles = m; guardarRolesEnStorage();
-        } else roles = [];
-      } catch(e) { roles = []; }
+      // Los roles se cargan desde la partida (aplicarSnapshot). No-op para legacy.
     }
     function obtenerPosicionesRolSeleccionadas() {
       return Array.from(document.querySelectorAll('#rolPosicionesContainer input[name="rol-pos"]:checked')).map(c => c.value);
@@ -2063,7 +2501,7 @@ function toggleBajoForma(id, checked) {
         jugadores.push(data);
         mostrarStatus('✅ Jugador guardado');
       }
-      localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+      autoGuardarPartida();
       editandoId = null; document.getElementById('form-title').textContent = 'Nuevo jugador';
       limpiarFormulario(); renderizarJugadores();
     }
@@ -2106,7 +2544,7 @@ function toggleBajoForma(id, checked) {
       Object.keys(lineupCon).forEach(s => { if (lineupCon[s]?.playerId === id) delete lineupCon[s]; });
       Object.keys(lineupSin).forEach(s => { if (lineupSin[s]?.playerId === id) delete lineupSin[s]; });
       lineup = lineupCon;
-      guardarLineup(); localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+      guardarLineup(); autoGuardarPartida();
       renderizarJugadores();
       if (document.getElementById('tab-hacer-11')?.classList.contains('active')) renderPitch();
     }
@@ -2217,7 +2655,7 @@ function toggleBajoForma(id, checked) {
         try {
           const data = JSON.parse(e.target.result);
           if (!Array.isArray(data)) throw new Error();
-          jugadores = data; localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+          jugadores = data; autoGuardarPartida();
           renderizarJugadores(); mostrarStatus('✅ JSON importado');
         } catch(err) { alert('Error al importar el JSON.'); }
       };
@@ -2249,13 +2687,7 @@ function toggleBajoForma(id, checked) {
     }
 
     function guardarLineup() {
-      localStorage.setItem('lineupConFM', JSON.stringify(lineupCon));
-      localStorage.setItem('lineupSinFM', JSON.stringify(lineupSin));
-      localStorage.setItem('slotsConfigConFM', JSON.stringify(slotsConfigCon));
-      localStorage.setItem('slotsConfigSinFM', JSON.stringify(slotsConfigSin));
-      // legacy keys
-      localStorage.setItem('lineupFM', JSON.stringify(lineupCon));
-      localStorage.setItem('slotsConfigFM', JSON.stringify(slotsConfigCon));
+      autoGuardarPartida();
     }
     function migrarEntry(e) {
       if (!e) return e;
@@ -2267,51 +2699,24 @@ function toggleBajoForma(id, checked) {
       };
     }
     function cargarLineup() {
+      // Datos de lineup vienen de la partida (aplicarSnapshot). Solo defaults si vacío.
       try {
-        const lc = JSON.parse(localStorage.getItem('lineupConFM') || localStorage.getItem('lineupFM') || '{}');
-        const ls = JSON.parse(localStorage.getItem('lineupSinFM') || '{}');
-        lineupCon = {};
-        lineupSin = {};
-        Object.keys(lc || {}).forEach(k => { lineupCon[k] = migrarEntry(lc[k]); });
-        Object.keys(ls || {}).forEach(k => { lineupSin[k] = migrarEntry(ls[k]); });
-
-        // Si solo hay lineup antiguo, copiar jugadores a Sin con rol sin
-        if (!Object.keys(lineupSin).length && Object.keys(lineupCon).length) {
-          Object.keys(lineupCon).forEach(k => {
-            const e = lc[k];
-            lineupSin[k] = { playerId: e.playerId, role: e.roleSin || e.roleName || e.roleCon || '' };
-            lineupCon[k] = { playerId: e.playerId, role: e.roleCon || e.roleName || e.roleSin || '' };
-          });
+        if (!lineupCon || typeof lineupCon !== 'object') lineupCon = {};
+        if (!lineupSin || typeof lineupSin !== 'object') lineupSin = {};
+        if (!Array.isArray(slotsConfigCon) || !slotsConfigCon.length) {
+          slotsConfigCon = typeof cloneDefaultSlots === 'function' ? cloneDefaultSlots() : [];
         }
-
-        const scC = JSON.parse(localStorage.getItem('slotsConfigConFM') || localStorage.getItem('slotsConfigFM') || 'null');
-        const scS = JSON.parse(localStorage.getItem('slotsConfigSinFM') || 'null');
-        if (scC && Array.isArray(scC) && scC.length) {
-          slotsConfigCon = scC.map(s => ({
-            id: s.id, tipo: s.tipo, left: s.left, top: s.top,
-            desiredRole: s.desiredRole || s.desiredRoleCon || ''
-          }));
-        } else {
-          slotsConfigCon = cloneDefaultSlots();
-        }
-        if (scS && Array.isArray(scS) && scS.length) {
-          slotsConfigSin = scS.map(s => ({
-            id: s.id, tipo: s.tipo, left: s.left, top: s.top,
-            desiredRole: s.desiredRole || s.desiredRoleSin || ''
-          }));
-        } else {
-          // clonar posiciones del con si no hay sin
+        if (!Array.isArray(slotsConfigSin) || !slotsConfigSin.length) {
           slotsConfigSin = slotsConfigCon.map(s => ({ ...s, desiredRole: s.desiredRole || '' }));
         }
         lineup = lineupCon; slotsConfig = slotsConfigCon;
       } catch (e) {
         lineupCon = {}; lineupSin = {};
-        slotsConfigCon = cloneDefaultSlots();
-        slotsConfigSin = cloneDefaultSlots();
+        slotsConfigCon = typeof cloneDefaultSlots === 'function' ? cloneDefaultSlots() : [];
+        slotsConfigSin = typeof cloneDefaultSlots === 'function' ? cloneDefaultSlots() : [];
         lineup = lineupCon; slotsConfig = slotsConfigCon;
       }
     }
-
     function contarTipo(fase, tipo, excludeId) {
       return getSlots(fase).filter(s => s.tipo === tipo && s.id !== excludeId).length;
     }
@@ -2815,27 +3220,19 @@ function toggleBajoForma(id, checked) {
     }
 
     function init() {
-      try {
-        jugadores = JSON.parse(localStorage.getItem('jugadoresFM') || '[]');
-        if (!Array.isArray(jugadores)) jugadores = [];
-        // Migrar jugadores antiguos sin campos de forma
-        jugadores.forEach(j => {
-  if (j.ult5 === undefined) j.ult5 = 10;
-  if (j.valEnt === undefined) j.valEnt = 10;
-  if (j.informe === undefined) j.informe = 0;
-  if (j.bajoForma === undefined) j.bajoForma = false;
-  if (j.plantilla === undefined) j.plantilla = 'Primer equipo';
-  if (j.excluido === undefined) j.excluido = false;
-});
-      } catch(e) { jugadores = []; }
-      cargarRolesDesdeStorage();
-      cargarLineup();
+      // Solo prepara UI base; los datos se cargan al abrir una partida
+      jugadores = [];
+      roles = [];
+      lineupCon = {}; lineupSin = {};
+      slotsConfigCon = []; slotsConfigSin = [];
+      lineup = lineupCon; slotsConfig = slotsConfigCon;
+      rivales = [];
       crearCheckboxesPosiciones();
       crearCheckboxesPosicionesRol();
       crearCheckboxesAtributosRol();
       actualizarFormularioAtributos();
-      renderizarJugadores();
-      renderizarRolesExistentes();
+      // Mostrar menú de partidas (migración legacy incluida)
+      mostrarMenuPartidas();
     }
 
     function stepForma(id, campo, delta) {
@@ -2854,7 +3251,7 @@ function toggleBajoForma(id, checked) {
     v = Math.max(-5, Math.min(5, +v.toFixed(2)));
     j.informe = v;
   }
-  localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+  autoGuardarPartida();
   // refrescar solo lo necesario
   if (document.getElementById('tab-equipo')?.classList.contains('active')) {
     renderTablaForma(); // ver más abajo
@@ -2950,7 +3347,7 @@ function aplicarFormaTodos(campo, valor) {
       j.informe = Math.max(-5, Math.min(5, v));
     }
   });
-  localStorage.setItem('jugadoresFM', JSON.stringify(jugadores));
+  autoGuardarPartida();
   renderTablaForma();
   if (document.getElementById('tab-hacer-11')?.classList.contains('active')) renderPitch();
     }
@@ -3093,14 +3490,12 @@ function aplicarFormaTodos(campo, valor) {
     ].sort((a,b) => a.localeCompare(b, 'es'));
 
     function cargarRivales() {
-      try {
-        rivales = JSON.parse(localStorage.getItem('rivalesFM') || '[]');
-        if (!Array.isArray(rivales)) rivales = [];
-      } catch(e) { rivales = []; }
-      construirListasRival();
+      // Rivales se cargan desde la partida. Solo reconstruye listas UI.
+      if (!Array.isArray(rivales)) rivales = [];
+      if (typeof construirListasRival === 'function') construirListasRival();
     }
     function guardarRivalesStorage() {
-      localStorage.setItem('rivalesFM', JSON.stringify(rivales));
+      autoGuardarPartida();
     }
 
     function opcionesJugadoresRival() {
@@ -4130,16 +4525,9 @@ function aplicarFormaTodos(campo, valor) {
       cont.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // Cargar rivales al init
-    const oldInit = init;
-    init = function() {
-      oldInit();
-      cargarRivales();
-      initRivalOnce();
-    };
-
-      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-      else init();
+    // Boot: menú de partidas (cargarPartida inicializa rivales/pitch)
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
     </script>
   </body>
 </html>
