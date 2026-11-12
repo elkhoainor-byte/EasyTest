@@ -725,13 +725,40 @@
       }
       .autosave-dot.saving { background: #fbbf24; }
       .autosave-dot.error { background: #f87171; }
-      body.menu-open .container > *:not(#menu-principal) { display: none !important; }
+      body.menu-open #app-header-bar,
+      body.menu-open .nav-menu,
+      body.menu-open .tab-content { display: none !important; }
+      body.menu-open #menu-principal { display: block !important; }
 
     </style>
   </head>
 <body>
   <div class="container">
-    <h1>⚽ Gestor FM24 + Rival Tactician</h1>
+    <!-- MENÚ PRINCIPAL DE PARTIDAS -->
+    <div id="menu-principal" class="visible">
+      <div class="menu-box">
+        <h1>⚽ Gestor FM24</h1>
+        <p class="menu-sub">Elige una partida o crea una nueva</p>
+        <div class="partida-list" id="partida-list">
+          <div class="empty-state" style="padding:20px;">Cargando…</div>
+        </div>
+        <div class="menu-actions">
+          <button class="btn-primary" onclick="crearNuevaPartida()">＋ Nueva partida</button>
+          <button class="btn-secondary" onclick="importarPartidaJSON()">📤 Importar partida (JSON)</button>
+          <input type="file" id="importPartidaFile" class="file-input" accept=".json" onchange="onImportPartidaFile(event)">
+        </div>
+        <p class="menu-hint">Los cambios se guardan automáticamente en la partida activa.<br>Puedes volver aquí en cualquier momento con «Partidas».</p>
+      </div>
+    </div>
+
+    <div id="app-header-bar">
+      <button class="btn-secondary" style="padding:8px 14px;font-size:0.85rem;" onclick="volverAlMenuPartidas()" title="Volver al menú de partidas">☰ Partidas</button>
+      <h1>⚽ Gestor FM24 + Rival Tactician</h1>
+      <div class="partida-badge">
+        <span class="autosave-dot" id="autosave-dot" title="Auto-guardado"></span>
+        <span>Partida: <strong id="partida-nombre-badge">—</strong></span>
+      </div>
+    </div>
 
     <div class="nav-menu">
       <button class="nav-btn active" onclick="mostrarTab('equipo')">Equipo</button>
