@@ -962,9 +962,21 @@
         <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <div>
             <h2 style="margin:0;border:none;padding:0;">Informe de equipo</h2>
-            <p style="color:#888;font-size:0.88rem;margin:4px 0 0;">Medias de atributos del plantel filtrado (respeta filtros de la pestaña Equipo si están activos en memoria).</p>
+            <p style="color:#888;font-size:0.88rem;margin:4px 0 0;">Medias de atributos del plantel según el alcance elegido.</p>
           </div>
-          <button class="btn-secondary" type="button" onclick="renderInformeEquipo()">↺ Actualizar</button>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <label style="font-size:0.85rem;color:#aaa;display:flex;align-items:center;gap:8px;">
+              Alcance
+              <select id="informe-alcance" onchange="renderInformeEquipo()"
+                style="padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:#222;color:var(--text);font-size:0.9rem;cursor:pointer;">
+                <option value="primer">Solo primer equipo</option>
+                <option value="club">Todo el club</option>
+                <option value="equipo-b">Solo Equipo B</option>
+                <option value="sub-19">Solo Sub-19</option>
+              </select>
+            </label>
+            <button class="btn-secondary" type="button" onclick="renderInformeEquipo()">↺ Actualizar</button>
+          </div>
         </div>
         <div id="informeEquipoContenedor">
           <div class="empty-state">Abre esta pestaña con jugadores cargados para ver el informe.</div>
@@ -3883,12 +3895,25 @@ function aplicarFormaTodos(campo, valor) {
     function renderInformeEquipo() {
       const cont = document.getElementById('informeEquipoContenedor');
       if (!cont) return;
-      let lista = [];
-      try {
-        lista = typeof obtenerJugadoresOrdenados === 'function' ? obtenerJugadoresOrdenados() : (jugadores || []).slice();
-      } catch(e) { lista = (jugadores || []).slice(); }
+      const alcance = document.getElementById('informe-alcance')?.value || 'primer';
+      let lista = (jugadores || []).slice();
+      // Filtrar por plantilla según alcance
+      if (alcance === 'primer') {
+        lista = lista.filter(j => getPlantilla(j) === 'Primer equipo');
+      } else if (alcance === 'equipo-b') {
+        lista = lista.filter(j => getPlantilla(j) === 'Equipo B');
+      } else if (alcance === 'sub-19') {
+        lista = lista.filter(j => getPlantilla(j) === 'Sub-19');
+      }
+      // alcance === 'club' → todos
+      const etiquetas = {
+        'primer': 'Primer equipo',
+        'club': 'Todo el club',
+        'equipo-b': 'Equipo B',
+        'sub-19': 'Sub-19'
+      };
       if (!lista.length) {
-        cont.innerHTML = '<div class="empty-state">No hay jugadores en el equipo para calcular el informe.</div>';
+        cont.innerHTML = '<div class="empty-state">No hay jugadores en «' + (etiquetas[alcance]||alcance) + '» para calcular el informe.</div>';
         return;
       }
       // Atributos outfield comunes para media global del plantel (solo jugadores de campo)
@@ -3897,8 +3922,9 @@ function aplicarFormaTodos(campo, valor) {
       const attrsCampo = [...ATTRS_OUTFIELD.tecnico, ...ATTRS_OUTFIELD.balon_parado, ...ATTRS_OUTFIELD.mental, ...ATTRS_OUTFIELD.fisico];
       const attrsGK = [...ATTRS_GK.porteria, ...ATTRS_GK.mental, ...ATTRS_GK.fisico, ...ATTRS_GK.tecnico];
 
-      let html = '<div class="informe-section-title">Media general del plantel</div><div class="informe-grid">';
-      html += renderBloqueMediaAttrs('Todo el equipo (media jugadores)', lista, deCampo.length ? attrsCampo : attrsGK);
+      const etiquetaAlcance = etiquetas[alcance] || 'Plantel';
+      let html = '<div class="informe-section-title">Media general — ' + etiquetaAlcance + ' (' + lista.length + ' jugadores)</div><div class="informe-grid">';
+      html += renderBloqueMediaAttrs(etiquetaAlcance + ' (media jugadores)', lista, deCampo.length ? attrsCampo : attrsGK);
       if (deCampo.length) html += renderBloqueMediaAttrs('Jugadores de campo', deCampo, attrsCampo);
       if (porteros.length) html += renderBloqueMediaAttrs('Porteros', porteros, attrsGK);
       html += '</div>';
