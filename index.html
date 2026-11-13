@@ -75,23 +75,23 @@
         width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer;
       }
 
-      .attrs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .attrs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
       @media (max-width: 900px) { .attrs-grid { grid-template-columns: 1fr; } }
-      .attr-column { background: #222; border-radius: 8px; padding: 16px; border: 1px solid var(--border); }
+      .attr-column { background: #222; border-radius: 8px; padding: 10px 12px; border: 1px solid var(--border); }
       .attr-column h3 {
-        text-align: center; margin-bottom: 14px; font-size: 1.1rem;
+        text-align: center; margin-bottom: 8px; font-size: 0.95rem;
         text-transform: uppercase; letter-spacing: 1px; color: #aaa;
       }
       .attr-row {
         display: flex; justify-content: space-between; align-items: center;
-        padding: 6px 8px; margin-bottom: 4px; border-radius: 4px;
+        padding: 3px 4px; margin-bottom: 2px; border-radius: 4px; gap: 6px; min-height: 0;
       }
       .attr-row:hover { background: #2f2f2f; }
-      .attr-row label { flex: 1; font-size: 0.95rem; }
+      .attr-row label { flex: 1; font-size: 0.82rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .attr-row input {
-        width: 60px; padding: 6px 8px; text-align: center; border-radius: 4px;
+        width: 44px; min-width: 44px; max-width: 44px; padding: 3px 4px; text-align: center; border-radius: 4px;
         border: 1px solid var(--border); background: #1a1a1a; color: var(--text);
-        font-weight: 600; font-size: 0.95rem;
+        font-weight: 600; font-size: 0.82rem; height: 26px;
       }
       .attr-row input:focus { outline: 2px solid var(--accent); border-color: transparent; }
       .tecnico-gk-block { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
@@ -578,6 +578,59 @@
 
       
       /* ===== OJEADOS ===== */
+      .ojeados-toolbar {
+        display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+        justify-content: space-between; margin-bottom: 14px;
+      }
+      .ojeados-filters {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px; background: #1a1a1a; border: 1px solid var(--border);
+        border-radius: 10px; padding: 12px; margin-bottom: 14px;
+      }
+      .ojeados-filters label { font-size: 0.75rem; color: #888; display: block; margin-bottom: 4px; font-weight: 600; }
+      .ojeados-filters input, .ojeados-filters select {
+        width: 100%; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border);
+        background: #222; color: var(--text); font-size: 0.88rem;
+      }
+      .ojeados-filters .filt-row { display: flex; gap: 6px; align-items: center; }
+      .ojeados-filters .filt-row input { flex: 1; }
+      .ojeado-row {
+        display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start;
+        background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+        padding: 12px 14px; margin-bottom: 10px;
+      }
+      .ojeado-row .or-main { min-width: 0; }
+      .ojeado-row .or-name { font-size: 1.1rem; font-weight: 700; color: #fff; }
+      .ojeado-row .or-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+      .ojeado-row .or-tags .tag {
+        font-size: 0.78rem; padding: 3px 8px; border-radius: 6px;
+        background: #222; border: 1px solid #3a3a3a; color: #ccc;
+      }
+      .ojeado-row .or-tags .tag.media { color: #fff; font-weight: 700; border-color: #4a9eff; }
+      .ojeado-row .or-tags .tag.valor { color: #86efac; }
+      .ojeado-row .or-tags .tag.edad { color: #7dd3fc; }
+      .ojeado-row .or-tags .tag.nav { color: #fbbf24; }
+      .ojeado-row .or-tags .tag.noventa { color: #fca5a5; border-color: #7f1d1d; background: #450a0a; }
+      .ojeado-row .or-actions { display: flex; flex-direction: column; gap: 6px; }
+      .ojeado-row .or-actions button { padding: 7px 12px; font-size: 0.8rem; white-space: nowrap; }
+      #ojeado-form-panel {
+        display: none; background: var(--card); border: 1px solid var(--border);
+        border-radius: 10px; padding: 20px; margin-bottom: 16px;
+      }
+      #ojeado-form-panel.open { display: block; }
+      .roles-pick-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 6px; max-height: 220px; overflow-y: auto; background: #1a1a1a;
+        border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+      }
+      .roles-pick-item {
+        display: flex; align-items: center; gap: 8px; padding: 5px 8px;
+        border-radius: 5px; font-size: 0.85rem; cursor: pointer;
+      }
+      .roles-pick-item:hover { background: #2a2a2a; }
+      .roles-pick-item input { accent-color: var(--accent); }
+      .roles-pick-item .rp-score { margin-left: auto; font-weight: 700; }
+
       .ojeados-layout { display: grid; grid-template-columns: 1fr; gap: 16px; }
       .ojeado-card {
         background: var(--card); border: 1px solid var(--border); border-radius: 10px;
@@ -878,15 +931,27 @@
             <label for="nombre">Nombre de jugador</label>
             <input type="text" id="nombre" placeholder="Ej: Lionel Messi" required>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
             <div>
               <label for="edad">Edad</label>
               <input type="number" id="edad" min="15" max="50" value="20">
             </div>
             <div>
+              <label for="nacionalidad">Nacionalidad</label>
+              <input type="text" id="nacionalidad" placeholder="Ej: España">
+            </div>
+            <div>
               <label for="valorTraspaso">Valor de traspaso (€)</label>
               <input type="number" id="valorTraspaso" min="0" step="1000" value="0" placeholder="ej: 15000000">
+              <label style="display:flex;align-items:center;gap:6px;margin-top:6px;cursor:pointer;font-weight:600;color:#fca5a5;font-size:0.85rem;">
+                <input type="checkbox" id="noEstaALaVenta" style="width:16px;height:16px;accent-color:#ef4444;" onchange="toggleJugadorNoVentaUI()">
+                No está a la venta
+              </label>
             </div>
+          </div>
+          <div>
+            <label>Roles a mostrar en la ficha <small style="color:#888">(máx. 3)</small></label>
+            <div class="roles-pick-grid" id="jugadorRolesPick"></div>
           </div>
           <div>
             <label for="plantilla">Plantilla</label>
@@ -1084,59 +1149,111 @@
     </div>
 
 
+
     <!-- ========== OJEADOS ========== -->
     <div id="tab-ojeados" class="tab-content">
-      <div class="form-section">
-        <h2 id="ojeado-form-title">Nuevo ojeado</h2>
-        <p style="color:#888;font-size:0.9rem;margin-bottom:16px;">
-          Crea perfiles de jugadores que estás siguiendo. Se guardan con la partida (auto-guardado).
-        </p>
-        <div class="basic-info">
+      <div class="form-section" style="padding-bottom:12px;">
+        <div class="ojeados-toolbar">
           <div>
-            <label for="ojeado-nombre">Nombre</label>
-            <input type="text" id="ojeado-nombre" placeholder="Ej: Wonderkid del rival">
+            <h2 style="margin:0;border:none;padding:0;">Ojeados (<span id="ojeados-count">0</span>)</h2>
+            <p style="color:#888;font-size:0.85rem;margin:4px 0 0;">Lista de jugadores seguidos. Se guarda con la partida.</p>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-            <div>
-              <label for="ojeado-edad">Edad</label>
-              <input type="number" id="ojeado-edad" min="15" max="45" value="18">
-            </div>
-            <div>
-              <label for="ojeado-valor">Valor de traspaso (€)</label>
-              <input type="number" id="ojeado-valor" min="0" step="1000" value="0" placeholder="ej: 5000000">
-            </div>
-            <div>
-              <label for="ojeado-equipo">Equipo actual</label>
-              <input type="text" id="ojeado-equipo" placeholder="Opcional">
-            </div>
-          </div>
-          <div>
-            <label>Posiciones <small style="color:#888">(puedes marcar varias)</small></label>
-            <div class="posiciones-grid" id="ojeadoPosicionesContainer"></div>
-          </div>
-          <div>
-            <label>Atributos clave del ojeado <small style="color:#888">(los que quieras anotar)</small></label>
-            <div class="attrs-grid" id="ojeadoAttrsGrid"></div>
-          </div>
-          <div>
-            <label for="ojeado-notas">Notas de scouting</label>
-            <textarea id="ojeado-notas" class="textarea-report" placeholder="Notas, proyección, interés del club..."></textarea>
-          </div>
+          <button class="btn-primary" type="button" onclick="abrirFormularioOjeadoNuevo()">＋ Añadir jugador</button>
         </div>
-        <div class="buttons" style="justify-content:flex-start;">
-          <button class="btn-primary" onclick="guardarOjeado()">💾 Guardar ojeado</button>
-          <button class="btn-secondary" onclick="limpiarFormularioOjeado()">🗑️ Limpiar</button>
-          <button class="btn-danger" id="btn-eliminar-ojeado" style="display:none;" onclick="eliminarOjeadoActual()">Eliminar</button>
-        </div>
-        <div class="status" id="status-ojeado"></div>
-      </div>
 
-      <div class="form-section">
-        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <h2 style="margin:0;border:none;padding:0;">Ojeados guardados (<span id="ojeados-count">0</span>)</h2>
-          <input type="text" id="busca-ojeados" placeholder="🔍 Buscar ojeado..." oninput="renderizarOjeados()"
-            style="max-width:260px;padding:8px 12px;background:#222;border:1px solid #3a3a3a;border-radius:6px;color:#e0e0e0;">
+        <div class="ojeados-filters" id="ojeados-filters">
+          <div>
+            <label>Buscar</label>
+            <input type="text" id="busca-ojeados" placeholder="Nombre, equipo…" oninput="renderizarOjeados()">
+          </div>
+          <div>
+            <label>Edad (entre)</label>
+            <div class="filt-row">
+              <input type="number" id="filtro-oj-edad-min" min="15" max="45" placeholder="Min" oninput="renderizarOjeados()">
+              <span style="color:#666;">–</span>
+              <input type="number" id="filtro-oj-edad-max" min="15" max="45" placeholder="Max" oninput="renderizarOjeados()">
+            </div>
+          </div>
+          <div>
+            <label>Nacionalidad</label>
+            <select id="filtro-oj-nac-modo" onchange="renderizarOjeados()">
+              <option value="cualquiera">Cualquiera</option>
+              <option value="solo">Solo estas</option>
+              <option value="excluir">Excluir estas</option>
+            </select>
+            <input type="text" id="filtro-oj-nac-lista" placeholder="España, Brasil, Francia…" style="margin-top:6px;" oninput="renderizarOjeados()" title="Separa con comas. Ej: España, Brasil">
+          </div>
+          <div>
+            <label>Valor de traspaso</label>
+            <select id="filtro-oj-valor-modo" onchange="renderizarOjeados()">
+              <option value="cualquiera">Cualquiera</option>
+              <option value="entre">Entre min y max</option>
+              <option value="maximo">Máximo</option>
+            </select>
+            <div class="filt-row" style="margin-top:6px;">
+              <input type="number" id="filtro-oj-valor-min" min="0" step="1000" placeholder="Min €" oninput="renderizarOjeados()">
+              <input type="number" id="filtro-oj-valor-max" min="0" step="1000" placeholder="Max €" oninput="renderizarOjeados()">
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <button class="btn-secondary" type="button" style="width:100%;padding:8px;" onclick="resetFiltrosOjeados()">↺ Quitar filtros</button>
+          </div>
         </div>
+
+        <div id="ojeado-form-panel">
+          <h2 id="ojeado-form-title" style="margin-top:0;">Nuevo ojeado</h2>
+          <div class="basic-info">
+            <div>
+              <label for="ojeado-nombre">Nombre</label>
+              <input type="text" id="ojeado-nombre" placeholder="Ej: Wonderkid del rival">
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;">
+              <div>
+                <label for="ojeado-edad">Edad</label>
+                <input type="number" id="ojeado-edad" min="15" max="45" value="18">
+              </div>
+              <div>
+                <label for="ojeado-nacionalidad">Nacionalidad</label>
+                <input type="text" id="ojeado-nacionalidad" placeholder="Ej: España">
+              </div>
+              <div>
+                <label for="ojeado-equipo">Equipo actual</label>
+                <input type="text" id="ojeado-equipo" placeholder="Opcional">
+              </div>
+              <div>
+                <label for="ojeado-valor">Valor de traspaso (€)</label>
+                <input type="number" id="ojeado-valor" min="0" step="1000" value="0" placeholder="ej: 5000000">
+                <label style="display:flex;align-items:center;gap:6px;margin-top:6px;cursor:pointer;font-weight:600;color:#fca5a5;">
+                  <input type="checkbox" id="ojeado-noVenta" style="width:16px;height:16px;accent-color:#ef4444;" onchange="toggleOjeadoNoVentaUI()">
+                  No está a la venta
+                </label>
+              </div>
+            </div>
+            <div>
+              <label>Posiciones <small style="color:#888">(puedes marcar varias)</small></label>
+              <div class="posiciones-grid" id="ojeadoPosicionesContainer"></div>
+            </div>
+            <div>
+              <label>Roles a mostrar en la lista <small style="color:#888">(máx. 3 — elige los que te interesen)</small></label>
+              <div class="roles-pick-grid" id="ojeadoRolesPick"></div>
+            </div>
+            <div>
+              <label>Atributos <small style="color:#888">(celdas compactas)</small></label>
+              <div class="attrs-grid" id="ojeadoAttrsGrid"></div>
+            </div>
+            <div>
+              <label for="ojeado-notas">Notas de scouting</label>
+              <textarea id="ojeado-notas" class="textarea-report" placeholder="Notas, proyección, interés del club..."></textarea>
+            </div>
+          </div>
+          <div class="buttons" style="justify-content:flex-start;">
+            <button class="btn-primary" type="button" onclick="guardarOjeado()">💾 Guardar</button>
+            <button class="btn-secondary" type="button" onclick="cerrarFormularioOjeado()">Cerrar</button>
+            <button class="btn-danger" type="button" id="btn-eliminar-ojeado" style="display:none;" onclick="eliminarOjeadoActual()">Eliminar</button>
+          </div>
+          <div class="status" id="status-ojeado"></div>
+        </div>
+
         <div id="ojeadosList">
           <div class="empty-state">No hay ojeados todavía.</div>
         </div>
@@ -1146,6 +1263,76 @@
   </div>
 
   <script>
+
+
+    /* ===================== STORAGE SEGURO ===================== */
+    // localStorage puede fallar (iframe sandbox, file:// restringido, modo privado estricto)
+    const _memStore = {};
+    let _storageMode = 'local'; // 'local' | 'memory'
+    let _storageNoticeShown = false;
+
+    function _probeLocalStorage() {
+      try {
+        const k = '__fm24_probe__';
+        window.localStorage.setItem(k, '1');
+        window.localStorage.removeItem(k);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    if (!_probeLocalStorage()) {
+      _storageMode = 'memory';
+      console.warn('localStorage no disponible: usando memoria temporal (los datos se pierden al recargar).');
+    }
+
+    function safeGetItem(key) {
+      try {
+        if (_storageMode === 'local') {
+          const v = safeGetItem(key);
+          return v;
+        }
+      } catch (e) {
+        _storageMode = 'memory';
+      }
+      return Object.prototype.hasOwnProperty.call(_memStore, key) ? _memStore[key] : null;
+    }
+
+    function safeSetItem(key, value) {
+      try {
+        if (_storageMode === 'local') {
+          safeSetItem(key, value);
+          return true;
+        }
+      } catch (e) {
+        _storageMode = 'memory';
+      }
+      _memStore[key] = String(value);
+      return false;
+    }
+
+    function safeRemoveItem(key) {
+      try {
+        if (_storageMode === 'local') safeRemoveItem(key);
+      } catch (e) {
+        _storageMode = 'memory';
+      }
+      delete _memStore[key];
+    }
+
+    function mostrarAvisoStorageSiHaceFalta() {
+      if (_storageMode !== 'memory' || _storageNoticeShown) return;
+      _storageNoticeShown = true;
+      const bar = document.createElement('div');
+      bar.id = 'storage-warning-bar';
+      bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:100000;background:#7c2d12;color:#ffedd5;padding:10px 14px;font-size:0.9rem;text-align:center;border-bottom:1px solid #9a3412;';
+      bar.innerHTML = '⚠️ Este entorno bloquea el guardado local. Los datos funcionan solo mientras no recargues la página. Para guardar de verdad, descarga el HTML y ábrelo en el navegador (doble clic) o usa Exportar partida.';
+      document.body.appendChild(bar);
+      document.body.style.paddingTop = '48px';
+    }
+
+    /* ===================== FIN STORAGE SEGURO ===================== */
 
     /* ===================== SISTEMA DE PARTIDAS ===================== */
     // Estado global (declarado pronto para evitar TDZ)
@@ -1168,12 +1355,12 @@
 
     function leerMetaPartidas() {
       try {
-        const m = JSON.parse(localStorage.getItem(PARTIDAS_META_KEY) || '[]');
+        const m = JSON.parse(safeGetItem(PARTIDAS_META_KEY) || '[]');
         return Array.isArray(m) ? m : [];
       } catch(e) { return []; }
     }
     function escribirMetaPartidas(lista) {
-      localStorage.setItem(PARTIDAS_META_KEY, JSON.stringify(lista));
+      safeSetItem(PARTIDAS_META_KEY, JSON.stringify(lista));
     }
 
     function snapshotEstadoActual() {
@@ -1203,6 +1390,9 @@
         if (j.excluido === undefined) j.excluido = false;
         if (j.edad === undefined) j.edad = 20;
         if (j.valorTraspaso === undefined) j.valorTraspaso = 0;
+        if (j.nacionalidad === undefined) j.nacionalidad = '';
+        if (j.noEstaALaVenta === undefined) j.noEstaALaVenta = false;
+        if (!Array.isArray(j.rolesMostrados)) j.rolesMostrados = [];
       });
       ojeados = Array.isArray(data.ojeados) ? data.ojeados : [];
       roles = Array.isArray(data.roles) ? data.roles.map(r => ({ ...r, posesion: r.posesion || 'ambos' })) : [];
@@ -1248,7 +1438,7 @@
       if (dot) { dot.classList.add('saving'); dot.classList.remove('error'); }
       try {
         const snap = snapshotEstadoActual();
-        localStorage.setItem(PARTIDA_PREFIX + partidaActualId, JSON.stringify(snap));
+        safeSetItem(PARTIDA_PREFIX + partidaActualId, JSON.stringify(snap));
         const meta = leerMetaPartidas();
         const idx = meta.findIndex(p => p.id === partidaActualId);
         const now = new Date().toISOString();
@@ -1288,12 +1478,12 @@
       if (meta.length) return; // ya hay sistema de partidas
       let tieneLegacy = false;
       try {
-        const j = JSON.parse(localStorage.getItem('jugadoresFM') || '[]');
+        const j = JSON.parse(safeGetItem('jugadoresFM') || '[]');
         if (Array.isArray(j) && j.length) tieneLegacy = true;
       } catch(e) {}
       if (!tieneLegacy) {
         try {
-          const r = JSON.parse(localStorage.getItem('rolesFM_v2') || 'null');
+          const r = JSON.parse(safeGetItem('rolesFM_v2') || 'null');
           if (r && (Array.isArray(r) ? r.length : Object.keys(r||{}).length)) tieneLegacy = true;
         } catch(e) {}
       }
@@ -1301,12 +1491,12 @@
 
       // Cargar legacy en memoria temporal
       let legJ = [], legR = [], legLC = {}, legLS = {}, legSC = null, legSS = null, legRiv = [];
-      try { legJ = JSON.parse(localStorage.getItem('jugadoresFM') || '[]') || []; } catch(e) {}
+      try { legJ = JSON.parse(safeGetItem('jugadoresFM') || '[]') || []; } catch(e) {}
       try {
-        const d = JSON.parse(localStorage.getItem('rolesFM_v2') || 'null');
+        const d = JSON.parse(safeGetItem('rolesFM_v2') || 'null');
         if (Array.isArray(d)) legR = d;
         else {
-          const old = JSON.parse(localStorage.getItem('rolesFM') || '{}');
+          const old = JSON.parse(safeGetItem('rolesFM') || '{}');
           if (old && typeof old === 'object') {
             const m = [];
             Object.keys(old).forEach(pos => {
@@ -1320,11 +1510,11 @@
           }
         }
       } catch(e) {}
-      try { legLC = JSON.parse(localStorage.getItem('lineupConFM') || localStorage.getItem('lineupFM') || '{}') || {}; } catch(e) {}
-      try { legLS = JSON.parse(localStorage.getItem('lineupSinFM') || '{}') || {}; } catch(e) {}
-      try { legSC = JSON.parse(localStorage.getItem('slotsConfigConFM') || localStorage.getItem('slotsConfigFM') || 'null'); } catch(e) {}
-      try { legSS = JSON.parse(localStorage.getItem('slotsConfigSinFM') || 'null'); } catch(e) {}
-      try { legRiv = JSON.parse(localStorage.getItem('rivalesFM') || '[]') || []; } catch(e) {}
+      try { legLC = JSON.parse(safeGetItem('lineupConFM') || safeGetItem('lineupFM') || '{}') || {}; } catch(e) {}
+      try { legLS = JSON.parse(safeGetItem('lineupSinFM') || '{}') || {}; } catch(e) {}
+      try { legSC = JSON.parse(safeGetItem('slotsConfigConFM') || safeGetItem('slotsConfigFM') || 'null'); } catch(e) {}
+      try { legSS = JSON.parse(safeGetItem('slotsConfigSinFM') || 'null'); } catch(e) {}
+      try { legRiv = JSON.parse(safeGetItem('rivalesFM') || '[]') || []; } catch(e) {}
 
       const id = 'legacy_' + Date.now();
       const now = new Date().toISOString();
@@ -1340,7 +1530,7 @@
         informeRival: [],
         rivalOnceSlots: []
       };
-      localStorage.setItem(PARTIDA_PREFIX + id, JSON.stringify(snap));
+      safeSetItem(PARTIDA_PREFIX + id, JSON.stringify(snap));
       escribirMetaPartidas([{
         id, nombre: 'Partida migrada', createdAt: now, updatedAt: now,
         jugadoresCount: snap.jugadores.length
@@ -1388,6 +1578,7 @@
       document.body.classList.add('menu-open');
       const m = document.getElementById('menu-principal');
       if (m) m.classList.add('visible');
+      mostrarAvisoStorageSiHaceFalta();
       renderMenuPartidas();
     }
 
@@ -1435,7 +1626,7 @@
           informeRival: [],
           rivalOnceSlots: []
         };
-        localStorage.setItem(PARTIDA_PREFIX + id, JSON.stringify(snap));
+        safeSetItem(PARTIDA_PREFIX + id, JSON.stringify(snap));
         const meta = leerMetaPartidas();
         meta.push({ id, nombre: nom, createdAt: now, updatedAt: now, jugadoresCount: 0 });
         escribirMetaPartidas(meta);
@@ -1451,7 +1642,7 @@
       try {
       let data = null;
       try {
-        data = JSON.parse(localStorage.getItem(PARTIDA_PREFIX + id) || 'null');
+        data = JSON.parse(safeGetItem(PARTIDA_PREFIX + id) || 'null');
       } catch(e) { data = null; }
       if (!data) {
         alert('No se pudo cargar la partida.');
@@ -1509,7 +1700,7 @@
 
     function eliminarPartida(id) {
       if (!confirm('¿Eliminar esta partida de forma permanente?')) return;
-      localStorage.removeItem(PARTIDA_PREFIX + id);
+      safeRemoveItem(PARTIDA_PREFIX + id);
       let meta = leerMetaPartidas().filter(p => p.id !== id);
       escribirMetaPartidas(meta);
       if (partidaActualId === id) {
@@ -1521,7 +1712,7 @@
 
     function exportarPartida(id) {
       try {
-        const data = JSON.parse(localStorage.getItem(PARTIDA_PREFIX + id) || 'null');
+        const data = JSON.parse(safeGetItem(PARTIDA_PREFIX + id) || 'null');
         const meta = leerMetaPartidas().find(p => p.id === id);
         if (!data) { alert('Partida vacía o no encontrada.'); return; }
         const blob = new Blob([JSON.stringify({ meta: meta || { id }, data }, null, 2)], { type: 'application/json' });
@@ -1562,7 +1753,7 @@
             informeRival: data.informeRival || [],
             rivalOnceSlots: data.rivalOnceSlots || []
           };
-          localStorage.setItem(PARTIDA_PREFIX + id, JSON.stringify(snap));
+          safeSetItem(PARTIDA_PREFIX + id, JSON.stringify(snap));
           const meta = leerMetaPartidas();
           meta.push({ id, nombre, createdAt: now, updatedAt: now, jugadoresCount: (snap.jugadores||[]).length });
           escribirMetaPartidas(meta);
@@ -1921,10 +2112,12 @@ function setForma(id, campo, valor) {
   }
   if (tabId === 'anadir-jugador') {
     actualizarFormularioAtributos();
+    if (typeof refrescarRolesPickJugador === 'function') {
+      const prev = editandoId ? (jugadores.find(j => j.id === editandoId)?.rolesMostrados || []) : [];
+      refrescarRolesPickJugador(prev);
+    }
   }
   if (tabId === 'ojeados') {
-    crearCheckboxesPosicionesOjeado();
-    actualizarFormularioAtributosOjeado();
     renderizarOjeados();
   }
 }
@@ -2492,7 +2685,10 @@ function toggleBajoForma(id, checked) {
     posiciones: obtenerPosicionesSeleccionadas(),
     plantilla: document.getElementById('plantilla')?.value || 'Primer equipo',
     edad: edad,
+    nacionalidad: (document.getElementById('nacionalidad')?.value || '').trim(),
     valorTraspaso: valorTraspaso,
+    noEstaALaVenta: document.getElementById('noEstaALaVenta') ? document.getElementById('noEstaALaVenta').checked : false,
+    rolesMostrados: typeof obtenerRolesMostradosSeleccionados === 'function' ? obtenerRolesMostradosSeleccionados('jugadorRolesPick') : [],
     ult5: ult5,
     valEnt: valEnt,
     informe: informe,
@@ -2503,7 +2699,7 @@ function toggleBajoForma(id, checked) {
   if (editandoId) {
     const prev = jugadores.find(p => p.id === editandoId || p.id == editandoId);
     if (prev) {
-      const keysSkip = new Set(['id','nombre','posiciones','plantilla','ult5','valEnt','informe','bajoForma','excluido','edad','valorTraspaso']);
+      const keysSkip = new Set(['id','nombre','posiciones','plantilla','ult5','valEnt','informe','bajoForma','excluido','edad','valorTraspaso','nacionalidad','noEstaALaVenta','rolesMostrados']);
       Object.keys(prev).forEach(k => {
         if (!keysSkip.has(k) && typeof prev[k] === 'number') data[k] = prev[k];
       });
@@ -2534,8 +2730,12 @@ function toggleBajoForma(id, checked) {
     function limpiarFormulario() {
       document.getElementById('nombre').value = '';
       const edadEl = document.getElementById('edad'); if (edadEl) edadEl.value = 20;
+      const nacEl = document.getElementById('nacionalidad'); if (nacEl) nacEl.value = '';
       const valEl = document.getElementById('valorTraspaso'); if (valEl) valEl.value = 0;
+      const nvEl = document.getElementById('noEstaALaVenta'); if (nvEl) nvEl.checked = false;
+      if (typeof toggleJugadorNoVentaUI === 'function') toggleJugadorNoVentaUI();
       document.getElementById('ult5').value = 10;
+      if (typeof refrescarRolesPickJugador === 'function') refrescarRolesPickJugador([]);
       document.getElementById('valEnt').value = 10;
       document.getElementById('informe').value = 0;
       document.getElementById('bajoForma').checked = false;
@@ -2546,13 +2746,19 @@ function toggleBajoForma(id, checked) {
     }
     function editarJugador(id) {
       const j = jugadores.find(p => p.id === id); if (!j) return;
+      if (typeof refrescarRolesPickJugador === 'function') refrescarRolesPickJugador(j.rolesMostrados || []);
       mostrarTab('anadir-jugador'); editandoId = id;
       document.getElementById('form-title').textContent = 'Editando: ' + j.nombre;
       document.getElementById('nombre').value = j.nombre || '';
       const edadEl = document.getElementById('edad');
       if (edadEl) edadEl.value = j.edad !== undefined ? j.edad : 20;
+      const nacEl = document.getElementById('nacionalidad');
+      if (nacEl) nacEl.value = j.nacionalidad || '';
       const valEl = document.getElementById('valorTraspaso');
       if (valEl) valEl.value = j.valorTraspaso !== undefined ? j.valorTraspaso : 0;
+      const nvEl = document.getElementById('noEstaALaVenta');
+      if (nvEl) nvEl.checked = !!j.noEstaALaVenta;
+      if (typeof toggleJugadorNoVentaUI === 'function') toggleJugadorNoVentaUI();
       document.getElementById('ult5').value = getUlt5(j);
       document.getElementById('valEnt').value = getValEnt(j);
       document.getElementById('informe').value = getInforme(j);
@@ -2590,11 +2796,48 @@ function toggleBajoForma(id, checked) {
       return n + ' €';
     }
     function topRolesHTML(jugador, maxN) {
+      if (Array.isArray(jugador.rolesMostrados) && jugador.rolesMostrados.length) {
+        return rolesHTMLSeleccionados(jugador, jugador.rolesMostrados);
+      }
       const rolesJ = (typeof obtenerRolesDelJugador === 'function' ? obtenerRolesDelJugador(jugador) : []).slice(0, maxN || 3);
       if (!rolesJ.length) return '<span style="color:#666;font-size:0.8rem;">Sin roles</span>';
       return rolesJ.map(r => {
         const col = colorScore(r.valoracion);
         return `<span class="prm"><span class="prm-n">${r.nombre}</span><span class="prm-s ${col}">${r.valoracion.toFixed(0)}</span></span>`;
+      }).join('');
+    }
+
+    function refrescarRolesPickJugador(selectedNames) {
+      const cont = document.getElementById('jugadorRolesPick');
+      if (!cont) return;
+      const prev = selectedNames || Array.from(cont.querySelectorAll('input:checked')).map(c => c.value);
+      // usar datos del formulario actual si se está editando
+      let temp = null;
+      try { temp = typeof obtenerDatosFormulario === 'function' ? obtenerDatosFormulario() : null; } catch(e) { temp = null; }
+      if (!temp || !temp.nombre) {
+        // fallback: jugador en edición
+        if (typeof editandoId !== 'undefined' && editandoId) {
+          temp = jugadores.find(j => j.id === editandoId) || { posiciones: [] };
+        } else {
+          temp = { posiciones: typeof obtenerPosicionesSeleccionadas === 'function' ? obtenerPosicionesSeleccionadas() : [] };
+          document.querySelectorAll('#attrsGrid input[type="number"]').forEach(el => {
+            let n = parseInt(el.value, 10); if (isNaN(n)) n = 10; temp[el.id] = n;
+          });
+        }
+      }
+      let lista = typeof obtenerRolesDelJugador === 'function' ? obtenerRolesDelJugador(temp) : [];
+      if (!lista.length) {
+        cont.innerHTML = '<div style="color:#888;font-size:0.85rem;padding:6px;">Marca posiciones y atributos, o crea roles.</div>';
+        return;
+      }
+      cont.innerHTML = lista.map(r => {
+        const col = colorScore(r.valoracion);
+        const checked = prev.includes(r.nombre) ? 'checked' : '';
+        return `<label class="roles-pick-item">
+          <input type="checkbox" value="${r.nombre.replace(/"/g,'&quot;')}" ${checked} onchange="limitarRolesPick(this, 'jugadorRolesPick')">
+          <span>${r.nombre}</span>
+          <span class="rp-score ${col}">${Number(r.valoracion).toFixed(0)}</span>
+        </label>`;
       }).join('');
     }
 
@@ -2643,7 +2886,8 @@ function toggleBajoForma(id, checked) {
           </div>
           <div class="player-meta-row">
             <span class="pm-tag edad">Edad: <strong>${edad}</strong></span>
-            <span class="pm-tag valor">Valor: <strong>${valor}</strong></span>
+            ${j.nacionalidad ? `<span class="pm-tag" style="color:#fbbf24;">${j.nacionalidad}</span>` : ''}
+            <span class="pm-tag valor">${j.noEstaALaVenta ? '<strong style="color:#fca5a5;">No está a la venta</strong>' : `Valor: <strong>${valor}</strong>`}</span>
           </div>
           <div class="player-roles-mini">${topRolesHTML(j, 3)}</div>
           <div class="form-extras-inline" style="margin-bottom:8px;gap:12px;align-items:center;">
@@ -3420,23 +3664,20 @@ function aplicarFormaTodos(campo, valor) {
     function crearCheckboxesPosicionesOjeado() {
       const cont = document.getElementById('ojeadoPosicionesContainer');
       if (!cont) return;
-      if (cont.dataset.ready === '1') return;
       cont.innerHTML = POSICIONES.map((pos,i) =>
-        `<label class="pos-item"><input type="checkbox" name="ojeado-pos" value="${pos}" id="ojeadopos_${i}"><span>${pos}</span></label>`
+        `<label class="pos-item"><input type="checkbox" name="ojeado-pos" value="${pos}" id="ojeadopos_${i}" onchange="refrescarRolesPickOjeado()"><span>${pos}</span></label>`
       ).join('');
-      cont.dataset.ready = '1';
     }
 
     function actualizarFormularioAtributosOjeado() {
       const grid = document.getElementById('ojeadoAttrsGrid');
       if (!grid) return;
-      // Formulario compacto outfield (mismo set)
       const vals = {};
       grid.querySelectorAll('input[type="number"]').forEach(el => { if (el.id) vals[el.id.replace(/^oj_/,'')] = el.value; });
       const row = (id, label) => {
         const v = vals[id] !== undefined ? vals[id] : 10;
         return `<div class="attr-row"><label for="oj_${id}">${label}</label>
-          <input type="number" id="oj_${id}" min="1" max="20" value="${v}"></div>`;
+          <input type="number" id="oj_${id}" min="1" max="20" value="${v}" onchange="refrescarRolesPickOjeado()"></div>`;
       };
       grid.innerHTML = `
         <div class="attr-column"><h3>Técnico</h3>${ATTRS_OUTFIELD.tecnico.map(a => row(a, LABELS[a]||a)).join('')}
@@ -3456,14 +3697,105 @@ function aplicarFormaTodos(campo, valor) {
       });
     }
 
+    function datosTempOjeadoParaRoles() {
+      const data = { posiciones: obtenerPosicionesOjeado() };
+      document.querySelectorAll('#ojeadoAttrsGrid input[type="number"]').forEach(el => {
+        const key = el.id.replace(/^oj_/, '');
+        let n = parseInt(el.value, 10);
+        if (isNaN(n)) n = 10;
+        data[key] = n;
+      });
+      return data;
+    }
+
+    function refrescarRolesPickOjeado(selectedNames) {
+      const cont = document.getElementById('ojeadoRolesPick');
+      if (!cont) return;
+      const prev = selectedNames || Array.from(cont.querySelectorAll('input:checked')).map(c => c.value);
+      const temp = datosTempOjeadoParaRoles();
+      let lista = typeof obtenerRolesDelJugador === 'function' ? obtenerRolesDelJugador(temp) : [];
+      if (!lista.length && Array.isArray(roles)) {
+        lista = roles.map(r => ({
+          nombre: r.nombre,
+          valoracion: typeof calcularValoracionRol === 'function' ? calcularValoracionRol(temp, r.atributos || []) : 50,
+          posiciones: r.posiciones || []
+        })).sort((a,b) => b.valoracion - a.valoracion);
+      }
+      if (!lista.length) {
+        cont.innerHTML = '<div style="color:#888;font-size:0.85rem;padding:6px;">Crea roles en «Añadir rol» o marca posiciones/atributos.</div>';
+        return;
+      }
+      cont.innerHTML = lista.map(r => {
+        const col = typeof colorScore === 'function' ? colorScore(r.valoracion) : '';
+        const checked = prev.includes(r.nombre) ? 'checked' : '';
+        return `<label class="roles-pick-item">
+          <input type="checkbox" value="${r.nombre.replace(/"/g,'&quot;')}" ${checked} onchange="limitarRolesPick(this, 'ojeadoRolesPick')">
+          <span>${r.nombre}</span>
+          <span class="rp-score ${col}">${Number(r.valoracion).toFixed(0)}</span>
+        </label>`;
+      }).join('');
+    }
+
+    function limitarRolesPick(el, contId) {
+      const cont = document.getElementById(contId);
+      if (!cont) return;
+      const checked = cont.querySelectorAll('input:checked');
+      if (checked.length > 3) {
+        el.checked = false;
+        alert('Solo puedes elegir hasta 3 roles.');
+      }
+    }
+
+    function obtenerRolesMostradosSeleccionados(contId) {
+      const cont = document.getElementById(contId);
+      if (!cont) return [];
+      return Array.from(cont.querySelectorAll('input:checked')).map(c => c.value).slice(0, 3);
+    }
+
+    function toggleOjeadoNoVentaUI() {
+      const chk = document.getElementById('ojeado-noVenta');
+      const val = document.getElementById('ojeado-valor');
+      if (!chk || !val) return;
+      val.disabled = chk.checked;
+      if (chk.checked) val.style.opacity = '0.5';
+      else val.style.opacity = '1';
+    }
+    function toggleJugadorNoVentaUI() {
+      const chk = document.getElementById('noEstaALaVenta');
+      const val = document.getElementById('valorTraspaso');
+      if (!chk || !val) return;
+      val.disabled = chk.checked;
+      if (chk.checked) val.style.opacity = '0.5';
+      else val.style.opacity = '1';
+    }
+
+    function abrirFormularioOjeadoNuevo() {
+      limpiarFormularioOjeado();
+      const panel = document.getElementById('ojeado-form-panel');
+      if (panel) panel.classList.add('open');
+      crearCheckboxesPosicionesOjeado();
+      actualizarFormularioAtributosOjeado();
+      refrescarRolesPickOjeado([]);
+      panel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function cerrarFormularioOjeado() {
+      const panel = document.getElementById('ojeado-form-panel');
+      if (panel) panel.classList.remove('open');
+      editandoOjeadoId = null;
+    }
+
     function obtenerDatosOjeadoForm() {
+      const noVenta = document.getElementById('ojeado-noVenta')?.checked || false;
       const data = {
         id: editandoOjeadoId || Date.now(),
         nombre: (document.getElementById('ojeado-nombre')?.value || '').trim(),
         edad: parseInt(document.getElementById('ojeado-edad')?.value, 10) || 18,
+        nacionalidad: (document.getElementById('ojeado-nacionalidad')?.value || '').trim(),
         valorTraspaso: parseFloat(document.getElementById('ojeado-valor')?.value) || 0,
+        noEstaALaVenta: noVenta,
         equipo: (document.getElementById('ojeado-equipo')?.value || '').trim(),
         posiciones: obtenerPosicionesOjeado(),
+        rolesMostrados: obtenerRolesMostradosSeleccionados('ojeadoRolesPick'),
         notas: (document.getElementById('ojeado-notas')?.value || '').trim()
       };
       document.querySelectorAll('#ojeadoAttrsGrid input[type="number"]').forEach(el => {
@@ -3495,15 +3827,22 @@ function aplicarFormaTodos(campo, valor) {
 
     function limpiarFormularioOjeado() {
       editandoOjeadoId = null;
-      document.getElementById('ojeado-form-title').textContent = 'Nuevo ojeado';
-      document.getElementById('ojeado-nombre').value = '';
-      document.getElementById('ojeado-edad').value = 18;
-      document.getElementById('ojeado-valor').value = 0;
-      document.getElementById('ojeado-equipo').value = '';
-      document.getElementById('ojeado-notas').value = '';
+      const t = document.getElementById('ojeado-form-title');
+      if (t) t.textContent = 'Nuevo ojeado';
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+      set('ojeado-nombre', '');
+      set('ojeado-edad', 18);
+      set('ojeado-nacionalidad', '');
+      set('ojeado-valor', 0);
+      set('ojeado-equipo', '');
+      set('ojeado-notas', '');
+      const nv = document.getElementById('ojeado-noVenta');
+      if (nv) nv.checked = false;
+      toggleOjeadoNoVentaUI();
       marcarPosicionesOjeado([]);
       actualizarFormularioAtributosOjeado();
       document.querySelectorAll('#ojeadoAttrsGrid input[type="number"]').forEach(el => { el.value = 10; });
+      refrescarRolesPickOjeado([]);
       const btn = document.getElementById('btn-eliminar-ojeado');
       if (btn) btn.style.display = 'none';
     }
@@ -3512,21 +3851,28 @@ function aplicarFormaTodos(campo, valor) {
       const o = ojeados.find(x => x.id == id);
       if (!o) return;
       editandoOjeadoId = o.id;
+      const panel = document.getElementById('ojeado-form-panel');
+      if (panel) panel.classList.add('open');
       crearCheckboxesPosicionesOjeado();
       document.getElementById('ojeado-form-title').textContent = 'Editando: ' + o.nombre;
       document.getElementById('ojeado-nombre').value = o.nombre || '';
       document.getElementById('ojeado-edad').value = o.edad || 18;
+      document.getElementById('ojeado-nacionalidad').value = o.nacionalidad || '';
       document.getElementById('ojeado-valor').value = o.valorTraspaso || 0;
       document.getElementById('ojeado-equipo').value = o.equipo || '';
       document.getElementById('ojeado-notas').value = o.notas || '';
+      const nv = document.getElementById('ojeado-noVenta');
+      if (nv) nv.checked = !!o.noEstaALaVenta;
+      toggleOjeadoNoVentaUI();
       marcarPosicionesOjeado(o.posiciones || []);
       actualizarFormularioAtributosOjeado();
       document.querySelectorAll('#ojeadoAttrsGrid input[type="number"]').forEach(el => {
         const key = el.id.replace(/^oj_/, '');
         el.value = o[key] !== undefined ? o[key] : 10;
       });
+      refrescarRolesPickOjeado(o.rolesMostrados || []);
       document.getElementById('btn-eliminar-ojeado').style.display = 'inline-block';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      panel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function eliminarOjeadoActual() {
@@ -3534,6 +3880,7 @@ function aplicarFormaTodos(campo, valor) {
       if (!confirm('¿Eliminar este ojeado?')) return;
       ojeados = ojeados.filter(o => o.id !== editandoOjeadoId);
       autoGuardarPartida();
+      cerrarFormularioOjeado();
       limpiarFormularioOjeado();
       renderizarOjeados();
     }
@@ -3541,51 +3888,119 @@ function aplicarFormaTodos(campo, valor) {
     function eliminarOjeado(id) {
       if (!confirm('¿Eliminar este ojeado?')) return;
       ojeados = ojeados.filter(o => o.id != id);
-      if (editandoOjeadoId == id) limpiarFormularioOjeado();
+      if (editandoOjeadoId == id) { cerrarFormularioOjeado(); limpiarFormularioOjeado(); }
       autoGuardarPartida();
       renderizarOjeados();
+    }
+
+    function parseNacList(str) {
+      return (str || '').split(/[,;|/]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
+    }
+
+    function ojeadoPasaFiltros(o) {
+      const q = (document.getElementById('busca-ojeados')?.value || '').trim().toLowerCase();
+      if (q) {
+        const blob = [o.nombre, o.equipo, o.nacionalidad, ...(o.posiciones||[])].join(' ').toLowerCase();
+        if (!blob.includes(q)) return false;
+      }
+      const emin = parseInt(document.getElementById('filtro-oj-edad-min')?.value, 10);
+      const emax = parseInt(document.getElementById('filtro-oj-edad-max')?.value, 10);
+      const edad = Number(o.edad);
+      if (!isNaN(emin) && !isNaN(edad) && edad < emin) return false;
+      if (!isNaN(emax) && !isNaN(edad) && edad > emax) return false;
+
+      const nacModo = document.getElementById('filtro-oj-nac-modo')?.value || 'cualquiera';
+      const nacList = parseNacList(document.getElementById('filtro-oj-nac-lista')?.value);
+      if (nacModo !== 'cualquiera' && nacList.length) {
+        const nac = (o.nacionalidad || '').trim().toLowerCase();
+        if (nacModo === 'solo') {
+          if (!nacList.includes(nac)) return false;
+        } else if (nacModo === 'excluir') {
+          if (nacList.includes(nac)) return false;
+        }
+      }
+
+      const vModo = document.getElementById('filtro-oj-valor-modo')?.value || 'cualquiera';
+      const vmin = parseFloat(document.getElementById('filtro-oj-valor-min')?.value);
+      const vmax = parseFloat(document.getElementById('filtro-oj-valor-max')?.value);
+      if (vModo !== 'cualquiera' && !o.noEstaALaVenta) {
+        const val = Number(o.valorTraspaso) || 0;
+        if (vModo === 'entre') {
+          if (!isNaN(vmin) && val < vmin) return false;
+          if (!isNaN(vmax) && val > vmax) return false;
+        } else if (vModo === 'maximo') {
+          const maxv = !isNaN(vmax) ? vmax : vmin;
+          if (!isNaN(maxv) && val > maxv) return false;
+        }
+      }
+      return true;
+    }
+
+    function resetFiltrosOjeados() {
+      const ids = ['busca-ojeados','filtro-oj-edad-min','filtro-oj-edad-max','filtro-oj-nac-lista','filtro-oj-valor-min','filtro-oj-valor-max'];
+      ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      const m1 = document.getElementById('filtro-oj-nac-modo'); if (m1) m1.value = 'cualquiera';
+      const m2 = document.getElementById('filtro-oj-valor-modo'); if (m2) m2.value = 'cualquiera';
+      renderizarOjeados();
+    }
+
+    function rolesHTMLSeleccionados(jugador, rolesMostrados) {
+      const elegidos = Array.isArray(rolesMostrados) ? rolesMostrados.filter(Boolean).slice(0, 3) : [];
+      if (!elegidos.length) {
+        return '<span style="color:#666;font-size:0.8rem;">Sin roles elegidos</span>';
+      }
+      const todos = typeof obtenerRolesDelJugador === 'function' ? obtenerRolesDelJugador(jugador) : [];
+      const byName = {};
+      todos.forEach(r => { byName[r.nombre] = r; });
+      return elegidos.map(nombre => {
+        let r = byName[nombre];
+        if (!r) {
+          const rolDef = (roles || []).find(x => x.nombre === nombre);
+          const val = rolDef && typeof calcularValoracionRol === 'function'
+            ? calcularValoracionRol(jugador, rolDef.atributos || [])
+            : 50;
+          r = { nombre, valoracion: val };
+        }
+        const col = typeof colorScore === 'function' ? colorScore(r.valoracion) : '';
+        return `<span class="prm"><span class="prm-n">${r.nombre}</span><span class="prm-s ${col}">${Number(r.valoracion).toFixed(0)}</span></span>`;
+      }).join('');
     }
 
     function renderizarOjeados() {
       const cont = document.getElementById('ojeadosList');
       const countEl = document.getElementById('ojeados-count');
       if (!cont) return;
-      const q = (document.getElementById('busca-ojeados')?.value || '').trim().toLowerCase();
-      let lista = ojeados.slice();
-      if (q) {
-        lista = lista.filter(o =>
-          (o.nombre || '').toLowerCase().includes(q) ||
-          (o.equipo || '').toLowerCase().includes(q) ||
-          (o.posiciones || []).join(' ').toLowerCase().includes(q)
-        );
-      }
+      let lista = (ojeados || []).filter(ojeadoPasaFiltros);
       lista.sort((a,b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
-      if (countEl) countEl.textContent = ojeados.length;
+      if (countEl) countEl.textContent = (ojeados || []).length;
       if (!lista.length) {
-        cont.innerHTML = '<div class="empty-state">No hay ojeados' + (q ? ' que coincidan con la búsqueda' : '') + '.</div>';
+        cont.innerHTML = '<div class="empty-state">No hay ojeados' + ((ojeados||[]).length ? ' con estos filtros' : ' todavía') + '.</div>';
         return;
       }
       cont.innerHTML = lista.map(o => {
         const pos = (o.posiciones || []).join(' · ') || 'Sin posición';
-        const rolesHtml = topRolesHTML(o, 3);
-        return `<div class="ojeado-card">
-          <div class="oc-header">
-            <div>
-              <div class="oc-name">${o.nombre || 'Sin nombre'}</div>
-              <div class="oc-meta" style="margin-top:6px;">
-                <span class="tag edad">Edad: <strong>${o.edad ?? '—'}</strong></span>
-                <span class="tag valor">Valor: <strong>${formatValor(o.valorTraspaso)}</strong></span>
-                ${o.equipo ? `<span class="tag">${o.equipo}</span>` : ''}
-                <span class="tag">${pos}</span>
-              </div>
+        const media = typeof calcularMediaJugador === 'function' ? calcularMediaJugador(o) : 0;
+        const mc = typeof colorMedia === 'function' ? colorMedia(media) : '#fff';
+        const valorTxt = o.noEstaALaVenta ? 'No está a la venta' : formatValor(o.valorTraspaso);
+        const rolesHtml = rolesHTMLSeleccionados(o, o.rolesMostrados);
+        return `<div class="ojeado-row">
+          <div class="or-main">
+            <div class="or-name">${o.nombre || 'Sin nombre'}</div>
+            <div class="or-tags">
+              <span class="tag media" style="color:${mc}">Media ${Number(media).toFixed(1)}</span>
+              <span class="tag edad">Edad ${o.edad ?? '—'}</span>
+              <span class="tag ${o.noEstaALaVenta ? 'noventa' : 'valor'}">${valorTxt}</span>
+              ${o.nacionalidad ? `<span class="tag nav">${o.nacionalidad}</span>` : ''}
+              ${o.equipo ? `<span class="tag">${o.equipo}</span>` : ''}
+              <span class="tag">${pos}</span>
             </div>
-            <div style="display:flex;gap:8px;">
-              <button class="btn-secondary" style="padding:8px 12px;font-size:0.85rem;" onclick="cargarOjeadoEnForm(${o.id})">✏️ Editar</button>
-              <button class="btn-danger" style="padding:8px 12px;font-size:0.85rem;" onclick="eliminarOjeado(${o.id})">🗑️</button>
-            </div>
+            <div class="player-roles-mini" style="margin-top:8px;">${rolesHtml}</div>
+            ${o.notas ? `<div style="margin-top:6px;font-size:0.85rem;color:#999;">${o.notas}</div>` : ''}
           </div>
-          <div class="player-roles-mini">${rolesHtml}</div>
-          ${o.notas ? `<div style="margin-top:8px;font-size:0.88rem;color:#999;line-height:1.4;">${o.notas}</div>` : ''}
+          <div class="or-actions">
+            <button class="btn-secondary" type="button" onclick="cargarOjeadoEnForm(${o.id})">✏️ Editar</button>
+            <button class="btn-danger" type="button" onclick="eliminarOjeado(${o.id})">🗑️</button>
+          </div>
         </div>`;
       }).join('');
     }
