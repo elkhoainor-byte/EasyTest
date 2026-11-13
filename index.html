@@ -89,9 +89,9 @@
       .attr-row:hover { background: #2f2f2f; }
       .attr-row label { flex: 1; font-size: 0.82rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .attr-row input {
-        width: 44px; min-width: 44px; max-width: 44px; padding: 3px 4px; text-align: center; border-radius: 4px;
+        width: 52px; min-width: 52px; max-width: 56px; padding: 4px 6px; text-align: center; border-radius: 4px;
         border: 1px solid var(--border); background: #1a1a1a; color: var(--text);
-        font-weight: 600; font-size: 0.82rem; height: 26px;
+        font-weight: 600; font-size: 0.88rem; height: 28px;
       }
       .attr-row input:focus { outline: 2px solid var(--accent); border-color: transparent; }
       .tecnico-gk-block { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
@@ -618,6 +618,37 @@
         border-radius: 10px; padding: 20px; margin-bottom: 16px;
       }
       #ojeado-form-panel.open { display: block; }
+      #ojeadoAttrsGrid .attr-row input {
+        width: 56px; min-width: 56px; max-width: 60px; font-size: 0.9rem; height: 30px; padding: 4px 6px;
+      }
+      .filtros-toggle {
+        width: 100%; text-align: left; padding: 10px 12px; background: #222; border: 1px solid var(--border);
+        border-radius: 8px; color: var(--accent); font-weight: 600; cursor: pointer; margin-bottom: 8px;
+      }
+      .filtros-toggle:hover { background: #2a2a2a; }
+      .ojeados-filters.collapsed { display: none; }
+      .informe-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;
+      }
+      .informe-card {
+        background: #222; border: 1px solid var(--border); border-radius: 10px; padding: 14px; overflow: hidden;
+      }
+      .informe-card h3 {
+        font-size: 1rem; color: #fff; margin-bottom: 10px; padding-bottom: 8px;
+        border-bottom: 1px solid #333;
+      }
+      .informe-card .inf-media {
+        font-size: 1.6rem; font-weight: 800; margin-bottom: 10px;
+      }
+      .informe-attr {
+        display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.85rem;
+        border-bottom: 1px solid #2a2a2a;
+      }
+      .informe-attr .v { font-weight: 700; }
+      .informe-section-title {
+        font-size: 1.15rem; margin: 20px 0 12px; color: var(--accent);
+        border-bottom: 1px solid var(--border); padding-bottom: 6px;
+      }
       .roles-pick-grid {
         display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 6px; max-height: 220px; overflow-y: auto; background: #1a1a1a;
@@ -870,6 +901,7 @@
 
     <div class="nav-menu">
       <button class="nav-btn active" onclick="mostrarTab('equipo')">Equipo</button>
+      <button class="nav-btn" onclick="mostrarTab('informe-equipo')">Informe de equipo</button>
       <button class="nav-btn" onclick="mostrarTab('anadir-jugador')">Añadir jugador</button>
       <button class="nav-btn" onclick="mostrarTab('anadir-rol')">Añadir rol</button>
       <button class="nav-btn" onclick="mostrarTab('hacer-11')">Hacer 11</button>
@@ -923,6 +955,23 @@
       </div>
     </div>
 
+
+    <!-- ========== INFORME DE EQUIPO ========== -->
+    <div id="tab-informe-equipo" class="tab-content">
+      <div class="form-section">
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div>
+            <h2 style="margin:0;border:none;padding:0;">Informe de equipo</h2>
+            <p style="color:#888;font-size:0.88rem;margin:4px 0 0;">Medias de atributos del plantel filtrado (respeta filtros de la pestaña Equipo si están activos en memoria).</p>
+          </div>
+          <button class="btn-secondary" type="button" onclick="renderInformeEquipo()">↺ Actualizar</button>
+        </div>
+        <div id="informeEquipoContenedor">
+          <div class="empty-state">Abre esta pestaña con jugadores cargados para ver el informe.</div>
+        </div>
+      </div>
+    </div>
+
     <div id="tab-anadir-jugador" class="tab-content">
       <div class="form-section">
         <h2 id="form-title">Nuevo jugador</h2>
@@ -941,8 +990,13 @@
               <input type="text" id="nacionalidad" placeholder="Ej: España">
             </div>
             <div>
-              <label for="valorTraspaso">Valor de traspaso (€)</label>
-              <input type="number" id="valorTraspaso" min="0" step="1000" value="0" placeholder="ej: 15000000">
+              <label>Valor de traspaso (€) — rango</label>
+              <div style="display:flex;gap:6px;align-items:center;margin-top:4px;">
+                <input type="number" id="valorTraspasoMin" min="0" step="1000" value="0" placeholder="Min">
+                <span style="color:#888;">a</span>
+                <input type="number" id="valorTraspasoMax" min="0" step="1000" value="0" placeholder="Max">
+              </div>
+              <input type="hidden" id="valorTraspaso" value="0">
               <label style="display:flex;align-items:center;gap:6px;margin-top:6px;cursor:pointer;font-weight:600;color:#fca5a5;font-size:0.85rem;">
                 <input type="checkbox" id="noEstaALaVenta" style="width:16px;height:16px;accent-color:#ef4444;" onchange="toggleJugadorNoVentaUI()">
                 No está a la venta
@@ -1161,7 +1215,8 @@
           <button class="btn-primary" type="button" onclick="abrirFormularioOjeadoNuevo()">＋ Añadir jugador</button>
         </div>
 
-        <div class="ojeados-filters" id="ojeados-filters">
+        <button type="button" class="filtros-toggle" id="btn-toggle-filtros-oj" onclick="toggleFiltrosOjeados()">▶ Filtros</button>
+        <div class="ojeados-filters collapsed" id="ojeados-filters">
           <div>
             <label>Buscar</label>
             <input type="text" id="busca-ojeados" placeholder="Nombre, equipo…" oninput="renderizarOjeados()">
@@ -1220,9 +1275,13 @@
                 <label for="ojeado-equipo">Equipo actual</label>
                 <input type="text" id="ojeado-equipo" placeholder="Opcional">
               </div>
-              <div>
-                <label for="ojeado-valor">Valor de traspaso (€)</label>
-                <input type="number" id="ojeado-valor" min="0" step="1000" value="0" placeholder="ej: 5000000">
+              <div style="grid-column:1/-1;">
+                <label>Valor de traspaso (€) — rango de mercado</label>
+                <div class="filt-row" style="margin-top:4px;">
+                  <input type="number" id="ojeado-valor-min" min="0" step="1000" value="0" placeholder="Mínimo">
+                  <span style="color:#888;">a</span>
+                  <input type="number" id="ojeado-valor-max" min="0" step="1000" value="0" placeholder="Máximo">
+                </div>
                 <label style="display:flex;align-items:center;gap:6px;margin-top:6px;cursor:pointer;font-weight:600;color:#fca5a5;">
                   <input type="checkbox" id="ojeado-noVenta" style="width:16px;height:16px;accent-color:#ef4444;" onchange="toggleOjeadoNoVentaUI()">
                   No está a la venta
@@ -1434,6 +1493,8 @@
         if (j.excluido === undefined) j.excluido = false;
         if (j.edad === undefined) j.edad = 20;
         if (j.valorTraspaso === undefined) j.valorTraspaso = 0;
+        if (j.valorTraspasoMin === undefined) j.valorTraspasoMin = j.valorTraspaso || 0;
+        if (j.valorTraspasoMax === undefined) j.valorTraspasoMax = j.valorTraspaso || 0;
         if (j.nacionalidad === undefined) j.nacionalidad = '';
         if (j.noEstaALaVenta === undefined) j.noEstaALaVenta = false;
         if (!Array.isArray(j.rolesMostrados)) j.rolesMostrados = [];
@@ -2161,12 +2222,15 @@ function setForma(id, campo, valor) {
   document.getElementById('tab-' + tabId).classList.add('active');
 
   const botones = document.querySelectorAll('.nav-btn');
-  const map = { 'equipo': 0, 'anadir-jugador': 1, 'anadir-rol': 2, 'hacer-11': 3, 'ojeados': 4 };
+  const map = { 'equipo': 0, 'informe-equipo': 1, 'anadir-jugador': 2, 'anadir-rol': 3, 'hacer-11': 4, 'ojeados': 5 };
   if (map[tabId] !== undefined) botones[map[tabId]].classList.add('active');
 
   if (tabId === 'equipo') {
     renderizarJugadores();
     if (typeof renderTablaForma === 'function') renderTablaForma();
+  }
+  if (tabId === 'informe-equipo') {
+    if (typeof renderInformeEquipo === 'function') renderInformeEquipo();
   }
   if (tabId === 'anadir-rol') {
     renderizarRolesExistentes();
@@ -2740,9 +2804,16 @@ function toggleBajoForma(id, checked) {
   let edad = parseInt(document.getElementById('edad')?.value, 10);
   if (isNaN(edad)) edad = 20;
   edad = Math.max(15, Math.min(50, edad));
-  let valorTraspaso = parseFloat(document.getElementById('valorTraspaso')?.value);
-  if (isNaN(valorTraspaso)) valorTraspaso = 0;
-  valorTraspaso = Math.max(0, valorTraspaso);
+  let valorTraspasoMin = parseFloat(document.getElementById('valorTraspasoMin')?.value);
+  let valorTraspasoMax = parseFloat(document.getElementById('valorTraspasoMax')?.value);
+  if (isNaN(valorTraspasoMin)) valorTraspasoMin = 0;
+  if (isNaN(valorTraspasoMax)) valorTraspasoMax = 0;
+  valorTraspasoMin = Math.max(0, valorTraspasoMin);
+  valorTraspasoMax = Math.max(0, valorTraspasoMax);
+  if (valorTraspasoMax && valorTraspasoMin > valorTraspasoMax) {
+    const t = valorTraspasoMin; valorTraspasoMin = valorTraspasoMax; valorTraspasoMax = t;
+  }
+  const valorTraspaso = valorTraspasoMax || valorTraspasoMin;
 
   const data = {
     id: editandoId || Date.now(),
@@ -2752,6 +2823,8 @@ function toggleBajoForma(id, checked) {
     edad: edad,
     nacionalidad: (document.getElementById('nacionalidad')?.value || '').trim(),
     valorTraspaso: valorTraspaso,
+    valorTraspasoMin: valorTraspasoMin,
+    valorTraspasoMax: valorTraspasoMax,
     noEstaALaVenta: document.getElementById('noEstaALaVenta') ? document.getElementById('noEstaALaVenta').checked : false,
     rolesMostrados: typeof obtenerRolesMostradosSeleccionados === 'function' ? obtenerRolesMostradosSeleccionados('jugadorRolesPick') : [],
     ult5: ult5,
@@ -2764,7 +2837,7 @@ function toggleBajoForma(id, checked) {
   if (editandoId) {
     const prev = jugadores.find(p => p.id === editandoId || p.id == editandoId);
     if (prev) {
-      const keysSkip = new Set(['id','nombre','posiciones','plantilla','ult5','valEnt','informe','bajoForma','excluido','edad','valorTraspaso','nacionalidad','noEstaALaVenta','rolesMostrados']);
+      const keysSkip = new Set(['id','nombre','posiciones','plantilla','ult5','valEnt','informe','bajoForma','excluido','edad','valorTraspaso','valorTraspasoMin','valorTraspasoMax','nacionalidad','noEstaALaVenta','rolesMostrados']);
       Object.keys(prev).forEach(k => {
         if (!keysSkip.has(k) && typeof prev[k] === 'number') data[k] = prev[k];
       });
@@ -2796,6 +2869,8 @@ function toggleBajoForma(id, checked) {
       document.getElementById('nombre').value = '';
       const edadEl = document.getElementById('edad'); if (edadEl) edadEl.value = 20;
       const nacEl = document.getElementById('nacionalidad'); if (nacEl) nacEl.value = '';
+      const a = document.getElementById('valorTraspasoMin'); if (a) a.value = 0;
+      const b = document.getElementById('valorTraspasoMax'); if (b) b.value = 0;
       const valEl = document.getElementById('valorTraspaso'); if (valEl) valEl.value = 0;
       const nvEl = document.getElementById('noEstaALaVenta'); if (nvEl) nvEl.checked = false;
       if (typeof toggleJugadorNoVentaUI === 'function') toggleJugadorNoVentaUI();
@@ -2819,8 +2894,16 @@ function toggleBajoForma(id, checked) {
       if (edadEl) edadEl.value = j.edad !== undefined ? j.edad : 20;
       const nacEl = document.getElementById('nacionalidad');
       if (nacEl) nacEl.value = j.nacionalidad || '';
-      const valEl = document.getElementById('valorTraspaso');
-      if (valEl) valEl.value = j.valorTraspaso !== undefined ? j.valorTraspaso : 0;
+      {
+        const vmin = j.valorTraspasoMin !== undefined ? j.valorTraspasoMin : (j.valorTraspaso || 0);
+        const vmax = j.valorTraspasoMax !== undefined ? j.valorTraspasoMax : (j.valorTraspaso || 0);
+        const a = document.getElementById('valorTraspasoMin');
+        const b = document.getElementById('valorTraspasoMax');
+        const h = document.getElementById('valorTraspaso');
+        if (a) a.value = vmin;
+        if (b) b.value = vmax;
+        if (h) h.value = vmax || vmin;
+      }
       const nvEl = document.getElementById('noEstaALaVenta');
       if (nvEl) nvEl.checked = !!j.noEstaALaVenta;
       if (typeof toggleJugadorNoVentaUI === 'function') toggleJugadorNoVentaUI();
@@ -2856,9 +2939,27 @@ function toggleBajoForma(id, checked) {
 
     function formatValor(v) {
       const n = Number(v) || 0;
-      if (n >= 1e6) return (n / 1e6).toFixed(n % 1e6 === 0 ? 0 : 1) + ' M€';
-      if (n >= 1e3) return (n / 1e3).toFixed(n % 1e3 === 0 ? 0 : 0) + ' K€';
+      if (n >= 1e6) return (n / 1e6).toFixed(n >= 10e6 && n % 1e6 === 0 ? 0 : 1) + ' M€';
+      if (n >= 1e3) return Math.round(n / 1e3) + ' K€';
       return n + ' €';
+    }
+    function formatValorRango(minV, maxV, noVenta) {
+      if (noVenta) return 'No está a la venta';
+      const a = Number(minV) || 0;
+      const b = Number(maxV) || 0;
+      if (!a && !b) return '—';
+      if (a === b || !b) return formatValor(a || b);
+      if (!a) return formatValor(b);
+      return formatValor(Math.min(a,b)) + ' – ' + formatValor(Math.max(a,b));
+    }
+    function valorMedioJugador(j) {
+      if (!j || j.noEstaALaVenta) return null;
+      const a = Number(j.valorTraspasoMin !== undefined ? j.valorTraspasoMin : j.valorTraspaso) || 0;
+      const b = Number(j.valorTraspasoMax !== undefined ? j.valorTraspasoMax : j.valorTraspaso) || 0;
+      if (!a && !b) return 0;
+      if (!a) return b;
+      if (!b) return a;
+      return (a + b) / 2;
     }
     function topRolesHTML(jugador, maxN) {
       if (Array.isArray(jugador.rolesMostrados) && jugador.rolesMostrados.length) {
@@ -2931,7 +3032,11 @@ function toggleBajoForma(id, checked) {
         const plant = getPlantilla(j);
         const excl = getExcluido(j);
         const edad = j.edad !== undefined ? j.edad : '—';
-        const valor = formatValor(j.valorTraspaso);
+        const valor = formatValorRango(
+          j.valorTraspasoMin !== undefined ? j.valorTraspasoMin : j.valorTraspaso,
+          j.valorTraspasoMax !== undefined ? j.valorTraspasoMax : j.valorTraspaso,
+          j.noEstaALaVenta
+        );
         return `<div class="player-card">
           <div class="player-header">
             <div class="player-header-left">
@@ -2952,7 +3057,7 @@ function toggleBajoForma(id, checked) {
           <div class="player-meta-row">
             <span class="pm-tag edad">Edad: <strong>${edad}</strong></span>
             ${j.nacionalidad ? `<span class="pm-tag" style="color:#fbbf24;">${j.nacionalidad}</span>` : ''}
-            <span class="pm-tag valor">${j.noEstaALaVenta ? '<strong style="color:#fca5a5;">No está a la venta</strong>' : `Valor: <strong>${valor}</strong>`}</span>
+            <span class="pm-tag valor">Valor: <strong>${valor}</strong></span>
           </div>
           <div class="player-roles-mini">${topRolesHTML(j, 3)}</div>
           <div class="form-extras-inline" style="margin-bottom:8px;gap:12px;align-items:center;">
@@ -3722,6 +3827,101 @@ function aplicarFormaTodos(campo, valor) {
     }
 
   
+
+    /* ===================== INFORME DE EQUIPO ===================== */
+    function listaAttrsInformeParaJugador(j) {
+      const esGK = typeof jugadorEsPortero === 'function' ? jugadorEsPortero(j) : false;
+      if (esGK) {
+        return [...ATTRS_GK.porteria, ...ATTRS_GK.mental, ...ATTRS_GK.fisico, ...ATTRS_GK.tecnico];
+      }
+      return [...ATTRS_OUTFIELD.tecnico, ...ATTRS_OUTFIELD.balon_parado, ...ATTRS_OUTFIELD.mental, ...ATTRS_OUTFIELD.fisico];
+    }
+    function mediaAtributoLista(lista, attr) {
+      const nums = lista.map(j => Number(j[attr])).filter(n => !isNaN(n) && n > 0);
+      if (!nums.length) return null;
+      return nums.reduce((s,n) => s + n, 0) / nums.length;
+    }
+    function grupoPosicionJugador(j) {
+      const pos = (typeof getPosicionesJugador === 'function' ? getPosicionesJugador(j) : (j.posiciones||[]));
+      if (!pos.length) return 'Sin posición';
+      const p = pos[0];
+      if (p === 'Portero') return 'Porteros';
+      if (['Central', 'Lateral izquierdo', 'Lateral derecho', 'Carrilero izquierdo', 'Carrilero derecho'].some(x => p.includes('Central') || p.includes('Lateral') || p.includes('Carrilero') || p === 'Defensa central')) {
+        // coarse groups via FILTRO_POS if available
+      }
+      if (typeof FILTRO_POS !== 'undefined') {
+        for (const [grupo, arr] of Object.entries(FILTRO_POS)) {
+          if (arr.some(x => pos.includes(x))) return grupo;
+        }
+      }
+      // fallback keywords
+      const blob = pos.join(' ').toLowerCase();
+      if (blob.includes('portero')) return 'Porteros';
+      if (blob.includes('central') || blob.includes('lateral') || blob.includes('carrilero') || blob.includes('defensa')) return 'Defensas';
+      if (blob.includes('pivote') || blob.includes('mediocentro') || blob.includes('interior') || blob.includes('centrocamp')) return 'Centrocampistas';
+      if (blob.includes('mediapunta') || blob.includes('extremo') || blob.includes('banda')) return 'Ataque / Bandas';
+      if (blob.includes('delantero') || blob.includes('segundo')) return 'Delanteros';
+      return pos[0];
+    }
+    function renderBloqueMediaAttrs(titulo, lista, attrs) {
+      if (!lista.length) return '';
+      const filas = attrs.map(a => {
+        const m = mediaAtributoLista(lista, a);
+        if (m === null) return '';
+        const col = typeof colorValor === 'function' ? colorValor(Math.round(m)) : '';
+        return `<div class="informe-attr"><span>${LABELS[a]||a}</span><span class="v ${col}">${m.toFixed(1)}</span></div>`;
+      }).filter(Boolean).join('');
+      const mediasJ = lista.map(j => typeof calcularMediaJugador === 'function' ? calcularMediaJugador(j) : 0);
+      const mediaGlobal = mediasJ.length ? mediasJ.reduce((s,n)=>s+n,0)/mediasJ.length : 0;
+      const mc = typeof colorMedia === 'function' ? colorMedia(mediaGlobal) : '#fff';
+      return `<div class="informe-card">
+        <h3>${titulo} <span style="color:#888;font-weight:500;font-size:0.85rem;">(${lista.length})</span></h3>
+        <div class="inf-media" style="color:${mc}">${mediaGlobal.toFixed(1)}</div>
+        ${filas}
+      </div>`;
+    }
+    function renderInformeEquipo() {
+      const cont = document.getElementById('informeEquipoContenedor');
+      if (!cont) return;
+      let lista = [];
+      try {
+        lista = typeof obtenerJugadoresOrdenados === 'function' ? obtenerJugadoresOrdenados() : (jugadores || []).slice();
+      } catch(e) { lista = (jugadores || []).slice(); }
+      if (!lista.length) {
+        cont.innerHTML = '<div class="empty-state">No hay jugadores en el equipo para calcular el informe.</div>';
+        return;
+      }
+      // Atributos outfield comunes para media global del plantel (solo jugadores de campo)
+      const deCampo = lista.filter(j => !(typeof jugadorEsPortero === 'function' && jugadorEsPortero(j)));
+      const porteros = lista.filter(j => typeof jugadorEsPortero === 'function' && jugadorEsPortero(j));
+      const attrsCampo = [...ATTRS_OUTFIELD.tecnico, ...ATTRS_OUTFIELD.balon_parado, ...ATTRS_OUTFIELD.mental, ...ATTRS_OUTFIELD.fisico];
+      const attrsGK = [...ATTRS_GK.porteria, ...ATTRS_GK.mental, ...ATTRS_GK.fisico, ...ATTRS_GK.tecnico];
+
+      let html = '<div class="informe-section-title">Media general del plantel</div><div class="informe-grid">';
+      html += renderBloqueMediaAttrs('Todo el equipo (media jugadores)', lista, deCampo.length ? attrsCampo : attrsGK);
+      if (deCampo.length) html += renderBloqueMediaAttrs('Jugadores de campo', deCampo, attrsCampo);
+      if (porteros.length) html += renderBloqueMediaAttrs('Porteros', porteros, attrsGK);
+      html += '</div>';
+
+      // Por grupos de posición
+      const grupos = {};
+      lista.forEach(j => {
+        const g = grupoPosicionJugador(j);
+        if (!grupos[g]) grupos[g] = [];
+        grupos[g].push(j);
+      });
+      html += '<div class="informe-section-title">Medias por posición / línea</div><div class="informe-grid">';
+      Object.keys(grupos).sort().forEach(g => {
+        const sub = grupos[g];
+        const attrs = sub.every(j => typeof jugadorEsPortero === 'function' && jugadorEsPortero(j)) ? attrsGK : attrsCampo;
+        html += renderBloqueMediaAttrs(g, sub, attrs);
+      });
+      html += '</div>';
+
+      cont.innerHTML = html;
+    }
+    /* ===================== FIN INFORME DE EQUIPO ===================== */
+
     /* ===================== OJEADOS ===================== */
     // ojeados ya declarado arriba
     var editandoOjeadoId = null;
@@ -3819,19 +4019,33 @@ function aplicarFormaTodos(campo, valor) {
 
     function toggleOjeadoNoVentaUI() {
       const chk = document.getElementById('ojeado-noVenta');
-      const val = document.getElementById('ojeado-valor');
-      if (!chk || !val) return;
-      val.disabled = chk.checked;
-      if (chk.checked) val.style.opacity = '0.5';
-      else val.style.opacity = '1';
+      const a = document.getElementById('ojeado-valor-min');
+      const b = document.getElementById('ojeado-valor-max');
+      [a,b].forEach(val => {
+        if (!val) return;
+        val.disabled = !!(chk && chk.checked);
+        val.style.opacity = (chk && chk.checked) ? '0.5' : '1';
+      });
     }
     function toggleJugadorNoVentaUI() {
       const chk = document.getElementById('noEstaALaVenta');
-      const val = document.getElementById('valorTraspaso');
-      if (!chk || !val) return;
-      val.disabled = chk.checked;
-      if (chk.checked) val.style.opacity = '0.5';
-      else val.style.opacity = '1';
+      const a = document.getElementById('valorTraspasoMin');
+      const b = document.getElementById('valorTraspasoMax');
+      [a,b].forEach(val => {
+        if (!val) return;
+        val.disabled = !!(chk && chk.checked);
+        val.style.opacity = (chk && chk.checked) ? '0.5' : '1';
+      });
+    }
+    function toggleFiltrosOjeados() {
+      const box = document.getElementById('ojeados-filters');
+      const btn = document.getElementById('btn-toggle-filtros-oj');
+      if (!box) return;
+      const open = box.classList.toggle('collapsed') === false;
+      // classList.toggle returns true if class was added
+      // we want collapsed means hidden
+      const isCollapsed = box.classList.contains('collapsed');
+      if (btn) btn.textContent = (isCollapsed ? '▶' : '▼') + ' Filtros';
     }
 
     function abrirFormularioOjeadoNuevo() {
@@ -3856,7 +4070,9 @@ function aplicarFormaTodos(campo, valor) {
         nombre: (document.getElementById('ojeado-nombre')?.value || '').trim(),
         edad: parseInt(document.getElementById('ojeado-edad')?.value, 10) || 18,
         nacionalidad: (document.getElementById('ojeado-nacionalidad')?.value || '').trim(),
-        valorTraspaso: parseFloat(document.getElementById('ojeado-valor')?.value) || 0,
+        valorTraspasoMin: parseFloat(document.getElementById('ojeado-valor-min')?.value) || 0,
+        valorTraspasoMax: parseFloat(document.getElementById('ojeado-valor-max')?.value) || 0,
+        valorTraspaso: parseFloat(document.getElementById('ojeado-valor-max')?.value) || parseFloat(document.getElementById('ojeado-valor-min')?.value) || 0,
         noEstaALaVenta: noVenta,
         equipo: (document.getElementById('ojeado-equipo')?.value || '').trim(),
         posiciones: obtenerPosicionesOjeado(),
@@ -3898,7 +4114,8 @@ function aplicarFormaTodos(campo, valor) {
       set('ojeado-nombre', '');
       set('ojeado-edad', 18);
       set('ojeado-nacionalidad', '');
-      set('ojeado-valor', 0);
+      set('ojeado-valor-min', 0);
+      set('ojeado-valor-max', 0);
       set('ojeado-equipo', '');
       set('ojeado-notas', '');
       const nv = document.getElementById('ojeado-noVenta');
@@ -3923,7 +4140,14 @@ function aplicarFormaTodos(campo, valor) {
       document.getElementById('ojeado-nombre').value = o.nombre || '';
       document.getElementById('ojeado-edad').value = o.edad || 18;
       document.getElementById('ojeado-nacionalidad').value = o.nacionalidad || '';
-      document.getElementById('ojeado-valor').value = o.valorTraspaso || 0;
+      {
+        const vmin = o.valorTraspasoMin !== undefined ? o.valorTraspasoMin : (o.valorTraspaso || 0);
+        const vmax = o.valorTraspasoMax !== undefined ? o.valorTraspasoMax : (o.valorTraspaso || 0);
+        const elMin = document.getElementById('ojeado-valor-min');
+        const elMax = document.getElementById('ojeado-valor-max');
+        if (elMin) elMin.value = vmin;
+        if (elMax) elMax.value = vmax;
+      }
       document.getElementById('ojeado-equipo').value = o.equipo || '';
       document.getElementById('ojeado-notas').value = o.notas || '';
       const nv = document.getElementById('ojeado-noVenta');
@@ -3989,13 +4213,18 @@ function aplicarFormaTodos(campo, valor) {
       const vmin = parseFloat(document.getElementById('filtro-oj-valor-min')?.value);
       const vmax = parseFloat(document.getElementById('filtro-oj-valor-max')?.value);
       if (vModo !== 'cualquiera' && !o.noEstaALaVenta) {
-        const val = Number(o.valorTraspaso) || 0;
+        const lo = Number(o.valorTraspasoMin !== undefined ? o.valorTraspasoMin : o.valorTraspaso) || 0;
+        const hi = Number(o.valorTraspasoMax !== undefined ? o.valorTraspasoMax : o.valorTraspaso) || 0;
+        // Un ojeado pasa si su rango se solapa con el filtro (o el punto medio)
+        const mid = (lo && hi) ? (lo + hi) / 2 : (lo || hi);
         if (vModo === 'entre') {
-          if (!isNaN(vmin) && val < vmin) return false;
-          if (!isNaN(vmax) && val > vmax) return false;
+          if (!isNaN(vmin) && hi < vmin && mid < vmin) return false;
+          if (!isNaN(vmax) && lo > vmax && mid > vmax) return false;
+          if (!isNaN(vmin) && !isNaN(vmax) && hi < vmin) return false;
+          if (!isNaN(vmin) && !isNaN(vmax) && lo > vmax) return false;
         } else if (vModo === 'maximo') {
           const maxv = !isNaN(vmax) ? vmax : vmin;
-          if (!isNaN(maxv) && val > maxv) return false;
+          if (!isNaN(maxv) && lo > maxv) return false;
         }
       }
       return true;
@@ -4046,7 +4275,11 @@ function aplicarFormaTodos(campo, valor) {
         const pos = (o.posiciones || []).join(' · ') || 'Sin posición';
         const media = typeof calcularMediaJugador === 'function' ? calcularMediaJugador(o) : 0;
         const mc = typeof colorMedia === 'function' ? colorMedia(media) : '#fff';
-        const valorTxt = o.noEstaALaVenta ? 'No está a la venta' : formatValor(o.valorTraspaso);
+        const valorTxt = formatValorRango(
+          o.valorTraspasoMin !== undefined ? o.valorTraspasoMin : o.valorTraspaso,
+          o.valorTraspasoMax !== undefined ? o.valorTraspasoMax : o.valorTraspaso,
+          o.noEstaALaVenta
+        );
         const rolesHtml = rolesHTMLSeleccionados(o, o.rolesMostrados);
         return `<div class="ojeado-row">
           <div class="or-main">
