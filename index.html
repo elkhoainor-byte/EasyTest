@@ -618,6 +618,41 @@
         border-radius: 10px; padding: 20px; margin-bottom: 16px;
       }
       #ojeado-form-panel.open { display: block; }
+
+      .compare-overlay {
+        display: none; position: fixed; inset: 0; z-index: 10000;
+        background: rgba(0,0,0,0.72); align-items: flex-start; justify-content: center;
+        padding: 24px 12px; overflow-y: auto;
+      }
+      .compare-overlay.open { display: flex; }
+      .compare-modal {
+        background: #1e1e28; border: 1px solid #3a3a4a; border-radius: 14px;
+        max-width: 960px; width: 100%; padding: 20px; margin: auto;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+      }
+      .compare-modal h2 { margin: 0 0 12px; font-size: 1.25rem; color: #fff; }
+      .compare-pick {
+        display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px;
+      }
+      .compare-pick select {
+        flex: 1; min-width: 180px; padding: 8px 10px; border-radius: 6px;
+        border: 1px solid var(--border); background: #222; color: var(--text);
+      }
+      .compare-grid {
+        display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 0;
+        border: 1px solid #333; border-radius: 8px; overflow: hidden; font-size: 0.88rem;
+      }
+      .compare-grid .cg-h {
+        background: #2a2a35; padding: 10px; font-weight: 700; color: #fff;
+        border-bottom: 1px solid #333;
+      }
+      .compare-grid .cg-cell {
+        padding: 6px 10px; border-bottom: 1px solid #2a2a2a; border-right: 1px solid #2a2a2a;
+      }
+      .compare-grid .cg-cell.better { background: rgba(74,222,128,0.12); }
+      .compare-grid .cg-cell.worse { background: rgba(248,113,113,0.1); }
+      .compare-grid .cg-label { color: #aaa; font-weight: 600; }
+
       #ojeadoAttrsGrid .attr-row input {
         width: 56px; min-width: 56px; max-width: 60px; font-size: 0.9rem; height: 30px; padding: 4px 6px;
       }
@@ -1234,6 +1269,12 @@
             <input type="text" id="busca-ojeados" placeholder="Nombre, equipo…" oninput="renderizarOjeados()">
           </div>
           <div>
+            <label>Posición</label>
+            <select id="filtro-oj-pos" onchange="renderizarOjeados()">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div>
             <label>Edad (entre)</label>
             <div class="filt-row">
               <input type="number" id="filtro-oj-edad-min" min="15" max="45" placeholder="Min" oninput="renderizarOjeados()">
@@ -1332,6 +1373,30 @@
     </div>
 
   </div>
+
+
+    <!-- Comparador de jugadores -->
+    <div class="compare-overlay" id="compare-overlay" onclick="if(event.target===this)cerrarComparador()">
+      <div class="compare-modal" role="dialog" aria-modal="true">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;">
+          <h2 style="margin:0;">⚖️ Comparar jugadores</h2>
+          <button class="btn-secondary" type="button" onclick="cerrarComparador()">Cerrar</button>
+        </div>
+        <div class="compare-pick">
+          <div style="flex:1;min-width:200px;">
+            <label style="font-size:0.8rem;color:#888;">Jugador A</label>
+            <select id="compare-a" onchange="actualizarComparador()"></select>
+          </div>
+          <div style="flex:1;min-width:200px;">
+            <label style="font-size:0.8rem;color:#888;">Jugador B</label>
+            <select id="compare-b" onchange="actualizarComparador()"></select>
+          </div>
+        </div>
+        <div id="compare-result">
+          <div class="empty-state" style="padding:20px;">Elige dos jugadores para comparar.</div>
+        </div>
+      </div>
+    </div>
 
   <script>
 
@@ -3062,6 +3127,7 @@ function toggleBajoForma(id, checked) {
               </div>
               <div class="player-actions">
                 <button class="btn-secondary" onclick="editarJugador(${j.id})">✏️ Editar</button>
+                <button class="btn-info" onclick="abrirComparador('equipo', ${j.id})">⚖️ Comparar</button>
                 <button class="btn-danger" onclick="eliminarJugador(${j.id})">🗑️ Eliminar</button>
               </div>
             </div>
@@ -4122,12 +4188,11 @@ function aplicarFormaTodos(campo, valor) {
         if (idx !== -1) ojeados[idx] = data;
       } else {
         ojeados.push(data);
-        editandoOjeadoId = data.id;
       }
       autoGuardarPartida();
       renderizarOjeados();
-      document.getElementById('btn-eliminar-ojeado').style.display = 'inline-block';
-      document.getElementById('ojeado-form-title').textContent = 'Editando: ' + data.nombre;
+      cerrarFormularioOjeado();
+      limpiarFormularioOjeado();
       const st = document.getElementById('status-ojeado');
       if (st) { st.textContent = '✅ Ojeado guardado'; setTimeout(() => st.textContent = '', 2000); }
     }
@@ -4218,6 +4283,16 @@ function aplicarFormaTodos(campo, valor) {
         const blob = [o.nombre, o.equipo, o.nacionalidad, ...(o.posiciones||[])].join(' ').toLowerCase();
         if (!blob.includes(q)) return false;
       }
+      const posFiltro = document.getElementById('filtro-oj-pos')?.value || '';
+      if (posFiltro) {
+        const pos = o.posiciones || [];
+        // valor puede ser posición concreta o grupo FILTRO_POS
+        let ok = pos.includes(posFiltro);
+        if (!ok && typeof FILTRO_POS !== 'undefined' && FILTRO_POS[posFiltro]) {
+          ok = FILTRO_POS[posFiltro].some(p => pos.includes(p));
+        }
+        if (!ok) return false;
+      }
       const emin = parseInt(document.getElementById('filtro-oj-edad-min')?.value, 10);
       const emax = parseInt(document.getElementById('filtro-oj-edad-max')?.value, 10);
       const edad = Number(o.edad);
@@ -4257,7 +4332,7 @@ function aplicarFormaTodos(campo, valor) {
     }
 
     function resetFiltrosOjeados() {
-      const ids = ['busca-ojeados','filtro-oj-edad-min','filtro-oj-edad-max','filtro-oj-nac-lista','filtro-oj-valor-min','filtro-oj-valor-max'];
+      const ids = ['busca-ojeados','filtro-oj-edad-min','filtro-oj-edad-max','filtro-oj-nac-lista','filtro-oj-valor-min','filtro-oj-valor-max','filtro-oj-pos'];
       ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
       const m1 = document.getElementById('filtro-oj-nac-modo'); if (m1) m1.value = 'cualquiera';
       const m2 = document.getElementById('filtro-oj-valor-modo'); if (m2) m2.value = 'cualquiera';
@@ -4286,7 +4361,25 @@ function aplicarFormaTodos(campo, valor) {
       }).join('');
     }
 
+    function rellenarFiltroPosOjeados() {
+      const sel = document.getElementById('filtro-oj-pos');
+      if (!sel || sel.dataset.ready === '1') return;
+      let opts = '<option value="">Todas</option>';
+      if (typeof FILTRO_POS !== 'undefined') {
+        Object.keys(FILTRO_POS).forEach(g => {
+          opts += `<option value="${g}">${g}</option>`;
+        });
+      }
+      if (typeof POSICIONES !== 'undefined') {
+        opts += '<option disabled>────────</option>';
+        POSICIONES.forEach(p => { opts += `<option value="${p}">${p}</option>`; });
+      }
+      sel.innerHTML = opts;
+      sel.dataset.ready = '1';
+    }
+
     function renderizarOjeados() {
+      rellenarFiltroPosOjeados();
       const cont = document.getElementById('ojeadosList');
       const countEl = document.getElementById('ojeados-count');
       if (!cont) return;
@@ -4323,11 +4416,143 @@ function aplicarFormaTodos(campo, valor) {
           </div>
           <div class="or-actions">
             <button class="btn-secondary" type="button" onclick="cargarOjeadoEnForm(${o.id})">✏️ Editar</button>
+            <button class="btn-info" type="button" onclick="abrirComparador('ojeado', ${o.id})">⚖️ Comparar</button>
             <button class="btn-danger" type="button" onclick="eliminarOjeado(${o.id})">🗑️</button>
           </div>
         </div>`;
       }).join('');
     }
+
+
+    /* ===================== COMPARADOR ===================== */
+    function catalogoComparacion() {
+      const cat = [];
+      (jugadores || []).forEach(j => {
+        cat.push({
+          key: 'equipo:' + j.id,
+          origen: 'equipo',
+          id: j.id,
+          label: (j.nombre || 'Sin nombre') + ' · Equipo' + (j.plantilla ? ' (' + j.plantilla + ')' : ''),
+          data: j
+        });
+      });
+      (ojeados || []).forEach(o => {
+        cat.push({
+          key: 'ojeado:' + o.id,
+          origen: 'ojeado',
+          id: o.id,
+          label: (o.nombre || 'Sin nombre') + ' · Ojeado' + (o.equipo ? ' (' + o.equipo + ')' : ''),
+          data: o
+        });
+      });
+      cat.sort((a,b) => a.label.localeCompare(b.label, 'es'));
+      return cat;
+    }
+
+    function abrirComparador(origen, id) {
+      const overlay = document.getElementById('compare-overlay');
+      if (!overlay) return;
+      const cat = catalogoComparacion();
+      const selA = document.getElementById('compare-a');
+      const selB = document.getElementById('compare-b');
+      const opts = cat.map(c => `<option value="${c.key}">${c.label.replace(/</g,'&lt;')}</option>`).join('');
+      selA.innerHTML = '<option value="">— Elegir —</option>' + opts;
+      selB.innerHTML = '<option value="">— Elegir —</option>' + opts;
+      const key = origen + ':' + id;
+      selA.value = key;
+      // si solo hay uno, dejar B vacío; si hay otro del mismo origen, no preseleccionar
+      selB.value = '';
+      overlay.classList.add('open');
+      actualizarComparador();
+    }
+
+    function cerrarComparador() {
+      document.getElementById('compare-overlay')?.classList.remove('open');
+    }
+
+    function buscarEnCatalogo(key) {
+      return catalogoComparacion().find(c => c.key === key) || null;
+    }
+
+    function listaAttrsComparacion(a, b) {
+      const esGKa = typeof jugadorEsPortero === 'function' && jugadorEsPortero(a);
+      const esGKb = typeof jugadorEsPortero === 'function' && jugadorEsPortero(b);
+      if (esGKa && esGKb) {
+        return [...ATTRS_GK.porteria, ...ATTRS_GK.mental, ...ATTRS_GK.fisico, ...ATTRS_GK.tecnico];
+      }
+      return [...ATTRS_OUTFIELD.tecnico, ...ATTRS_OUTFIELD.balon_parado, ...ATTRS_OUTFIELD.mental, ...ATTRS_OUTFIELD.fisico];
+    }
+
+    function actualizarComparador() {
+      const cont = document.getElementById('compare-result');
+      if (!cont) return;
+      const ka = document.getElementById('compare-a')?.value;
+      const kb = document.getElementById('compare-b')?.value;
+      const A = ka ? buscarEnCatalogo(ka) : null;
+      const B = kb ? buscarEnCatalogo(kb) : null;
+      if (!A || !B) {
+        cont.innerHTML = '<div class="empty-state" style="padding:20px;">Elige dos jugadores para comparar.</div>';
+        return;
+      }
+      if (A.key === B.key) {
+        cont.innerHTML = '<div class="empty-state" style="padding:20px;">Elige dos jugadores distintos.</div>';
+        return;
+      }
+      const ja = A.data, jb = B.data;
+      const mediaA = typeof calcularMediaJugador === 'function' ? calcularMediaJugador(ja) : 0;
+      const mediaB = typeof calcularMediaJugador === 'function' ? calcularMediaJugador(jb) : 0;
+      const posA = (ja.posiciones || []).join(', ') || '—';
+      const posB = (jb.posiciones || []).join(', ') || '—';
+      const valA = formatValorRango(ja.valorTraspasoMin ?? ja.valorTraspaso, ja.valorTraspasoMax ?? ja.valorTraspaso, ja.noEstaALaVenta);
+      const valB = formatValorRango(jb.valorTraspasoMin ?? jb.valorTraspaso, jb.valorTraspasoMax ?? jb.valorTraspaso, jb.noEstaALaVenta);
+
+      const metaRows = [
+        ['Origen', A.origen === 'equipo' ? 'Equipo' : 'Ojeado', B.origen === 'equipo' ? 'Equipo' : 'Ojeado'],
+        ['Edad', ja.edad ?? '—', jb.edad ?? '—'],
+        ['Nacionalidad', ja.nacionalidad || '—', jb.nacionalidad || '—'],
+        ['Posiciones', posA, posB],
+        ['Valor', valA, valB],
+        ['Media', mediaA.toFixed(1), mediaB.toFixed(1)]
+      ];
+
+      let html = '<div class="compare-grid">';
+      html += `<div class="cg-h">Campo</div><div class="cg-h">${(ja.nombre||'A').replace(/</g,'&lt;')}</div><div class="cg-h">${(jb.nombre||'B').replace(/</g,'&lt;')}</div>`;
+      metaRows.forEach(([lab, va, vb]) => {
+        let ca = '', cb = '';
+        if (lab === 'Media' || lab === 'Edad') {
+          const na = parseFloat(va), nb = parseFloat(vb);
+          if (!isNaN(na) && !isNaN(nb) && na !== nb) {
+            // en edad menor puede ser mejor según contexto; solo marcar media
+            if (lab === 'Media') {
+              ca = na > nb ? 'better' : 'worse';
+              cb = nb > na ? 'better' : 'worse';
+            }
+          }
+        }
+        html += `<div class="cg-cell cg-label">${lab}</div><div class="cg-cell ${ca}">${va}</div><div class="cg-cell ${cb}">${vb}</div>`;
+      });
+
+      const attrs = listaAttrsComparacion(ja, jb);
+      attrs.forEach(attr => {
+        const va = Number(ja[attr]);
+        const vb = Number(jb[attr]);
+        const sa = isNaN(va) ? '—' : va;
+        const sb = isNaN(vb) ? '—' : vb;
+        let ca = '', cb = '';
+        if (!isNaN(va) && !isNaN(vb) && va !== vb) {
+          ca = va > vb ? 'better' : 'worse';
+          cb = vb > va ? 'better' : 'worse';
+        }
+        const colA = !isNaN(va) && typeof colorValor === 'function' ? colorValor(va) : '';
+        const colB = !isNaN(vb) && typeof colorValor === 'function' ? colorValor(vb) : '';
+        html += `<div class="cg-cell cg-label">${LABELS[attr]||attr}</div>
+          <div class="cg-cell ${ca}"><span class="${colA}">${sa}</span></div>
+          <div class="cg-cell ${cb}"><span class="${colB}">${sb}</span></div>`;
+      });
+      html += '</div>';
+      cont.innerHTML = html;
+    }
+    /* ===================== FIN COMPARADOR ===================== */
 
     /* ===================== FIN OJEADOS ===================== */
 
