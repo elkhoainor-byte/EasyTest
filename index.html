@@ -1270,12 +1270,16 @@
     const _memStore = {};
     let _storageMode = 'local'; // 'local' | 'memory'
     let _storageNoticeShown = false;
+    // Referencias DIRECTAS al API nativo (no pasar por safe*)
+    const _lsGet = (key) => window.localStorage.getItem(key);
+    const _lsSet = (key, val) => { window.localStorage.setItem(key, val); };
+    const _lsDel = (key) => { window.localStorage.removeItem(key); };
 
     function _probeLocalStorage() {
       try {
         const k = '__fm24_probe__';
-        window.localStorage.setItem(k, '1');
-        window.localStorage.removeItem(k);
+        _lsSet(k, '1');
+        _lsDel(k);
         return true;
       } catch (e) {
         return false;
@@ -1288,37 +1292,66 @@
     }
 
     function safeGetItem(key) {
-      try {
-        if (_storageMode === 'local') {
-          const v = safeGetItem(key);
-          return v;
+      // Siempre intentar localStorage primero si el modo lo permite
+      if (_storageMode === 'local') {
+        try {
+          const v = _lsGet(key);
+          if (v !== null && v !== undefined) return v;
+          // también devolver null legítimo de LS
+          if (Object.prototype.hasOwnProperty.call(_memStore, key)) return _memStore[key];
+          return null;
+        } catch (e) {
+          _storageMode = 'memory';
         }
-      } catch (e) {
-        _storageMode = 'memory';
       }
       return Object.prototype.hasOwnProperty.call(_memStore, key) ? _memStore[key] : null;
     }
 
     function safeSetItem(key, value) {
-      try {
-        if (_storageMode === 'local') {
-          safeSetItem(key, value);
+      const str = String(value);
+      if (_storageMode === 'local') {
+        try {
+          _lsSet(key, str);
+          _memStore[key] = str; // espejo en memoria
           return true;
+        } catch (e) {
+          _storageMode = 'memory';
         }
-      } catch (e) {
-        _storageMode = 'memory';
       }
-      _memStore[key] = String(value);
+      _memStore[key] = str;
       return false;
     }
 
     function safeRemoveItem(key) {
-      try {
-        if (_storageMode === 'local') safeRemoveItem(key);
-      } catch (e) {
-        _storageMode = 'memory';
+      if (_storageMode === 'local') {
+        try { _lsDel(key); } catch (e) { _storageMode = 'memory'; }
       }
       delete _memStore[key];
+    }
+
+    function escanearPartidasEnLocalStorage() {
+      // Reconstruye el índice si hay blobs fm24_partida_* huérfanos
+      const encontradas = [];
+      try {
+        if (_storageMode !== 'local') return encontradas;
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (!k || !k.startsWith('fm24_partida_')) continue;
+          const id = k.slice('fm24_partida_'.length);
+          let data = null;
+          try { data = JSON.parse(_lsGet(k) || 'null'); } catch (e) { data = null; }
+          if (!data || typeof data !== 'object') continue;
+          const nJ = Array.isArray(data.jugadores) ? data.jugadores.length : 0;
+          encontradas.push({
+            id,
+            nombre: data._nombreGuardado || ('Partida ' + id.slice(0, 8)),
+            createdAt: data._createdAt || new Date().toISOString(),
+            updatedAt: data._updatedAt || new Date().toISOString(),
+            jugadoresCount: nJ
+          });
+        }
+      } catch (e) { console.warn(e); }
+      return encontradas;
     }
 
     function mostrarAvisoStorageSiHaceFalta() {
@@ -1356,7 +1389,18 @@
     function leerMetaPartidas() {
       try {
         const m = JSON.parse(safeGetItem(PARTIDAS_META_KEY) || '[]');
-        return Array.isArray(m) ? m : [];
+        if (!Array.isArray(m)) return [];
+        // Completar nombres desde el blob si faltan
+        return m.map(p => {
+          if (p.nombre && p.nombre !== 'Sin nombre') return p;
+          try {
+            const raw = safeGetItem(PARTIDA_PREFIX + p.id);
+            if (!raw) return p;
+            const data = JSON.parse(raw);
+            if (data && data._nombreGuardado) p.nombre = data._nombreGuardado;
+          } catch (e) {}
+          return p;
+        });
       } catch(e) { return []; }
     }
     function escribirMetaPartidas(lista) {
@@ -1438,6 +1482,9 @@
       if (dot) { dot.classList.add('saving'); dot.classList.remove('error'); }
       try {
         const snap = snapshotEstadoActual();
+        snap._nombreGuardado = partidaActualNombre || '';
+        snap._updatedAt = new Date().toISOString();
+        if (!snap._createdAt) snap._createdAt = new Date().toISOString();
         safeSetItem(PARTIDA_PREFIX + partidaActualId, JSON.stringify(snap));
         const meta = leerMetaPartidas();
         const idx = meta.findIndex(p => p.id === partidaActualId);
@@ -1549,6 +1596,21 @@
       const cont = document.getElementById('partida-list');
       if (!cont) return;
       migrarDatosLegacySiExisten();
+      // Recuperar partidas huérfanas (blob en LS sin entrada en meta)
+      try {
+        let metaNow = leerMetaPartidas();
+        const idsMeta = new Set(metaNow.map(p => p.id));
+        const scan = typeof escanearPartidasEnLocalStorage === 'function' ? escanearPartidasEnLocalStorage() : [];
+        let changed = false;
+        scan.forEach(p => {
+          if (!idsMeta.has(p.id)) {
+            metaNow.push(p);
+            idsMeta.add(p.id);
+            changed = true;
+          }
+        });
+        if (changed) escribirMetaPartidas(metaNow);
+      } catch (e) { console.warn(e); }
       const meta = leerMetaPartidas().slice().sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||''));
       if (!meta.length) {
         cont.innerHTML = '<div class="empty-state" style="padding:24px;">No hay partidas guardadas.<br>Pulsa «Nueva partida» para empezar.</div>';
@@ -1626,6 +1688,9 @@
           informeRival: [],
           rivalOnceSlots: []
         };
+        snap._nombreGuardado = nom;
+        snap._createdAt = now;
+        snap._updatedAt = now;
         safeSetItem(PARTIDA_PREFIX + id, JSON.stringify(snap));
         const meta = leerMetaPartidas();
         meta.push({ id, nombre: nom, createdAt: now, updatedAt: now, jugadoresCount: 0 });
