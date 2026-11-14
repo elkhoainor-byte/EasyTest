@@ -605,6 +605,27 @@
       }
       .ent-session .es-n { font-size: 0.7rem; color: #888; display: block; margin-bottom: 2px; }
       .ent-rationale { color: #aaa; font-size: 0.88rem; margin: 12px 0; line-height: 1.45; }
+      .ent-calendar {
+        display: grid; grid-template-columns: 90px repeat(5, 1fr); gap: 6px; margin-top: 12px;
+      }
+      .ent-cal-head {
+        text-align: center; font-size: 0.75rem; font-weight: 700; color: #888;
+        text-transform: uppercase; padding: 6px 4px;
+      }
+      .ent-cal-week {
+        display: flex; align-items: center; font-size: 0.8rem; font-weight: 700; color: #7dd3fc;
+      }
+      .ent-cal-cell select {
+        width: 100%; padding: 8px 4px; border-radius: 6px; border: 1px solid #3a3a3a;
+        background: #1a1a1a; color: #e0e0e0; font-size: 0.72rem; cursor: pointer;
+      }
+      .ent-cal-cell select.tipo-partido { border-color: #ef4444; background: #3f1515; color: #fecaca; }
+      .ent-cal-cell select.tipo-descanso { border-color: #64748b; background: #1e293b; color: #cbd5e1; }
+      .ent-cal-cell select.tipo-otro { border-color: #a78bfa; background: #2e1065; color: #e9d5ff; }
+      .ent-cal-cell select.tipo-tactico { border-color: #38bdf8; background: #0c4a6e; color: #e0f2fe; }
+      .ent-cal-cell select.tipo-vacio { border-color: #333; }
+      .ent-block .ent-sessions { display: flex; flex-wrap: wrap; gap: 8px; }
+
 
       /* ===== OJEADOS ===== */
       .ojeados-toolbar {
@@ -1411,23 +1432,26 @@
       <div class="form-section">
         <h2 style="margin-top:0;">Entrenamiento táctico</h2>
         <p style="color:#888;font-size:0.9rem;margin-bottom:16px;">
-          Indica cuántos huecos de entrenamiento táctico tienes hasta el próximo partido y el nivel actual (1–10) de cada categoría.
-          El plan prioriza lo más débil, pero reparte algo de trabajo para que no se caiga el resto.
+          Marca en el calendario (2 semanas, L–V) los <strong>Partidos</strong>, <strong>Descansos</strong> y
+          <strong>Otros entrenamientos</strong>. Al pulsar <strong>Crear plan</strong>, se rellenan solo los huecos
+          vacíos <em>entre partido y partido</em>, priorizando lo más débil y pudiendo repetir categorías.
         </p>
 
-        <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:20px;">
-          <div style="min-width:200px;">
-            <label for="ent-slots" style="display:block;margin-bottom:6px;font-weight:600;">Espacios hasta el partido</label>
-            <input type="number" id="ent-slots" min="3" max="30" step="1" value="9"
-              style="width:120px;padding:10px 12px;border-radius:6px;border:1px solid var(--border);background:#222;color:var(--text);font-size:1.1rem;font-weight:700;">
-            <div style="font-size:0.75rem;color:#666;margin-top:4px;">Se usan bloques de 3 sesiones</div>
-          </div>
-          <button class="btn-primary" type="button" onclick="crearPlanEntrenamiento()">▶ Crear plan</button>
-          <button class="btn-secondary" type="button" onclick="resetNivelesEntrenamiento()">↺ Niveles a 5</button>
+        <h3 style="font-size:1rem;color:#aaa;margin-bottom:8px;">Calendario (Lunes–Viernes × 2 semanas)</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+          <button class="btn-secondary" type="button" style="padding:8px 12px;font-size:0.85rem;" onclick="limpiarCalendarioEntrenamiento()">↺ Vaciar calendario</button>
+          <button class="btn-secondary" type="button" style="padding:8px 12px;font-size:0.85rem;" onclick="rellenarCalendarioEjemplo()">Ejemplo (partido midweek + fin de semana)</button>
         </div>
+        <div class="ent-calendar" id="ent-calendar"></div>
 
-        <h3 style="font-size:1rem;color:#aaa;margin-bottom:12px;">Nivel actual de cada categoría</h3>
+        <h3 style="font-size:1rem;color:#aaa;margin:20px 0 12px;">Nivel actual de cada categoría (1–10)</h3>
         <div class="ent-grid" id="ent-cats-grid"></div>
+
+        <div class="buttons" style="justify-content:flex-start;margin-top:20px;">
+          <button class="btn-primary" type="button" onclick="crearPlanEntrenamiento()">▶ Crear plan (rellenar huecos entre partidos)</button>
+          <button class="btn-secondary" type="button" onclick="resetNivelesEntrenamiento()">↺ Niveles a 5</button>
+          <button class="btn-danger" type="button" onclick="limpiarSoloTacticosCalendario()">Quitar solo tácticos del plan</button>
+        </div>
 
         <div id="ent-plan-resultado" style="margin-top:24px;"></div>
       </div>
@@ -1637,10 +1661,14 @@
       });
       ojeados = Array.isArray(data.ojeados) ? data.ojeados : [];
       if (data.entrenamiento && typeof data.entrenamiento === 'object') {
+        const cal = Array.isArray(data.entrenamiento.calendario) && data.entrenamiento.calendario.length === 10
+          ? data.entrenamiento.calendario.slice()
+          : (typeof calendarioVacio === 'function' ? calendarioVacio() : Array(10).fill(''));
         entrenamientoState = {
-          slots: data.entrenamiento.slots || 9,
           niveles: { ...(entrenamientoState && entrenamientoState.niveles ? entrenamientoState.niveles : {}), ...(data.entrenamiento.niveles || {}) },
-          plan: Array.isArray(data.entrenamiento.plan) ? data.entrenamiento.plan : []
+          calendario: cal,
+          plan: Array.isArray(data.entrenamiento.plan) ? data.entrenamiento.plan : [],
+          _razon: data.entrenamiento._razon || ''
         };
       }
       roles = Array.isArray(data.roles) ? data.roles.map(r => ({ ...r, posesion: r.posesion || 'ambos' })) : [];
@@ -4636,11 +4664,15 @@ function aplicarFormaTodos(campo, valor) {
       { id: 'intensidad_presion', nombre: 'Intensidad de la presión' },
       { id: 'trampa_presion', nombre: 'Trampa de presión' }
     ];
+    const ENT_DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+    // 10 celdas: semana1 L-V (0-4), semana2 L-V (5-9)
+    const ENT_CAL_LEN = 10;
 
     var entrenamientoState = {
-      slots: 9,
       niveles: {},
-      plan: []
+      calendario: null, // array length 10: '', 'partido', 'descanso', 'otro', or categoria id
+      plan: [],
+      _razon: ''
     };
 
     function nivelesDefaultEntrenamiento() {
@@ -4649,7 +4681,11 @@ function aplicarFormaTodos(campo, valor) {
       return n;
     }
 
-    function asegurarNivelesEntrenamiento() {
+    function calendarioVacio() {
+      return Array.from({ length: ENT_CAL_LEN }, () => '');
+    }
+
+    function asegurarEstadoEntrenamiento() {
       if (!entrenamientoState.niveles || typeof entrenamientoState.niveles !== 'object') {
         entrenamientoState.niveles = nivelesDefaultEntrenamiento();
       }
@@ -4658,6 +4694,9 @@ function aplicarFormaTodos(campo, valor) {
         if (isNaN(v)) v = 5;
         entrenamientoState.niveles[c.id] = Math.max(1, Math.min(10, Math.round(v)));
       });
+      if (!Array.isArray(entrenamientoState.calendario) || entrenamientoState.calendario.length !== ENT_CAL_LEN) {
+        entrenamientoState.calendario = calendarioVacio();
+      }
     }
 
     function colorNivelEnt(v) {
@@ -4667,25 +4706,116 @@ function aplicarFormaTodos(campo, valor) {
       return '#4ade80';
     }
 
+    function nombreCategoriaEnt(id) {
+      const c = ENT_CATEGORIAS.find(x => x.id === id);
+      return c ? c.nombre : id;
+    }
+
+    function opcionesCalendarioSelect(selected) {
+      const sel = selected || '';
+      let html = `<option value="" ${sel===''?'selected':''}>— Vacío —</option>`;
+      html += `<option value="partido" ${sel==='partido'?'selected':''}>Partido</option>`;
+      html += `<option value="otro" ${sel==='otro'?'selected':''}>Otro entrenamiento</option>`;
+      html += `<option value="descanso" ${sel==='descanso'?'selected':''}>Descanso</option>`;
+      html += `<option disabled>── Táctico ──</option>`;
+      ENT_CATEGORIAS.forEach(c => {
+        html += `<option value="${c.id}" ${sel===c.id?'selected':''}>${c.nombre}</option>`;
+      });
+      return html;
+    }
+
+    function claseSelectCalendario(val) {
+      if (val === 'partido') return 'tipo-partido';
+      if (val === 'descanso') return 'tipo-descanso';
+      if (val === 'otro') return 'tipo-otro';
+      if (val && ENT_CATEGORIAS.some(c => c.id === val)) return 'tipo-tactico';
+      return 'tipo-vacio';
+    }
+
+    function renderCalendarioEntrenamiento() {
+      asegurarEstadoEntrenamiento();
+      const cont = document.getElementById('ent-calendar');
+      if (!cont) return;
+      let html = '<div class="ent-cal-head"></div>';
+      ENT_DIAS.forEach(d => { html += `<div class="ent-cal-head">${d}</div>`; });
+      for (let w = 0; w < 2; w++) {
+        html += `<div class="ent-cal-week">Semana ${w + 1}</div>`;
+        for (let d = 0; d < 5; d++) {
+          const idx = w * 5 + d;
+          const val = entrenamientoState.calendario[idx] || '';
+          html += `<div class="ent-cal-cell">
+            <select class="${claseSelectCalendario(val)}" data-idx="${idx}"
+              onchange="onCalendarioEntChange(${idx}, this.value)">
+              ${opcionesCalendarioSelect(val)}
+            </select>
+          </div>`;
+        }
+      }
+      cont.innerHTML = html;
+    }
+
+    function onCalendarioEntChange(idx, value) {
+      asegurarEstadoEntrenamiento();
+      entrenamientoState.calendario[idx] = value || '';
+      const sel = document.querySelector(`#ent-calendar select[data-idx="${idx}"]`);
+      if (sel) {
+        sel.className = claseSelectCalendario(value);
+      }
+      if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
+    }
+
+    function limpiarCalendarioEntrenamiento() {
+      entrenamientoState.calendario = calendarioVacio();
+      entrenamientoState.plan = [];
+      entrenamientoState._razon = '';
+      renderCalendarioEntrenamiento();
+      const res = document.getElementById('ent-plan-resultado');
+      if (res) res.innerHTML = '';
+      if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
+    }
+
+    function limpiarSoloTacticosCalendario() {
+      asegurarEstadoEntrenamiento();
+      const tacticos = new Set(ENT_CATEGORIAS.map(c => c.id));
+      entrenamientoState.calendario = entrenamientoState.calendario.map(v => tacticos.has(v) ? '' : v);
+      entrenamientoState.plan = [];
+      entrenamientoState._razon = '';
+      renderCalendarioEntrenamiento();
+      const res = document.getElementById('ent-plan-resultado');
+      if (res) res.innerHTML = '';
+      if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
+    }
+
+    function rellenarCalendarioEjemplo() {
+      // S1: Mié partido; S2: Vie partido — huecos entre medias
+      const cal = calendarioVacio();
+      cal[2] = 'partido'; // S1 Miércoles
+      cal[9] = 'partido'; // S2 Viernes
+      cal[4] = 'descanso'; // S1 Viernes ejemplo
+      entrenamientoState.calendario = cal;
+      renderCalendarioEntrenamiento();
+      if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
+    }
+
     function renderFormularioEntrenamiento() {
-      asegurarNivelesEntrenamiento();
-      const slotsEl = document.getElementById('ent-slots');
-      if (slotsEl) slotsEl.value = entrenamientoState.slots || 9;
+      asegurarEstadoEntrenamiento();
+      renderCalendarioEntrenamiento();
       const grid = document.getElementById('ent-cats-grid');
-      if (!grid) return;
-      grid.innerHTML = ENT_CATEGORIAS.map(c => {
-        const v = entrenamientoState.niveles[c.id] ?? 5;
-        return `<div class="ent-cat">
-          <label for="ent-${c.id}">${c.nombre}</label>
-          <input type="range" id="ent-${c.id}" min="1" max="10" step="1" value="${v}"
-            oninput="onNivelEntChange('${c.id}', this.value)">
-          <div class="ent-val">
-            <span>Débil</span>
-            <span class="ent-num" id="ent-num-${c.id}" style="color:${colorNivelEnt(v)}">${v}</span>
-            <span>Fuerte</span>
-          </div>
-        </div>`;
-      }).join('');
+      if (grid) {
+        grid.innerHTML = ENT_CATEGORIAS.map(c => {
+          const v = entrenamientoState.niveles[c.id] ?? 5;
+          return `<div class="ent-cat">
+            <label for="ent-${c.id}">${c.nombre}</label>
+            <input type="range" id="ent-${c.id}" min="1" max="10" step="1" value="${v}"
+              oninput="onNivelEntChange('${c.id}', this.value)">
+            <div class="ent-val">
+              <span>Débil</span>
+              <span class="ent-num" id="ent-num-${c.id}" style="color:${colorNivelEnt(v)}">${v}</span>
+              <span>Fuerte</span>
+            </div>
+          </div>`;
+        }).join('');
+      }
       if (entrenamientoState.plan && entrenamientoState.plan.length) {
         pintarPlanEntrenamiento(entrenamientoState.plan, entrenamientoState._razon || '');
       } else {
@@ -4695,7 +4825,7 @@ function aplicarFormaTodos(campo, valor) {
     }
 
     function onNivelEntChange(id, value) {
-      asegurarNivelesEntrenamiento();
+      asegurarEstadoEntrenamiento();
       const v = Math.max(1, Math.min(10, parseInt(value, 10) || 5));
       entrenamientoState.niveles[id] = v;
       const num = document.getElementById('ent-num-' + id);
@@ -4708,134 +4838,168 @@ function aplicarFormaTodos(campo, valor) {
 
     function resetNivelesEntrenamiento() {
       entrenamientoState.niveles = nivelesDefaultEntrenamiento();
-      entrenamientoState.plan = [];
-      entrenamientoState._razon = '';
       renderFormularioEntrenamiento();
       if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
     }
 
-    /**
-     * Algoritmo: bloques de 3 sesiones.
-     * Prioridad = debilidad (11-nivel) + ligera presión a no descuidar categorías medias.
-     * Reparto: ~70% a las más débiles, ~30% a mantenimiento equilibrado.
-     */
-    function calcularPlanEntrenamiento(slots, niveles) {
-      const nSlots = Math.max(3, Math.min(30, parseInt(slots, 10) || 9));
-      const nBloques = Math.floor(nSlots / 3);
-      const sobra = nSlots % 3;
+    /** Índices de partidos en el calendario */
+    function indicesPartidos() {
+      asegurarEstadoEntrenamiento();
+      const idxs = [];
+      entrenamientoState.calendario.forEach((v, i) => {
+        if (v === 'partido') idxs.push(i);
+      });
+      return idxs;
+    }
 
+    /**
+     * Huecos vacíos SOLO entre partido y partido (estrictamente entre dos partidos consecutivos).
+     * No rellena antes del primer partido ni después del último.
+     */
+    function indicesHuecosEntrePartidos() {
+      const partidos = indicesPartidos();
+      if (partidos.length < 2) return [];
+      const huecos = [];
+      for (let p = 0; p < partidos.length - 1; p++) {
+        const a = partidos[p];
+        const b = partidos[p + 1];
+        for (let i = a + 1; i < b; i++) {
+          const v = entrenamientoState.calendario[i];
+          if (!v || v === '') huecos.push(i);
+        }
+      }
+      return huecos;
+    }
+
+    /**
+     * Asigna una categoría a cada hueco. Puede repetir.
+     * Prioriza lo débil; evita saturar una sola categoría si hay alternativas cercanas.
+     */
+    function asignarCategoriasAHuecos(nHuecos, niveles) {
+      if (nHuecos <= 0) return [];
       const cats = ENT_CATEGORIAS.map(c => ({
         id: c.id,
         nombre: c.nombre,
         nivel: Math.max(1, Math.min(10, Number(niveles[c.id]) || 5))
       }));
-
-      // Prioridad por debilidad
-      cats.sort((a, b) => a.nivel - b.nivel || a.nombre.localeCompare(b.nombre, 'es'));
-
-      const asignaciones = []; // category ids, length = nBloques
       const contador = {};
       ENT_CATEGORIAS.forEach(c => { contador[c.id] = 0; });
+      const asignados = [];
 
-      // Primero: cubrir las peores (al menos 1 bloque si hay suficientes)
-      const peores = cats.slice(0, Math.min(4, cats.length));
-      let bloquesRestantes = nBloques;
-
-      // Fase 1: un bloque a cada una de las peores (si cabe)
-      for (const c of peores) {
-        if (bloquesRestantes <= 0) break;
-        asignaciones.push(c.id);
-        contador[c.id]++;
-        bloquesRestantes--;
-      }
-
-      // Fase 2: resto ponderado por debilidad (evitar concentrar todo en una)
-      while (bloquesRestantes > 0) {
-        // Score: más alto = más necesidad de entrenar
+      for (let k = 0; k < nHuecos; k++) {
         let best = null;
         let bestScore = -1e9;
         for (const c of cats) {
           const debilidad = 11 - c.nivel;
-          // Penalizar si ya tiene muchos bloques (equilibrio)
-          const sobrecarga = contador[c.id] * 2.2;
-          // Bonus si aún no se ha tocado
-          const noTocada = contador[c.id] === 0 ? 3 : 0;
-          const score = debilidad * 1.6 + noTocada - sobrecarga + (Math.random() * 0.15);
+          // penalización suave por repetición (pero permite repetir cuando hace falta)
+          const rep = contador[c.id];
+          const score = debilidad * 2.0 - rep * 1.35 + (rep === 0 ? 1.5 : 0) + Math.random() * 0.05;
           if (score > bestScore) {
             bestScore = score;
             best = c;
           }
         }
         if (!best) break;
-        asignaciones.push(best.id);
+        asignados.push(best.id);
         contador[best.id]++;
-        bloquesRestantes--;
+      }
+      return { asignados, contador };
+    }
+
+    function etiquetaDiaCal(idx) {
+      const w = Math.floor(idx / 5) + 1;
+      const d = ENT_DIAS[idx % 5];
+      return `S${w} ${d}`;
+    }
+
+    function crearPlanEntrenamiento() {
+      asegurarEstadoEntrenamiento();
+      // sync niveles from DOM
+      ENT_CATEGORIAS.forEach(c => {
+        const el = document.getElementById('ent-' + c.id);
+        if (el) entrenamientoState.niveles[c.id] = Math.max(1, Math.min(10, parseInt(el.value, 10) || 5));
+      });
+
+      const partidos = indicesPartidos();
+      if (partidos.length < 2) {
+        alert('Marca al menos 2 días como «Partido» en el calendario.\nEl plan solo rellena huecos vacíos entre un partido y el siguiente.');
+        return;
       }
 
-      // Construir plan visual
-      const byId = {};
-      ENT_CATEGORIAS.forEach(c => { byId[c.id] = c.nombre; });
-      const plan = asignaciones.map((catId, i) => ({
-        bloque: i + 1,
-        categoriaId: catId,
-        categoria: byId[catId] || catId,
-        sesiones: 3,
-        etiqueta: `Bloque ${i + 1}: ${byId[catId] || catId}`
-      }));
+      // Limpiar tácticos previos en zona entre partidos (opcional: solo vacíos)
+      // Solo rellenamos vacíos; no pisamos descanso/otro/partido/táctico manual
+      const huecos = indicesHuecosEntrePartidos();
+      if (!huecos.length) {
+        alert('No hay huecos vacíos entre partidos. Deja celdas en «— Vacío —» entre un partido y el siguiente.');
+        return;
+      }
 
-      const tocadas = Object.entries(contador).filter(([, n]) => n > 0).map(([id]) => byId[id]);
-      const noTocadas = Object.entries(contador).filter(([, n]) => n === 0).map(([id]) => byId[id]);
-      const peoresNombres = peores.map(c => c.nombre);
+      const { asignados, contador } = asignarCategoriasAHuecos(huecos.length, entrenamientoState.niveles);
+      const plan = [];
+      huecos.forEach((idx, i) => {
+        const catId = asignados[i];
+        entrenamientoState.calendario[idx] = catId;
+        plan.push({
+          idx,
+          dia: etiquetaDiaCal(idx),
+          categoriaId: catId,
+          categoria: nombreCategoriaEnt(catId)
+        });
+      });
 
-      let razon = `Tienes <strong>${nSlots}</strong> espacios → <strong>${nBloques}</strong> bloques de 3 sesiones`;
-      if (sobra) razon += ` (sobran ${sobra} hueco${sobra > 1 ? 's' : ''} sueltos; el plan usa solo múltiplos de 3)`;
-      razon += '.<br>';
-      razon += `Prioridad en lo más débil: <strong>${peoresNombres.slice(0, 3).join(', ')}</strong>. `;
-      razon += `También se reparte algo de trabajo para no dejar caer el resto (${tocadas.length} categorías tocadas).`;
+      const tocadas = Object.entries(contador).filter(([, n]) => n > 0)
+        .sort((a, b) => b[1] - a[1])
+        .map(([id, n]) => `${nombreCategoriaEnt(id)} ×${n}`);
+      const noTocadas = Object.entries(contador).filter(([, n]) => n === 0).map(([id]) => nombreCategoriaEnt(id));
+
+      let razon = `Partidos en: <strong>${partidos.map(etiquetaDiaCal).join(' → ')}</strong>. `;
+      razon += `Se rellenaron <strong>${huecos.length}</strong> huecos vacíos entre partidos (se pueden repetir categorías).`;
+      razon += `<br>Reparto: ${tocadas.join(', ') || '—'}.`;
       if (noTocadas.length) {
-        razon += `<br><span style="color:#fbbf24;">Sin bloque esta semana (posible bajada ligera): ${noTocadas.join(', ')}.</span>`;
+        razon += `<br><span style="color:#fbbf24;">Sin sesión esta ventana (posible bajada): ${noTocadas.join(', ')}.</span>`;
       }
 
-      return { plan, razon, nBloques, nSlots, sobra, contador };
+      entrenamientoState.plan = plan;
+      entrenamientoState._razon = razon;
+      renderCalendarioEntrenamiento();
+      pintarPlanEntrenamiento(plan, razon);
+      if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
     }
 
     function pintarPlanEntrenamiento(plan, razon) {
       const cont = document.getElementById('ent-plan-resultado');
       if (!cont) return;
       if (!plan || !plan.length) {
-        cont.innerHTML = '<div class="empty-state">No hay bloques que mostrar (mínimo 3 espacios).</div>';
+        cont.innerHTML = '<div class="empty-state">Sin sesiones asignadas.</div>';
         return;
       }
-      let html = `<h3 style="font-size:1.1rem;margin-bottom:8px;color:#fff;">Plan para el calendario</h3>`;
+      let html = `<h3 style="font-size:1.1rem;margin-bottom:8px;color:#fff;">Plan entre partidos</h3>`;
       if (razon) html += `<div class="ent-rationale">${razon}</div>`;
-      plan.forEach(b => {
-        html += `<div class="ent-block">
-          <h4>${b.etiqueta}</h4>
-          <div class="ent-sessions">
-            <div class="ent-session"><span class="es-n">Sesión 1</span>${b.categoria}</div>
-            <div class="ent-session"><span class="es-n">Sesión 2</span>${b.categoria}</div>
-            <div class="ent-session"><span class="es-n">Sesión 3</span>${b.categoria}</div>
-          </div>
+      html += `<div class="ent-block"><h4>Sesiones en calendario</h4><div class="ent-sessions">`;
+      plan.forEach((s, i) => {
+        html += `<div class="ent-session"><span class="es-n">${s.dia}</span>${s.categoria}</div>`;
+      });
+      html += `</div></div>`;
+      // Agrupar rachas del mismo entrenamiento (para calendario FM)
+      html += `<div class="ent-block"><h4>Agrupado por rachas (copia a FM)</h4>`;
+      let i = 0;
+      let bloque = 1;
+      while (i < plan.length) {
+        const cat = plan[i].categoriaId;
+        let j = i;
+        while (j < plan.length && plan[j].categoriaId === cat) j++;
+        const n = j - i;
+        const dias = plan.slice(i, j).map(p => p.dia).join(', ');
+        html += `<div style="margin-bottom:8px;font-size:0.9rem;">
+          <strong style="color:#7dd3fc;">Bloque ${bloque}:</strong> ${nombreCategoriaEnt(cat)}
+          <span style="color:#888;"> ×${n}</span>
+          <div style="color:#aaa;font-size:0.8rem;">${dias}</div>
         </div>`;
-      });
-      html += `<p style="color:#666;font-size:0.8rem;margin-top:8px;">Copia estos bloques a tu calendario de FM (misma categoría 3 días seguidos o 3 huecos tácticos).</p>`;
+        bloque++;
+        i = j;
+      }
+      html += `</div>`;
       cont.innerHTML = html;
-    }
-
-    function crearPlanEntrenamiento() {
-      asegurarNivelesEntrenamiento();
-      const slots = parseInt(document.getElementById('ent-slots')?.value, 10) || 9;
-      entrenamientoState.slots = slots;
-      // leer niveles del DOM por si no se sincronizaron
-      ENT_CATEGORIAS.forEach(c => {
-        const el = document.getElementById('ent-' + c.id);
-        if (el) entrenamientoState.niveles[c.id] = Math.max(1, Math.min(10, parseInt(el.value, 10) || 5));
-      });
-      const resultado = calcularPlanEntrenamiento(slots, entrenamientoState.niveles);
-      entrenamientoState.plan = resultado.plan;
-      entrenamientoState._razon = resultado.razon;
-      pintarPlanEntrenamiento(resultado.plan, resultado.razon);
-      if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
     }
     /* ===================== FIN ENTRENAMIENTO ===================== */
 
