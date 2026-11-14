@@ -606,7 +606,7 @@
       .ent-session .es-n { font-size: 0.7rem; color: #888; display: block; margin-bottom: 2px; }
       .ent-rationale { color: #aaa; font-size: 0.88rem; margin: 12px 0; line-height: 1.45; }
       .ent-calendar {
-        display: grid; grid-template-columns: 90px repeat(5, 1fr); gap: 6px; margin-top: 12px;
+        display: grid; grid-template-columns: 90px repeat(5, 1fr); gap: 8px; margin-top: 12px;
       }
       .ent-cal-head {
         text-align: center; font-size: 0.75rem; font-weight: 700; color: #888;
@@ -615,15 +615,30 @@
       .ent-cal-week {
         display: flex; align-items: center; font-size: 0.8rem; font-weight: 700; color: #7dd3fc;
       }
-      .ent-cal-cell select {
-        width: 100%; padding: 8px 4px; border-radius: 6px; border: 1px solid #3a3a3a;
-        background: #1a1a1a; color: #e0e0e0; font-size: 0.72rem; cursor: pointer;
+      .ent-cal-day {
+        background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 6px;
+        display: flex; flex-direction: column; gap: 4px;
       }
-      .ent-cal-cell select.tipo-partido { border-color: #ef4444; background: #3f1515; color: #fecaca; }
-      .ent-cal-cell select.tipo-descanso { border-color: #64748b; background: #1e293b; color: #cbd5e1; }
-      .ent-cal-cell select.tipo-otro { border-color: #a78bfa; background: #2e1065; color: #e9d5ff; }
-      .ent-cal-cell select.tipo-tactico { border-color: #38bdf8; background: #0c4a6e; color: #e0f2fe; }
-      .ent-cal-cell select.tipo-vacio { border-color: #333; }
+      .ent-cal-day.dia-ignorado {
+        opacity: 0.45; border-color: #555; background: #151515;
+      }
+      .ent-cal-day .dia-top {
+        display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 2px;
+      }
+      .ent-cal-day .dia-top label {
+        font-size: 0.68rem; color: #f87171; display: flex; align-items: center; gap: 3px;
+        cursor: pointer; font-weight: 600; margin: 0;
+      }
+      .ent-cal-day select {
+        width: 100%; padding: 5px 3px; border-radius: 5px; border: 1px solid #3a3a3a;
+        background: #111; color: #e0e0e0; font-size: 0.65rem; cursor: pointer;
+      }
+      .ent-cal-day select:disabled { opacity: 0.4; cursor: not-allowed; }
+      .ent-cal-day select.tipo-partido { border-color: #ef4444; background: #3f1515; color: #fecaca; }
+      .ent-cal-day select.tipo-descanso { border-color: #64748b; background: #1e293b; color: #cbd5e1; }
+      .ent-cal-day select.tipo-otro { border-color: #a78bfa; background: #2e1065; color: #e9d5ff; }
+      .ent-cal-day select.tipo-tactico { border-color: #38bdf8; background: #0c4a6e; color: #e0f2fe; }
+      .ent-cal-day select.tipo-vacio { border-color: #333; }
       .ent-block .ent-sessions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 
@@ -1432,9 +1447,10 @@
       <div class="form-section">
         <h2 style="margin-top:0;">Entrenamiento táctico</h2>
         <p style="color:#888;font-size:0.9rem;margin-bottom:16px;">
-          Marca en el calendario (2 semanas, L–V) los <strong>Partidos</strong>, <strong>Descansos</strong> y
-          <strong>Otros entrenamientos</strong>. Al pulsar <strong>Crear plan</strong>, se rellenan solo los huecos
-          vacíos <em>entre partido y partido</em>, priorizando lo más débil y pudiendo repetir categorías.
+          Cada día tiene <strong>3 huecos</strong>. Puedes marcar un día como <strong>Día vacío</strong> (no cuenta para el plan).
+          Coloca <strong>Partidos</strong>, <strong>Descansos</strong> u <strong>Otro entrenamiento</strong> en los huecos.
+          <strong>Crear plan</strong> rellena solo huecos vacíos <em>entre partido y partido</em> (en días no vacíos),
+          priorizando lo débil y pudiendo repetir.
         </p>
 
         <h3 style="font-size:1rem;color:#aaa;margin-bottom:8px;">Calendario (Lunes–Viernes × 2 semanas)</h3>
@@ -1661,15 +1677,14 @@
       });
       ojeados = Array.isArray(data.ojeados) ? data.ojeados : [];
       if (data.entrenamiento && typeof data.entrenamiento === 'object') {
-        const cal = Array.isArray(data.entrenamiento.calendario) && data.entrenamiento.calendario.length === 10
-          ? data.entrenamiento.calendario.slice()
-          : (typeof calendarioVacio === 'function' ? calendarioVacio() : Array(10).fill(''));
+        let cal = Array.isArray(data.entrenamiento.calendario) ? data.entrenamiento.calendario.slice() : null;
         entrenamientoState = {
           niveles: { ...(entrenamientoState && entrenamientoState.niveles ? entrenamientoState.niveles : {}), ...(data.entrenamiento.niveles || {}) },
           calendario: cal,
           plan: Array.isArray(data.entrenamiento.plan) ? data.entrenamiento.plan : [],
           _razon: data.entrenamiento._razon || ''
         };
+        if (typeof asegurarEstadoEntrenamiento === 'function') asegurarEstadoEntrenamiento();
       }
       roles = Array.isArray(data.roles) ? data.roles.map(r => ({ ...r, posesion: r.posesion || 'ambos' })) : [];
       lineupCon = data.lineupCon && typeof data.lineupCon === 'object' ? data.lineupCon : {};
@@ -4665,12 +4680,13 @@ function aplicarFormaTodos(campo, valor) {
       { id: 'trampa_presion', nombre: 'Trampa de presión' }
     ];
     const ENT_DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-    // 10 celdas: semana1 L-V (0-4), semana2 L-V (5-9)
-    const ENT_CAL_LEN = 10;
+    const ENT_CAL_LEN = 10; // días
+    const ENT_SLOTS_DIA = 3;
 
     var entrenamientoState = {
       niveles: {},
-      calendario: null, // array length 10: '', 'partido', 'descanso', 'otro', or categoria id
+      // calendario[dia] = { vacio: bool, slots: ['','',''] }
+      calendario: null,
       plan: [],
       _razon: ''
     };
@@ -4681,8 +4697,23 @@ function aplicarFormaTodos(campo, valor) {
       return n;
     }
 
+    function diaCalendarioVacio() {
+      return { vacio: false, slots: ['', '', ''] };
+    }
+
     function calendarioVacio() {
-      return Array.from({ length: ENT_CAL_LEN }, () => '');
+      return Array.from({ length: ENT_CAL_LEN }, () => diaCalendarioVacio());
+    }
+
+    function normalizarDiaCal(d) {
+      if (!d || typeof d !== 'object') return diaCalendarioVacio();
+      // legacy: string value
+      if (typeof d === 'string') {
+        return { vacio: false, slots: [d, '', ''] };
+      }
+      const slots = Array.isArray(d.slots) ? d.slots.slice(0, 3) : ['', '', ''];
+      while (slots.length < 3) slots.push('');
+      return { vacio: !!d.vacio, slots };
     }
 
     function asegurarEstadoEntrenamiento() {
@@ -4695,7 +4726,18 @@ function aplicarFormaTodos(campo, valor) {
         entrenamientoState.niveles[c.id] = Math.max(1, Math.min(10, Math.round(v)));
       });
       if (!Array.isArray(entrenamientoState.calendario) || entrenamientoState.calendario.length !== ENT_CAL_LEN) {
-        entrenamientoState.calendario = calendarioVacio();
+        // migrar formato antiguo (array de strings)
+        if (Array.isArray(entrenamientoState.calendario) && entrenamientoState.calendario.length === ENT_CAL_LEN
+            && typeof entrenamientoState.calendario[0] === 'string') {
+          entrenamientoState.calendario = entrenamientoState.calendario.map(v => ({
+            vacio: false,
+            slots: [v || '', '', '']
+          }));
+        } else {
+          entrenamientoState.calendario = calendarioVacio();
+        }
+      } else {
+        entrenamientoState.calendario = entrenamientoState.calendario.map(normalizarDiaCal);
       }
     }
 
@@ -4713,7 +4755,7 @@ function aplicarFormaTodos(campo, valor) {
 
     function opcionesCalendarioSelect(selected) {
       const sel = selected || '';
-      let html = `<option value="" ${sel===''?'selected':''}>— Vacío —</option>`;
+      let html = `<option value="" ${sel===''?'selected':''}>— Hueco vacío —</option>`;
       html += `<option value="partido" ${sel==='partido'?'selected':''}>Partido</option>`;
       html += `<option value="otro" ${sel==='otro'?'selected':''}>Otro entrenamiento</option>`;
       html += `<option value="descanso" ${sel==='descanso'?'selected':''}>Descanso</option>`;
@@ -4742,25 +4784,43 @@ function aplicarFormaTodos(campo, valor) {
         html += `<div class="ent-cal-week">Semana ${w + 1}</div>`;
         for (let d = 0; d < 5; d++) {
           const idx = w * 5 + d;
-          const val = entrenamientoState.calendario[idx] || '';
-          html += `<div class="ent-cal-cell">
-            <select class="${claseSelectCalendario(val)}" data-idx="${idx}"
-              onchange="onCalendarioEntChange(${idx}, this.value)">
+          const dia = entrenamientoState.calendario[idx];
+          const ignored = dia.vacio;
+          html += `<div class="ent-cal-day ${ignored ? 'dia-ignorado' : ''}" id="ent-day-${idx}">
+            <div class="dia-top">
+              <label title="Este día no se usa para adjudicar entrenamientos">
+                <input type="checkbox" ${ignored ? 'checked' : ''} onchange="onDiaVacioChange(${idx}, this.checked)">
+                Día vacío
+              </label>
+            </div>`;
+          for (let s = 0; s < ENT_SLOTS_DIA; s++) {
+            const val = dia.slots[s] || '';
+            html += `<select class="${claseSelectCalendario(val)}" data-dia="${idx}" data-slot="${s}"
+              ${ignored ? 'disabled' : ''}
+              onchange="onCalendarioEntChange(${idx}, ${s}, this.value)">
               ${opcionesCalendarioSelect(val)}
-            </select>
-          </div>`;
+            </select>`;
+          }
+          html += `</div>`;
         }
       }
       cont.innerHTML = html;
     }
 
-    function onCalendarioEntChange(idx, value) {
+    function onDiaVacioChange(diaIdx, checked) {
       asegurarEstadoEntrenamiento();
-      entrenamientoState.calendario[idx] = value || '';
-      const sel = document.querySelector(`#ent-calendar select[data-idx="${idx}"]`);
-      if (sel) {
-        sel.className = claseSelectCalendario(value);
-      }
+      entrenamientoState.calendario[diaIdx].vacio = !!checked;
+      // al marcar día vacío no borramos el contenido, solo se ignora
+      renderCalendarioEntrenamiento();
+      if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
+    }
+
+    function onCalendarioEntChange(diaIdx, slotIdx, value) {
+      asegurarEstadoEntrenamiento();
+      if (entrenamientoState.calendario[diaIdx].vacio) return;
+      entrenamientoState.calendario[diaIdx].slots[slotIdx] = value || '';
+      const sel = document.querySelector(`#ent-calendar select[data-dia="${diaIdx}"][data-slot="${slotIdx}"]`);
+      if (sel) sel.className = claseSelectCalendario(value);
       if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
     }
 
@@ -4777,7 +4837,9 @@ function aplicarFormaTodos(campo, valor) {
     function limpiarSoloTacticosCalendario() {
       asegurarEstadoEntrenamiento();
       const tacticos = new Set(ENT_CATEGORIAS.map(c => c.id));
-      entrenamientoState.calendario = entrenamientoState.calendario.map(v => tacticos.has(v) ? '' : v);
+      entrenamientoState.calendario.forEach(dia => {
+        dia.slots = dia.slots.map(v => tacticos.has(v) ? '' : v);
+      });
       entrenamientoState.plan = [];
       entrenamientoState._razon = '';
       renderCalendarioEntrenamiento();
@@ -4787,11 +4849,13 @@ function aplicarFormaTodos(campo, valor) {
     }
 
     function rellenarCalendarioEjemplo() {
-      // S1: Mié partido; S2: Vie partido — huecos entre medias
       const cal = calendarioVacio();
-      cal[2] = 'partido'; // S1 Miércoles
-      cal[9] = 'partido'; // S2 Viernes
-      cal[4] = 'descanso'; // S1 Viernes ejemplo
+      // S1 Miércoles: partido en hueco 1
+      cal[2].slots[0] = 'partido';
+      // S1 Viernes: día vacío (no cuenta)
+      cal[4].vacio = true;
+      // S2 Viernes: partido
+      cal[9].slots[0] = 'partido';
       entrenamientoState.calendario = cal;
       renderCalendarioEntrenamiento();
       if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
@@ -4842,41 +4906,43 @@ function aplicarFormaTodos(campo, valor) {
       if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
     }
 
-    /** Índices de partidos en el calendario */
-    function indicesPartidos() {
+    /** Días (índices) que contienen al menos un Partido y no están "día vacío" */
+    function indicesDiasConPartido() {
       asegurarEstadoEntrenamiento();
       const idxs = [];
-      entrenamientoState.calendario.forEach((v, i) => {
-        if (v === 'partido') idxs.push(i);
+      entrenamientoState.calendario.forEach((dia, i) => {
+        if (dia.vacio) return;
+        if ((dia.slots || []).some(s => s === 'partido')) idxs.push(i);
       });
       return idxs;
     }
 
     /**
-     * Huecos vacíos SOLO entre partido y partido (estrictamente entre dos partidos consecutivos).
-     * No rellena antes del primer partido ni después del último.
+     * Huecos vacíos entre partido y partido:
+     * - solo días estrictamente entre dos días con partido
+     * - el día no está marcado como "Día vacío"
+     * - el hueco concreto está vacío ('')
      */
-    function indicesHuecosEntrePartidos() {
-      const partidos = indicesPartidos();
+    function listarHuecosEntrePartidos() {
+      const partidos = indicesDiasConPartido();
       if (partidos.length < 2) return [];
-      const huecos = [];
+      const huecos = []; // { dia, slot }
       for (let p = 0; p < partidos.length - 1; p++) {
         const a = partidos[p];
         const b = partidos[p + 1];
         for (let i = a + 1; i < b; i++) {
-          const v = entrenamientoState.calendario[i];
-          if (!v || v === '') huecos.push(i);
+          const dia = entrenamientoState.calendario[i];
+          if (!dia || dia.vacio) continue; // día vacío = no se tiene en cuenta
+          for (let s = 0; s < ENT_SLOTS_DIA; s++) {
+            if (!dia.slots[s]) huecos.push({ dia: i, slot: s });
+          }
         }
       }
       return huecos;
     }
 
-    /**
-     * Asigna una categoría a cada hueco. Puede repetir.
-     * Prioriza lo débil; evita saturar una sola categoría si hay alternativas cercanas.
-     */
     function asignarCategoriasAHuecos(nHuecos, niveles) {
-      if (nHuecos <= 0) return [];
+      if (nHuecos <= 0) return { asignados: [], contador: {} };
       const cats = ENT_CATEGORIAS.map(c => ({
         id: c.id,
         nombre: c.nombre,
@@ -4885,13 +4951,11 @@ function aplicarFormaTodos(campo, valor) {
       const contador = {};
       ENT_CATEGORIAS.forEach(c => { contador[c.id] = 0; });
       const asignados = [];
-
       for (let k = 0; k < nHuecos; k++) {
         let best = null;
         let bestScore = -1e9;
         for (const c of cats) {
           const debilidad = 11 - c.nivel;
-          // penalización suave por repetición (pero permite repetir cuando hace falta)
           const rep = contador[c.id];
           const score = debilidad * 2.0 - rep * 1.35 + (rep === 0 ? 1.5 : 0) + Math.random() * 0.05;
           if (score > bestScore) {
@@ -4914,34 +4978,32 @@ function aplicarFormaTodos(campo, valor) {
 
     function crearPlanEntrenamiento() {
       asegurarEstadoEntrenamiento();
-      // sync niveles from DOM
       ENT_CATEGORIAS.forEach(c => {
         const el = document.getElementById('ent-' + c.id);
         if (el) entrenamientoState.niveles[c.id] = Math.max(1, Math.min(10, parseInt(el.value, 10) || 5));
       });
 
-      const partidos = indicesPartidos();
+      const partidos = indicesDiasConPartido();
       if (partidos.length < 2) {
-        alert('Marca al menos 2 días como «Partido» en el calendario.\nEl plan solo rellena huecos vacíos entre un partido y el siguiente.');
+        alert('Marca al menos 2 días con un hueco «Partido» (y que no estén como Día vacío).\nEl plan solo rellena huecos entre partido y partido.');
         return;
       }
 
-      // Limpiar tácticos previos en zona entre partidos (opcional: solo vacíos)
-      // Solo rellenamos vacíos; no pisamos descanso/otro/partido/táctico manual
-      const huecos = indicesHuecosEntrePartidos();
+      const huecos = listarHuecosEntrePartidos();
       if (!huecos.length) {
-        alert('No hay huecos vacíos entre partidos. Deja celdas en «— Vacío —» entre un partido y el siguiente.');
+        alert('No hay huecos vacíos entre partidos.\nDeja huecos en «— Hueco vacío —» en días que no sean «Día vacío».');
         return;
       }
 
       const { asignados, contador } = asignarCategoriasAHuecos(huecos.length, entrenamientoState.niveles);
       const plan = [];
-      huecos.forEach((idx, i) => {
+      huecos.forEach((h, i) => {
         const catId = asignados[i];
-        entrenamientoState.calendario[idx] = catId;
+        entrenamientoState.calendario[h.dia].slots[h.slot] = catId;
         plan.push({
-          idx,
-          dia: etiquetaDiaCal(idx),
+          dia: h.dia,
+          slot: h.slot,
+          label: etiquetaDiaCal(h.dia) + ' · H' + (h.slot + 1),
           categoriaId: catId,
           categoria: nombreCategoriaEnt(catId)
         });
@@ -4951,12 +5013,18 @@ function aplicarFormaTodos(campo, valor) {
         .sort((a, b) => b[1] - a[1])
         .map(([id, n]) => `${nombreCategoriaEnt(id)} ×${n}`);
       const noTocadas = Object.entries(contador).filter(([, n]) => n === 0).map(([id]) => nombreCategoriaEnt(id));
+      const diasVacios = entrenamientoState.calendario
+        .map((d, i) => d.vacio ? etiquetaDiaCal(i) : null)
+        .filter(Boolean);
 
       let razon = `Partidos en: <strong>${partidos.map(etiquetaDiaCal).join(' → ')}</strong>. `;
-      razon += `Se rellenaron <strong>${huecos.length}</strong> huecos vacíos entre partidos (se pueden repetir categorías).`;
+      razon += `Rellenados <strong>${huecos.length}</strong> huecos vacíos entre partidos (3 por día; se puede repetir).`;
+      if (diasVacios.length) {
+        razon += `<br>Días vacíos ignorados: <strong>${diasVacios.join(', ')}</strong>.`;
+      }
       razon += `<br>Reparto: ${tocadas.join(', ') || '—'}.`;
       if (noTocadas.length) {
-        razon += `<br><span style="color:#fbbf24;">Sin sesión esta ventana (posible bajada): ${noTocadas.join(', ')}.</span>`;
+        razon += `<br><span style="color:#fbbf24;">Sin sesión esta ventana: ${noTocadas.join(', ')}.</span>`;
       }
 
       entrenamientoState.plan = plan;
@@ -4976,11 +5044,10 @@ function aplicarFormaTodos(campo, valor) {
       let html = `<h3 style="font-size:1.1rem;margin-bottom:8px;color:#fff;">Plan entre partidos</h3>`;
       if (razon) html += `<div class="ent-rationale">${razon}</div>`;
       html += `<div class="ent-block"><h4>Sesiones en calendario</h4><div class="ent-sessions">`;
-      plan.forEach((s, i) => {
-        html += `<div class="ent-session"><span class="es-n">${s.dia}</span>${s.categoria}</div>`;
+      plan.forEach(s => {
+        html += `<div class="ent-session"><span class="es-n">${s.label}</span>${s.categoria}</div>`;
       });
       html += `</div></div>`;
-      // Agrupar rachas del mismo entrenamiento (para calendario FM)
       html += `<div class="ent-block"><h4>Agrupado por rachas (copia a FM)</h4>`;
       let i = 0;
       let bloque = 1;
@@ -4989,7 +5056,7 @@ function aplicarFormaTodos(campo, valor) {
         let j = i;
         while (j < plan.length && plan[j].categoriaId === cat) j++;
         const n = j - i;
-        const dias = plan.slice(i, j).map(p => p.dia).join(', ');
+        const dias = plan.slice(i, j).map(p => p.label).join(', ');
         html += `<div style="margin-bottom:8px;font-size:0.9rem;">
           <strong style="color:#7dd3fc;">Bloque ${bloque}:</strong> ${nombreCategoriaEnt(cat)}
           <span style="color:#888;"> ×${n}</span>
