@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor FM24 + Ojeados</title>
+    <title>Gestor FM27 + Ojeados</title>
     <style>
       :root {
         --bg: #1a1a1a; --card: #2a2a2a; --border: #3a3a3a;
@@ -577,6 +577,35 @@
       .tf-nombre { font-weight: 600; }
 
       
+      
+      /* ===== ENTRENAMIENTO ===== */
+      .ent-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;
+      }
+      .ent-cat {
+        background: #1a1a1a; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+      }
+      .ent-cat label { display: block; font-size: 0.85rem; font-weight: 600; color: #ccc; margin-bottom: 8px; }
+      .ent-cat input[type="range"] { width: 100%; accent-color: var(--accent); }
+      .ent-cat .ent-val {
+        display: flex; justify-content: space-between; align-items: center; margin-top: 6px;
+        font-size: 0.8rem; color: #888;
+      }
+      .ent-cat .ent-num { font-size: 1.2rem; font-weight: 800; color: #fff; min-width: 28px; text-align: right; }
+      .ent-block {
+        background: #222; border: 1px solid #3a3a3a; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px;
+      }
+      .ent-block h4 { margin: 0 0 8px; color: #7dd3fc; font-size: 1rem; }
+      .ent-block .ent-sessions {
+        display: flex; flex-wrap: wrap; gap: 8px;
+      }
+      .ent-session {
+        background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 8px 12px;
+        font-size: 0.88rem; color: #e0e0e0; min-width: 140px; text-align: center;
+      }
+      .ent-session .es-n { font-size: 0.7rem; color: #888; display: block; margin-bottom: 2px; }
+      .ent-rationale { color: #aaa; font-size: 0.88rem; margin: 12px 0; line-height: 1.45; }
+
       /* ===== OJEADOS ===== */
       .ojeados-toolbar {
         display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
@@ -941,6 +970,7 @@
       <button class="nav-btn" onclick="mostrarTab('anadir-rol')">Añadir rol</button>
       <button class="nav-btn" onclick="mostrarTab('hacer-11')">Hacer 11</button>
       <button class="nav-btn" onclick="mostrarTab('ojeados')">Ojeados</button>
+      <button class="nav-btn" onclick="mostrarTab('entrenamiento')">Entrenamiento</button>
     </div>
 
     <div id="tab-equipo" class="tab-content active">
@@ -1375,6 +1405,34 @@
   </div>
 
 
+
+    <!-- ========== ENTRENAMIENTO ========== -->
+    <div id="tab-entrenamiento" class="tab-content">
+      <div class="form-section">
+        <h2 style="margin-top:0;">Entrenamiento táctico</h2>
+        <p style="color:#888;font-size:0.9rem;margin-bottom:16px;">
+          Indica cuántos huecos de entrenamiento táctico tienes hasta el próximo partido y el nivel actual (1–10) de cada categoría.
+          El plan prioriza lo más débil, pero reparte algo de trabajo para que no se caiga el resto.
+        </p>
+
+        <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:20px;">
+          <div style="min-width:200px;">
+            <label for="ent-slots" style="display:block;margin-bottom:6px;font-weight:600;">Espacios hasta el partido</label>
+            <input type="number" id="ent-slots" min="3" max="30" step="1" value="9"
+              style="width:120px;padding:10px 12px;border-radius:6px;border:1px solid var(--border);background:#222;color:var(--text);font-size:1.1rem;font-weight:700;">
+            <div style="font-size:0.75rem;color:#666;margin-top:4px;">Se usan bloques de 3 sesiones</div>
+          </div>
+          <button class="btn-primary" type="button" onclick="crearPlanEntrenamiento()">▶ Crear plan</button>
+          <button class="btn-secondary" type="button" onclick="resetNivelesEntrenamiento()">↺ Niveles a 5</button>
+        </div>
+
+        <h3 style="font-size:1rem;color:#aaa;margin-bottom:12px;">Nivel actual de cada categoría</h3>
+        <div class="ent-grid" id="ent-cats-grid"></div>
+
+        <div id="ent-plan-resultado" style="margin-top:24px;"></div>
+      </div>
+    </div>
+
     <!-- Comparador de jugadores -->
     <div class="compare-overlay" id="compare-overlay" onclick="if(event.target===this)cerrarComparador()">
       <div class="compare-modal" role="dialog" aria-modal="true">
@@ -1553,6 +1611,7 @@
         slotsConfigCon: slotsConfigCon || [],
         slotsConfigSin: slotsConfigSin || [],
         ojeados: typeof ojeados !== 'undefined' ? ojeados : [],
+        entrenamiento: typeof entrenamientoState !== 'undefined' ? entrenamientoState : null,
         rivales: rivales || [],
         informeRival: typeof informeRival !== 'undefined' ? informeRival : [],
         rivalOnceSlots: typeof rivalOnceSlots !== 'undefined' ? rivalOnceSlots : []
@@ -1577,6 +1636,13 @@
         if (!Array.isArray(j.rolesMostrados)) j.rolesMostrados = [];
       });
       ojeados = Array.isArray(data.ojeados) ? data.ojeados : [];
+      if (data.entrenamiento && typeof data.entrenamiento === 'object') {
+        entrenamientoState = {
+          slots: data.entrenamiento.slots || 9,
+          niveles: { ...(entrenamientoState && entrenamientoState.niveles ? entrenamientoState.niveles : {}), ...(data.entrenamiento.niveles || {}) },
+          plan: Array.isArray(data.entrenamiento.plan) ? data.entrenamiento.plan : []
+        };
+      }
       roles = Array.isArray(data.roles) ? data.roles.map(r => ({ ...r, posesion: r.posesion || 'ambos' })) : [];
       lineupCon = data.lineupCon && typeof data.lineupCon === 'object' ? data.lineupCon : {};
       lineupSin = data.lineupSin && typeof data.lineupSin === 'object' ? data.lineupSin : {};
@@ -1873,6 +1939,7 @@
       if (typeof crearCheckboxesPosicionesOjeado === 'function') crearCheckboxesPosicionesOjeado();
       if (typeof actualizarFormularioAtributosOjeado === 'function') actualizarFormularioAtributosOjeado();
       if (typeof renderizarOjeados === 'function') renderizarOjeados();
+      if (typeof renderFormularioEntrenamiento === 'function') renderFormularioEntrenamiento();
       if (typeof construirPitch === 'function') construirPitch();
       if (typeof renderPitch === 'function') renderPitch();
 
@@ -2299,7 +2366,7 @@ function setForma(id, campo, valor) {
   document.getElementById('tab-' + tabId).classList.add('active');
 
   const botones = document.querySelectorAll('.nav-btn');
-  const map = { 'equipo': 0, 'informe-equipo': 1, 'anadir-jugador': 2, 'anadir-rol': 3, 'hacer-11': 4, 'ojeados': 5 };
+  const map = { 'equipo': 0, 'informe-equipo': 1, 'anadir-jugador': 2, 'anadir-rol': 3, 'hacer-11': 4, 'ojeados': 5, 'entrenamiento': 6 };
   if (map[tabId] !== undefined) botones[map[tabId]].classList.add('active');
 
   if (tabId === 'equipo') {
@@ -2325,6 +2392,9 @@ function setForma(id, campo, valor) {
   }
   if (tabId === 'ojeados') {
     renderizarOjeados();
+  }
+  if (tabId === 'entrenamiento') {
+    if (typeof renderFormularioEntrenamiento === 'function') renderFormularioEntrenamiento();
   }
 }
 
@@ -4553,6 +4623,223 @@ function aplicarFormaTodos(campo, valor) {
       cont.innerHTML = html;
     }
     /* ===================== FIN COMPARADOR ===================== */
+
+
+    /* ===================== ENTRENAMIENTO ===================== */
+    const ENT_CATEGORIAS = [
+      { id: 'formacion_posesion', nombre: 'Formación con posesión' },
+      { id: 'estilo_pase', nombre: 'Estilo de pase' },
+      { id: 'construccion', nombre: 'Construcción' },
+      { id: 'creacion_ocasiones', nombre: 'Creación de ocasiones' },
+      { id: 'estructura_sin_posesion', nombre: 'Estructura sin posesión' },
+      { id: 'linea_presion', nombre: 'Línea de presión' },
+      { id: 'intensidad_presion', nombre: 'Intensidad de la presión' },
+      { id: 'trampa_presion', nombre: 'Trampa de presión' }
+    ];
+
+    var entrenamientoState = {
+      slots: 9,
+      niveles: {},
+      plan: []
+    };
+
+    function nivelesDefaultEntrenamiento() {
+      const n = {};
+      ENT_CATEGORIAS.forEach(c => { n[c.id] = 5; });
+      return n;
+    }
+
+    function asegurarNivelesEntrenamiento() {
+      if (!entrenamientoState.niveles || typeof entrenamientoState.niveles !== 'object') {
+        entrenamientoState.niveles = nivelesDefaultEntrenamiento();
+      }
+      ENT_CATEGORIAS.forEach(c => {
+        let v = Number(entrenamientoState.niveles[c.id]);
+        if (isNaN(v)) v = 5;
+        entrenamientoState.niveles[c.id] = Math.max(1, Math.min(10, Math.round(v)));
+      });
+    }
+
+    function colorNivelEnt(v) {
+      if (v <= 3) return '#f87171';
+      if (v <= 5) return '#fbbf24';
+      if (v <= 7) return '#a3e635';
+      return '#4ade80';
+    }
+
+    function renderFormularioEntrenamiento() {
+      asegurarNivelesEntrenamiento();
+      const slotsEl = document.getElementById('ent-slots');
+      if (slotsEl) slotsEl.value = entrenamientoState.slots || 9;
+      const grid = document.getElementById('ent-cats-grid');
+      if (!grid) return;
+      grid.innerHTML = ENT_CATEGORIAS.map(c => {
+        const v = entrenamientoState.niveles[c.id] ?? 5;
+        return `<div class="ent-cat">
+          <label for="ent-${c.id}">${c.nombre}</label>
+          <input type="range" id="ent-${c.id}" min="1" max="10" step="1" value="${v}"
+            oninput="onNivelEntChange('${c.id}', this.value)">
+          <div class="ent-val">
+            <span>Débil</span>
+            <span class="ent-num" id="ent-num-${c.id}" style="color:${colorNivelEnt(v)}">${v}</span>
+            <span>Fuerte</span>
+          </div>
+        </div>`;
+      }).join('');
+      if (entrenamientoState.plan && entrenamientoState.plan.length) {
+        pintarPlanEntrenamiento(entrenamientoState.plan, entrenamientoState._razon || '');
+      } else {
+        const res = document.getElementById('ent-plan-resultado');
+        if (res) res.innerHTML = '';
+      }
+    }
+
+    function onNivelEntChange(id, value) {
+      asegurarNivelesEntrenamiento();
+      const v = Math.max(1, Math.min(10, parseInt(value, 10) || 5));
+      entrenamientoState.niveles[id] = v;
+      const num = document.getElementById('ent-num-' + id);
+      if (num) {
+        num.textContent = v;
+        num.style.color = colorNivelEnt(v);
+      }
+      if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
+    }
+
+    function resetNivelesEntrenamiento() {
+      entrenamientoState.niveles = nivelesDefaultEntrenamiento();
+      entrenamientoState.plan = [];
+      entrenamientoState._razon = '';
+      renderFormularioEntrenamiento();
+      if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
+    }
+
+    /**
+     * Algoritmo: bloques de 3 sesiones.
+     * Prioridad = debilidad (11-nivel) + ligera presión a no descuidar categorías medias.
+     * Reparto: ~70% a las más débiles, ~30% a mantenimiento equilibrado.
+     */
+    function calcularPlanEntrenamiento(slots, niveles) {
+      const nSlots = Math.max(3, Math.min(30, parseInt(slots, 10) || 9));
+      const nBloques = Math.floor(nSlots / 3);
+      const sobra = nSlots % 3;
+
+      const cats = ENT_CATEGORIAS.map(c => ({
+        id: c.id,
+        nombre: c.nombre,
+        nivel: Math.max(1, Math.min(10, Number(niveles[c.id]) || 5))
+      }));
+
+      // Prioridad por debilidad
+      cats.sort((a, b) => a.nivel - b.nivel || a.nombre.localeCompare(b.nombre, 'es'));
+
+      const asignaciones = []; // category ids, length = nBloques
+      const contador = {};
+      ENT_CATEGORIAS.forEach(c => { contador[c.id] = 0; });
+
+      // Primero: cubrir las peores (al menos 1 bloque si hay suficientes)
+      const peores = cats.slice(0, Math.min(4, cats.length));
+      let bloquesRestantes = nBloques;
+
+      // Fase 1: un bloque a cada una de las peores (si cabe)
+      for (const c of peores) {
+        if (bloquesRestantes <= 0) break;
+        asignaciones.push(c.id);
+        contador[c.id]++;
+        bloquesRestantes--;
+      }
+
+      // Fase 2: resto ponderado por debilidad (evitar concentrar todo en una)
+      while (bloquesRestantes > 0) {
+        // Score: más alto = más necesidad de entrenar
+        let best = null;
+        let bestScore = -1e9;
+        for (const c of cats) {
+          const debilidad = 11 - c.nivel;
+          // Penalizar si ya tiene muchos bloques (equilibrio)
+          const sobrecarga = contador[c.id] * 2.2;
+          // Bonus si aún no se ha tocado
+          const noTocada = contador[c.id] === 0 ? 3 : 0;
+          const score = debilidad * 1.6 + noTocada - sobrecarga + (Math.random() * 0.15);
+          if (score > bestScore) {
+            bestScore = score;
+            best = c;
+          }
+        }
+        if (!best) break;
+        asignaciones.push(best.id);
+        contador[best.id]++;
+        bloquesRestantes--;
+      }
+
+      // Construir plan visual
+      const byId = {};
+      ENT_CATEGORIAS.forEach(c => { byId[c.id] = c.nombre; });
+      const plan = asignaciones.map((catId, i) => ({
+        bloque: i + 1,
+        categoriaId: catId,
+        categoria: byId[catId] || catId,
+        sesiones: 3,
+        etiqueta: `Bloque ${i + 1}: ${byId[catId] || catId}`
+      }));
+
+      const tocadas = Object.entries(contador).filter(([, n]) => n > 0).map(([id]) => byId[id]);
+      const noTocadas = Object.entries(contador).filter(([, n]) => n === 0).map(([id]) => byId[id]);
+      const peoresNombres = peores.map(c => c.nombre);
+
+      let razon = `Tienes <strong>${nSlots}</strong> espacios → <strong>${nBloques}</strong> bloques de 3 sesiones`;
+      if (sobra) razon += ` (sobran ${sobra} hueco${sobra > 1 ? 's' : ''} sueltos; el plan usa solo múltiplos de 3)`;
+      razon += '.<br>';
+      razon += `Prioridad en lo más débil: <strong>${peoresNombres.slice(0, 3).join(', ')}</strong>. `;
+      razon += `También se reparte algo de trabajo para no dejar caer el resto (${tocadas.length} categorías tocadas).`;
+      if (noTocadas.length) {
+        razon += `<br><span style="color:#fbbf24;">Sin bloque esta semana (posible bajada ligera): ${noTocadas.join(', ')}.</span>`;
+      }
+
+      return { plan, razon, nBloques, nSlots, sobra, contador };
+    }
+
+    function pintarPlanEntrenamiento(plan, razon) {
+      const cont = document.getElementById('ent-plan-resultado');
+      if (!cont) return;
+      if (!plan || !plan.length) {
+        cont.innerHTML = '<div class="empty-state">No hay bloques que mostrar (mínimo 3 espacios).</div>';
+        return;
+      }
+      let html = `<h3 style="font-size:1.1rem;margin-bottom:8px;color:#fff;">Plan para el calendario</h3>`;
+      if (razon) html += `<div class="ent-rationale">${razon}</div>`;
+      plan.forEach(b => {
+        html += `<div class="ent-block">
+          <h4>${b.etiqueta}</h4>
+          <div class="ent-sessions">
+            <div class="ent-session"><span class="es-n">Sesión 1</span>${b.categoria}</div>
+            <div class="ent-session"><span class="es-n">Sesión 2</span>${b.categoria}</div>
+            <div class="ent-session"><span class="es-n">Sesión 3</span>${b.categoria}</div>
+          </div>
+        </div>`;
+      });
+      html += `<p style="color:#666;font-size:0.8rem;margin-top:8px;">Copia estos bloques a tu calendario de FM (misma categoría 3 días seguidos o 3 huecos tácticos).</p>`;
+      cont.innerHTML = html;
+    }
+
+    function crearPlanEntrenamiento() {
+      asegurarNivelesEntrenamiento();
+      const slots = parseInt(document.getElementById('ent-slots')?.value, 10) || 9;
+      entrenamientoState.slots = slots;
+      // leer niveles del DOM por si no se sincronizaron
+      ENT_CATEGORIAS.forEach(c => {
+        const el = document.getElementById('ent-' + c.id);
+        if (el) entrenamientoState.niveles[c.id] = Math.max(1, Math.min(10, parseInt(el.value, 10) || 5));
+      });
+      const resultado = calcularPlanEntrenamiento(slots, entrenamientoState.niveles);
+      entrenamientoState.plan = resultado.plan;
+      entrenamientoState._razon = resultado.razon;
+      pintarPlanEntrenamiento(resultado.plan, resultado.razon);
+      if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
+    }
+    /* ===================== FIN ENTRENAMIENTO ===================== */
+
+
 
     /* ===================== FIN OJEADOS ===================== */
 
