@@ -606,7 +606,10 @@
       .ent-session .es-n { font-size: 0.7rem; color: #888; display: block; margin-bottom: 2px; }
       .ent-rationale { color: #aaa; font-size: 0.88rem; margin: 12px 0; line-height: 1.45; }
       .ent-calendar {
-        display: grid; grid-template-columns: 90px repeat(5, 1fr); gap: 8px; margin-top: 12px;
+        display: grid; grid-template-columns: 72px repeat(7, 1fr); gap: 6px; margin-top: 12px;
+      }
+      @media (max-width: 1100px) {
+        .ent-calendar { grid-template-columns: 60px repeat(7, minmax(70px, 1fr)); overflow-x: auto; }
       }
       .ent-cal-head {
         text-align: center; font-size: 0.75rem; font-weight: 700; color: #888;
@@ -1453,7 +1456,7 @@
           priorizando lo débil y pudiendo repetir.
         </p>
 
-        <h3 style="font-size:1rem;color:#aaa;margin-bottom:8px;">Calendario (Lunes–Viernes × 2 semanas)</h3>
+        <h3 style="font-size:1rem;color:#aaa;margin-bottom:8px;">Calendario (Lunes–Domingo × 2 semanas)</h3>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
           <button class="btn-secondary" type="button" style="padding:8px 12px;font-size:0.85rem;" onclick="limpiarCalendarioEntrenamiento()">↺ Vaciar calendario</button>
           <button class="btn-secondary" type="button" style="padding:8px 12px;font-size:0.85rem;" onclick="rellenarCalendarioEjemplo()">Ejemplo (partido midweek + fin de semana)</button>
@@ -4679,8 +4682,8 @@ function aplicarFormaTodos(campo, valor) {
       { id: 'intensidad_presion', nombre: 'Intensidad de la presión' },
       { id: 'trampa_presion', nombre: 'Trampa de presión' }
     ];
-    const ENT_DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-    const ENT_CAL_LEN = 10; // días
+    const ENT_DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const ENT_CAL_LEN = 14; // 2 semanas × 7 días
     const ENT_SLOTS_DIA = 3;
 
     var entrenamientoState = {
@@ -4725,17 +4728,29 @@ function aplicarFormaTodos(campo, valor) {
         if (isNaN(v)) v = 5;
         entrenamientoState.niveles[c.id] = Math.max(1, Math.min(10, Math.round(v)));
       });
-      if (!Array.isArray(entrenamientoState.calendario) || entrenamientoState.calendario.length !== ENT_CAL_LEN) {
-        // migrar formato antiguo (array de strings)
-        if (Array.isArray(entrenamientoState.calendario) && entrenamientoState.calendario.length === ENT_CAL_LEN
-            && typeof entrenamientoState.calendario[0] === 'string') {
-          entrenamientoState.calendario = entrenamientoState.calendario.map(v => ({
-            vacio: false,
-            slots: [v || '', '', '']
-          }));
+      if (!Array.isArray(entrenamientoState.calendario)) {
+        entrenamientoState.calendario = calendarioVacio();
+      } else if (entrenamientoState.calendario.length !== ENT_CAL_LEN) {
+        // migrar 10 días (L–V×2) → 14 (L–D×2) u otros
+        const old = entrenamientoState.calendario;
+        const neu = calendarioVacio();
+        if (old.length === 10) {
+          // S1 L-V → 0..4; S2 L-V → 5..9  ⇒  nuevos índices 0..4 y 7..11
+          for (let i = 0; i < 5; i++) {
+            neu[i] = normalizarDiaCal(old[i]);
+            neu[7 + i] = normalizarDiaCal(old[5 + i]);
+          }
         } else {
-          entrenamientoState.calendario = calendarioVacio();
+          for (let i = 0; i < Math.min(old.length, ENT_CAL_LEN); i++) {
+            neu[i] = normalizarDiaCal(old[i]);
+          }
         }
+        entrenamientoState.calendario = neu;
+      } else if (typeof entrenamientoState.calendario[0] === 'string') {
+        entrenamientoState.calendario = entrenamientoState.calendario.map(v => ({
+          vacio: false,
+          slots: [v || '', '', '']
+        }));
       } else {
         entrenamientoState.calendario = entrenamientoState.calendario.map(normalizarDiaCal);
       }
@@ -4782,8 +4797,8 @@ function aplicarFormaTodos(campo, valor) {
       ENT_DIAS.forEach(d => { html += `<div class="ent-cal-head">${d}</div>`; });
       for (let w = 0; w < 2; w++) {
         html += `<div class="ent-cal-week">Semana ${w + 1}</div>`;
-        for (let d = 0; d < 5; d++) {
-          const idx = w * 5 + d;
+        for (let d = 0; d < 7; d++) {
+          const idx = w * 7 + d;
           const dia = entrenamientoState.calendario[idx];
           const ignored = dia.vacio;
           html += `<div class="ent-cal-day ${ignored ? 'dia-ignorado' : ''}" id="ent-day-${idx}">
@@ -4850,12 +4865,12 @@ function aplicarFormaTodos(campo, valor) {
 
     function rellenarCalendarioEjemplo() {
       const cal = calendarioVacio();
-      // S1 Miércoles: partido en hueco 1
-      cal[2].slots[0] = 'partido';
-      // S1 Viernes: día vacío (no cuenta)
-      cal[4].vacio = true;
-      // S2 Viernes: partido
-      cal[9].slots[0] = 'partido';
+      // S1 Sábado: partido
+      cal[5].slots[0] = 'partido';
+      // S1 Domingo: día vacío (no cuenta)
+      cal[6].vacio = true;
+      // S2 Sábado: partido
+      cal[12].slots[0] = 'partido';
       entrenamientoState.calendario = cal;
       renderCalendarioEntrenamiento();
       if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
@@ -4971,8 +4986,8 @@ function aplicarFormaTodos(campo, valor) {
     }
 
     function etiquetaDiaCal(idx) {
-      const w = Math.floor(idx / 5) + 1;
-      const d = ENT_DIAS[idx % 5];
+      const w = Math.floor(idx / 7) + 1;
+      const d = ENT_DIAS[idx % 7];
       return `S${w} ${d}`;
     }
 
