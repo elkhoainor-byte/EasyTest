@@ -5294,75 +5294,270 @@ function aplicarFormaTodos(campo, valor) {
     }
 
     function iaEscalaInstr(valor, labels) {
-      // valor -1..1 -> índice en labels
-      const t = (valor + 1) / 2; // 0..1
+      // valor aproximado en [-1, 1] → una sola opción de la lista
+      const t = (Math.max(-1, Math.min(1, valor)) + 1) / 2;
       const idx = Math.max(0, Math.min(labels.length - 1, Math.round(t * (labels.length - 1))));
       return labels[idx];
     }
 
-    function iaGenerarInstrucciones(perfil, estilo) {
-      let pose = perfil.sesgoPosesion;
-      let vert = perfil.sesgoVertical;
-      let pres = perfil.sesgoPresion;
-      let soli = perfil.sesgoSolidez;
-      if (estilo === 'posesion') { pose += 0.45; vert -= 0.2; }
-      if (estilo === 'vertical') { vert += 0.45; pose -= 0.2; }
-      if (estilo === 'presion') { pres += 0.5; }
-      if (estilo === 'solido') { soli += 0.45; pres -= 0.15; vert -= 0.1; }
+    function iaPickByScore(score, labels) {
+      // score 0..1 o -1..1
+      let t = score;
+      if (t < 0 || t > 1) t = (Math.max(-1, Math.min(1, score)) + 1) / 2;
+      const idx = Math.max(0, Math.min(labels.length - 1, Math.round(t * (labels.length - 1))));
+      return labels[idx];
+    }
 
-      const mentalidad = iaEscalaInstr(
-        (pose * 0.15 + vert * 0.45 + pres * 0.2 - soli * 0.15),
-        ['Muy defensiva', 'Defensiva', 'Equilibrada', 'Positiva', 'Muy ofensiva']
-      );
-      const ritmo = iaEscalaInstr(vert * 0.6 - pose * 0.3, ['Muy bajo', 'Bajo', 'Equilibrado', 'Alto', 'Muy alto']);
-      const amplitud = iaEscalaInstr(vert * 0.2 + pose * 0.2, ['Muy estrecho', 'Estrecho', 'Equilibrado', 'Amplio', 'Muy amplio']);
-      const pases = iaEscalaInstr(pose * 0.7 - vert * 0.4, ['Muy cortos', 'Cortos', 'Equilibrado', 'Más directos', 'Muy directos']);
-      const enfoque = pose > vert + 0.15 ? 'Construir desde atrás / posesión'
-        : (vert > pose + 0.15 ? 'Juego más directo / buscar profundidad' : 'Mixto: progresar y atacar espacios');
-      const contraataque = vert > 0.1 || estilo === 'vertical' ? 'Sí, a la recuperación' : 'Sólo si hay ventaja clara';
-      const contrapresion = iaEscalaInstr(pres, ['Mantener forma', 'A veces', 'Equilibrado', 'Contrapresión', 'Contrapresión intensa']);
-      const linea = iaEscalaInstr(pres * 0.4 + soli * 0.2 + pose * 0.15, ['Muy retrasada', 'Retrasada', 'Estándar', 'Alta', 'Muy alta']);
-      const intensidadPres = iaEscalaInstr(pres, ['Muy baja', 'Baja', 'Media', 'Alta', 'Extrema']);
-      const disparaPresion = pres > 0.2
-        ? 'Tras pérdida + balón en zona rival'
-        : (pres < -0.1 ? 'Sólo en zona propia' : 'En mitad de campo');
-      const marcaje = soli > 0.15 ? 'Más estricto en área' : 'Zonal / equilibrado';
+    /**
+     * Instrucciones FM exactas (una opción por ítem).
+     * Sesgos del perfil: pase, vertical, presion, defensa, creatividad, fisico + estilo.
+     */
+    function iaGenerarInstrucciones(perfil, estilo) {
+      let pose = perfil.sesgoPosesion || 0;
+      let vert = perfil.sesgoVertical || 0;
+      let pres = perfil.sesgoPresion || 0;
+      let soli = perfil.sesgoSolidez || 0;
+      let creat = ((perfil.creatividad || 10) - 10) / 8;
+      let fis = ((perfil.fisico || 10) - 10) / 8;
+
+      if (estilo === 'posesion') { pose += 0.5; vert -= 0.25; }
+      if (estilo === 'vertical') { vert += 0.5; pose -= 0.25; }
+      if (estilo === 'presion') { pres += 0.55; }
+      if (estilo === 'solido') { soli += 0.5; pres -= 0.2; vert -= 0.15; }
+
+      // —— CON POSESIÓN ——
+      const pasesDirectos = iaEscalaInstr(pose * 0.85 - vert * 0.55, [
+        'Muy en corto', 'Más en corto', 'Estándar', 'Más directo', 'Muy directo'
+      ]);
+      // Nota: pose alto → pases más cortos → valor bajo en la escala "directo"
+      // iaEscalaInstr mapea -1 → primer label. pose alto debe ir a "Muy en corto"
+      // Rehacer pases con orientación correcta:
+      const pasesDirectos2 = iaEscalaInstr(vert * 0.55 - pose * 0.85, [
+        'Muy en corto', 'Más en corto', 'Estándar', 'Más directo', 'Muy directo'
+      ]);
+      const ritmoJuego = iaEscalaInstr(vert * 0.5 + fis * 0.25 - pose * 0.35, [
+        'Mucho más bajo', 'Más bajo', 'Estándar', 'Más alto', 'Mucho más alto'
+      ]);
+      const amplitudAtaque = iaEscalaInstr(vert * 0.15 + pose * 0.1 + fis * 0.1, [
+        'Mucho más estrecho', 'Más estrecho', 'Estándar', 'Más ancho', 'Mucho más ancho'
+      ]);
+      // Transición ofensiva: 3 opciones
+      let transOf;
+      if (vert > 0.2 || estilo === 'vertical') transOf = 'Contraataque';
+      else if (pose > 0.25 || estilo === 'posesion') transOf = 'Mantener dibujo';
+      else transOf = 'Normal';
+
+      let libertad;
+      if (creat > 0.2) libertad = 'Más expresivos';
+      else if (creat < -0.15 || soli > 0.25) libertad = 'Más disciplinados';
+      else libertad = 'Equilibrado';
+
+      // Perder tiempo: más a menudo si solidez/defensivo
+      let perderTiempo;
+      if (soli > 0.3 || (estilo === 'solido')) perderTiempo = 'Más a menudo';
+      else if (vert > 0.25) perderTiempo = 'Menos a menudo';
+      else perderTiempo = 'Normal';
+
+      // Jugar buscando balón parado
+      const buscarBP = (soli > 0.2 && vert < 0) || estilo === 'solido'
+        ? 'Buscar balón parado'
+        : 'Mantener el balón en juego';
+
+      // Último tercio
+      let paciencia;
+      if (pose > 0.2) paciencia = 'Llevar el balón hasta el área';
+      else if (vert > 0.25) paciencia = 'Centros rápidos';
+      else paciencia = 'Estándar';
+
+      let disparosLejanos;
+      if (vert > 0.3 && pose < 0) disparosLejanos = 'Animar';
+      else if (pose > 0.25) disparosLejanos = 'Disuadir';
+      else disparosLejanos = 'Equilibrada';
+
+      // Estilo de centros: si hay extremos/velocidad → colgados o rasos
+      let estiloCentros;
+      if (vert > 0.25 && fis > 0.1) estiloCentros = 'Centros rasos';
+      else if (soli > 0.15 && perfil.defensa > 11) estiloCentros = 'Centros colgados';
+      else if (pose > 0.2) estiloCentros = 'Centros tocados';
+      else estiloCentros = 'Equilibrada';
+
+      let regate;
+      if (creat > 0.2 || (perfil.creatividad || 0) > 13) regate = 'Animar';
+      else if (pose < -0.1 && soli > 0.2) regate = 'Disuadir';
+      else regate = 'Equilibrada';
+
+      // Progresión — carreras de apoyo (combinaciones)
+      let doblarBanda = 'Equilibrado';
+      let doblarDentro = 'Equilibrado';
+      if (vert > 0.2) { doblarBanda = 'Doblar por ambas bandas'; }
+      if (pose > 0.2) { doblarDentro = 'Doblar por dentro por ambas bandas'; }
+      if (estilo === 'vertical') doblarBanda = 'Doblar por ambas bandas';
+      if (estilo === 'posesion') doblarDentro = 'Doblar por dentro por ambas bandas';
+      const carrerasApoyo = `Doblar por banda: ${doblarBanda} · Doblar por dentro: ${doblarDentro}`;
+
+      let progresarPor;
+      if (Math.abs(vert - pose) < 0.15) progresarPor = 'Equilibrado';
+      else if (vert > pose + 0.2) progresarPor = 'Bandas';
+      else if (pose > vert + 0.2) progresarPor = 'Centro';
+      else progresarPor = 'Equilibrado';
+
+      let recepcionPase;
+      if (pose > 0.2) recepcionPase = 'Pase al pie';
+      else if (vert > 0.25) recepcionPase = 'Pasar al espacio';
+      else recepcionPase = 'Equilibrada';
+
+      // Área creación / estrategia previa
+      let estrategiaPrev;
+      if (pose > 0.2 || estilo === 'posesion') estrategiaPrev = 'Jugar superando la presión';
+      else if (vert > 0.25 || estilo === 'vertical') estrategiaPrev = 'Saltarse la presión';
+      else estrategiaPrev = 'Equilibrada';
+
+      let saquesPuerta;
+      if (pose > 0.2) saquesPuerta = 'En corto';
+      else if (vert > 0.25) saquesPuerta = 'Largo';
+      else saquesPuerta = 'Mixto';
+
+      let distPorteroRitmo;
+      if (vert > 0.2) distPorteroRitmo = 'Distribuir con rapidez';
+      else if (pose > 0.25) distPorteroRitmo = 'Ralentizar el juego';
+      else distPorteroRitmo = 'Equilibrada';
+
+      let distPorteroDir;
+      if (pose > 0.25) distPorteroDir = 'Centrales';
+      else if (vert > 0.3) distPorteroDir = 'Delantero centro';
+      else if (vert > 0.1) distPorteroDir = 'Bandas';
+      else distPorteroDir = 'Equilibrado';
+
+      // —— SIN POSESIÓN ——
+      // Línea de presión: 3 opciones
+      let lineaPresion;
+      if (pres > 0.25 || estilo === 'presion') lineaPresion = 'Presión adelantada';
+      else if (soli > 0.25 || estilo === 'solido' || pres < -0.15) lineaPresion = 'Bloque bajo';
+      else lineaPresion = 'Bloque medio';
+
+      const lineaDefensiva = iaEscalaInstr(pres * 0.45 + soli * 0.1 + pose * 0.1 - (estilo === 'solido' ? 0.35 : 0), [
+        'Muy retrasada', 'Retrasada', 'Estándar', 'Adelantada', 'Muy alta'
+      ]);
+
+      let compDefensa;
+      if (pres > 0.25) compDefensa = 'Adelantarse más';
+      else if (soli > 0.25 || estilo === 'solido') compDefensa = 'Retroceder más';
+      else compDefensa = 'Equilibrada';
+
+      const activarPresion = iaEscalaInstr(pres * 0.9 + fis * 0.15, [
+        'Poco insistente', 'Menos insistente', 'Estándar', 'Más insistente', 'Muy insistente'
+      ]);
+
+      let transDef;
+      if (pres > 0.25 || estilo === 'presion') transDef = 'Contrapresión';
+      else if (soli > 0.2 || estilo === 'solido') transDef = 'Reagruparse';
+      else transDef = 'Estándar';
+
+      let realizandoEntrada;
+      if (pres > 0.3) realizandoEntrada = 'Ser agresivos';
+      else if (soli > 0.25 && pres < 0) realizandoEntrada = 'Mantenerse de pie';
+      else realizandoEntrada = 'Estándar';
+
+      // Condicionales por bloque
+      const distPorteroPresionAdel = (lineaPresion === 'Presión adelantada')
+        ? (pres > 0.35 ? 'Sí' : 'No')
+        : null;
+
+      let trampaPresion = null;
+      if (lineaPresion === 'Bloque medio') {
+        if (pres > 0.1) trampaPresion = 'Atrapar fuera';
+        else if (soli > 0.15) trampaPresion = 'Atrapar dentro';
+        else trampaPresion = 'Equilibrado';
+      }
+
+      let compromisoCentros = null;
+      if (lineaPresion === 'Bloque bajo') {
+        if (soli > 0.2) compromisoCentros = 'Evitar centros';
+        else if (vert > 0.1) compromisoCentros = 'Permitir centros';
+        else compromisoCentros = 'Equilibrada';
+      }
+
+      const bloques = [
+        {
+          grupo: 'Con posesión · Vista general',
+          items: [
+            ['Pases directos', pasesDirectos2],
+            ['Ritmo de juego', ritmoJuego],
+            ['Amplitud del ataque', amplitudAtaque],
+            ['Transición ofensiva', transOf],
+            ['Libertad creativa', libertad],
+            ['Perder tiempo', perderTiempo],
+            ['Jugar buscando el balón parado', buscarBP]
+          ]
+        },
+        {
+          grupo: 'Con posesión · Último tercio',
+          items: [
+            ['Paciencia', paciencia],
+            ['Disparos lejanos', disparosLejanos],
+            ['Estilo de centros', estiloCentros],
+            ['Regate', regate]
+          ]
+        },
+        {
+          grupo: 'Con posesión · Progresión',
+          items: [
+            ['Carreras de apoyo', carrerasApoyo],
+            ['Progresar por', progresarPor],
+            ['Recepción de pase', recepcionPase]
+          ]
+        },
+        {
+          grupo: 'Con posesión · Creación de oportunidades',
+          items: [
+            ['Estrategia previa (presión rival)', estrategiaPrev],
+            ['Saques de puerta', saquesPuerta],
+            ['Distribución del portero (ritmo)', distPorteroRitmo],
+            ['Distribución del portero (hacia)', distPorteroDir]
+          ]
+        },
+        {
+          grupo: 'Sin posesión · Vista general',
+          items: [
+            ['Línea de presión', lineaPresion],
+            ['Línea defensiva', lineaDefensiva],
+            ['Comportamiento de la defensa', compDefensa],
+            ['Activar presión', activarPresion],
+            ['Transición defensiva', transDef],
+            ['Realizando una entrada', realizandoEntrada]
+          ]
+        }
+      ];
+
+      if (lineaPresion === 'Presión adelantada' && distPorteroPresionAdel) {
+        bloques.push({
+          grupo: 'Sin posesión · Presión adelantada',
+          items: [['Distribución del portero (presión adelantada)', distPorteroPresionAdel]]
+        });
+      }
+      if (lineaPresion === 'Bloque medio' && trampaPresion) {
+        bloques.push({
+          grupo: 'Sin posesión · Bloque medio',
+          items: [['Trampa de presión', trampaPresion]]
+        });
+      }
+      if (lineaPresion === 'Bloque bajo' && compromisoCentros) {
+        bloques.push({
+          grupo: 'Sin posesión · Bloque bajo',
+          items: [['Compromiso de centros', compromisoCentros]]
+        });
+      }
 
       const razones = [];
-      razones.push(`Media pase/técnica ~${perfil.pase.toFixed(1)}, verticalidad ~${perfil.vertical.toFixed(1)}, presión ~${perfil.presion.toFixed(1)}, defensa ~${perfil.defensa.toFixed(1)}.`);
-      if (pose >= vert && pose >= pres) razones.push('La plantilla destaca en pase/visión: conviene retener y progresar con criterio.');
-      if (vert > pose) razones.push('Hay punta de velocidad y desmarque: el juego vertical y las transiciones premiarán al once.');
-      if (pres > 0.15) razones.push('Work rate / stamina / agresividad permiten una presión más alta sin desmoronarse.');
-      if (soli > 0.15) razones.push('Buenos valores defensivos: se puede priorizar orden y no regalar espacios a la espalda.');
-      if (estilo && estilo !== 'auto') razones.push('Has forzado el estilo «' + estilo + '»: las instrucciones se sesgan en esa dirección.');
+      razones.push(`Medias plantilla — pase/técnica ${perfil.pase.toFixed(1)}, verticalidad ${perfil.vertical.toFixed(1)}, presión ${perfil.presion.toFixed(1)}, defensa ${perfil.defensa.toFixed(1)}.`);
+      if (pose >= vert && pose >= pres) razones.push('Perfil de posesión: pases más cortos y construir con paciencia.');
+      if (vert > pose) razones.push('Perfil vertical: más ritmo, profundidad y transiciones ofensivas.');
+      if (pres > 0.15) razones.push('Buen sacrificio/resistencia: presión e intensidad más altas.');
+      if (soli > 0.15) razones.push('Solidez defensiva: bloque más conservador y menos riesgos.');
+      if (estilo && estilo !== 'auto') razones.push('Estilo forzado: «' + estilo + '».');
+      razones.push('Línea de presión elegida: ' + lineaPresion + '.');
 
-      return {
-        mentalidad, ritmo, amplitud, pases, enfoque, contraataque, contrapresion,
-        linea, intensidadPres, disparaPresion, marcaje,
-        razones,
-        bloques: [
-          { grupo: 'General', items: [
-            ['Mentalidad', mentalidad],
-            ['Ritmo', ritmo],
-            ['Amplitud', amplitud]
-          ]},
-          { grupo: 'En posesión', items: [
-            ['Enfoque', enfoque],
-            ['Pases', pases],
-            ['Contraataque', contraataque]
-          ]},
-          { grupo: 'En transición', items: [
-            ['Al perder el balón', contrapresion],
-            ['Al recuperar', contraataque]
-          ]},
-          { grupo: 'Sin posesión', items: [
-            ['Línea defensiva', linea],
-            ['Intensidad de presión', intensidadPres],
-            ['Disparadores de presión', disparaPresion],
-            ['Marcaje', marcaje]
-          ]}
-        ]
-      };
+      return { bloques, razones, lineaPresion };
     }
 
     function iaMejorRolPara(player, fase) {
