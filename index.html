@@ -1247,6 +1247,7 @@
         <div class="status" id="status-rol"></div>
         <div class="roles-existentes">
           <h3>Roles guardados (<span id="roles-count">0</span>)</h3>
+          <p style="color:#888;font-size:0.82rem;margin:-4px 0 12px;">Los roles son <strong>globales</strong>: los mismos en todas las partidas.</p>
           <div id="rolesExistentesContainer"><div class="empty-state">No hay roles creados todavía.</div></div>
         </div>
       </div>
@@ -1680,6 +1681,7 @@
     var rivales = [];
 
     const PARTIDAS_META_KEY = 'fm24_partidas_meta';
+    const ROLES_GLOBAL_KEY = 'fm24_roles_global';
     const PARTIDA_PREFIX = 'fm24_partida_';
     const LEGACY_KEYS = [
       'jugadoresFM','rolesFM_v2','rolesFM','lineupConFM','lineupSinFM',
@@ -1757,7 +1759,13 @@
         };
         if (typeof asegurarEstadoEntrenamiento === 'function') asegurarEstadoEntrenamiento();
       }
-      roles = Array.isArray(data.roles) ? data.roles.map(r => ({ ...r, posesion: r.posesion || 'ambos' })) : [];
+      // Roles GLOBALES: no se sustituyen al cambiar de partida.
+      if (typeof asegurarRolesGlobales === 'function') {
+        asegurarRolesGlobales(Array.isArray(data.roles) ? data.roles : []);
+      }
+      if (typeof mergeRolesIntoGlobal === 'function' && Array.isArray(data.roles) && data.roles.length) {
+        mergeRolesIntoGlobal(data.roles);
+      }
       lineupCon = data.lineupCon && typeof data.lineupCon === 'object' ? data.lineupCon : {};
       lineupSin = data.lineupSin && typeof data.lineupSin === 'object' ? data.lineupSin : {};
       // migrar entries antiguas (roleCon/roleSin -> role)
@@ -2886,7 +2894,91 @@ function toggleBajoForma(id, checked) {
     }
 
     /* ROLES */
-    function guardarRolesEnStorage() { autoGuardarPartida(); }
+    function normalizarListaRoles(lista) {
+      if (!Array.isArray(lista)) return [];
+      return lista.map(r => ({
+        id: r.id != null ? r.id : (Date.now() + Math.random()),
+        nombre: r.nombre || 'Sin nombre',
+        posiciones: Array.isArray(r.posiciones) ? r.posiciones.slice() : [],
+        atributos: Array.isArray(r.atributos) ? r.atributos.slice() : [],
+        posesion: r.posesion || 'ambos'
+      }));
+    }
+
+    function guardarRolesGlobales() {
+      try {
+        safeSetItem(ROLES_GLOBAL_KEY, JSON.stringify(normalizarListaRoles(roles)));
+      } catch (e) { console.warn('guardarRolesGlobales', e); }
+      // Auto-guardar partida actual no es necesario para roles (son globales),
+      // pero actualizamos el snapshot por compatibilidad de export.
+      if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
+    }
+
+    function cargarRolesGlobales() {
+      try {
+        const raw = safeGetItem(ROLES_GLOBAL_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length) {
+            roles = normalizarListaRoles(parsed);
+            return true;
+          }
+        }
+      } catch (e) { console.warn('cargarRolesGlobales', e); }
+      return false;
+    }
+
+    /** Si el almacén global está vacío, sembrar desde partida actual / legacy */
+    function asegurarRolesGlobales(seedLista) {
+      if (cargarRolesGlobales()) return;
+      let seed = Array.isArray(seedLista) ? seedLista : [];
+      if (!seed.length) {
+        try {
+          const d = JSON.parse(safeGetItem('rolesFM_v2') || 'null');
+          if (Array.isArray(d)) seed = d;
+          else if (d && typeof d === 'object') seed = Object.values(d);
+        } catch (e) {}
+      }
+      if (!seed.length) {
+        // Buscar en cualquier partida guardada
+        try {
+          const meta = typeof leerMetaPartidas === 'function' ? leerMetaPartidas() : [];
+          for (const p of meta) {
+            try {
+              const snap = JSON.parse(safeGetItem((typeof PARTIDA_PREFIX !== 'undefined' ? PARTIDA_PREFIX : 'fm24_partida_') + p.id) || 'null');
+              if (snap && Array.isArray(snap.roles) && snap.roles.length) {
+                seed = snap.roles;
+                break;
+              }
+            } catch (e) {}
+          }
+        } catch (e) {}
+      }
+      roles = normalizarListaRoles(seed);
+      if (roles.length) {
+        try { safeSetItem(ROLES_GLOBAL_KEY, JSON.stringify(roles)); } catch (e) {}
+      }
+    }
+
+    function guardarRolesEnStorage() { guardarRolesGlobales(); }
+
+    function mergeRolesIntoGlobal(lista) {
+      if (!Array.isArray(lista) || !lista.length) return;
+      asegurarRolesGlobales([]);
+      const byName = new Map(roles.map(r => [String(r.nombre).toLowerCase(), r]));
+      let added = 0;
+      lista.forEach(r => {
+        if (!r || !r.nombre) return;
+        const k = String(r.nombre).toLowerCase();
+        if (byName.has(k)) return;
+        const nr = normalizarListaRoles([r])[0];
+        roles.push(nr);
+        byName.set(k, nr);
+        added++;
+      });
+      if (added) guardarRolesGlobales();
+    }
+
     function cargarRolesDesdeStorage() {
       // Los roles se cargan desde la partida (aplicarSnapshot). No-op para legacy.
     }
@@ -5441,6 +5533,9 @@ function aplicarFormaTodos(campo, valor) {
 
     /* ===================== FIN OJEADOS ===================== */
 
+
+    // Roles globales disponibles antes de abrir partida
+    try { if (typeof asegurarRolesGlobales === 'function') asegurarRolesGlobales([]); } catch (e) {}
 
     // Boot: menú de partidas (cargarPartida inicializa rivales/pitch)
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
