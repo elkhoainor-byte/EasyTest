@@ -5574,8 +5574,54 @@ function aplicarFormaTodos(campo, valor) {
       return { role: best.nombre, score: bestS };
     }
 
+    /** ¿El jugador tiene esta posición como natural (listada)? */
+    function iaJugadorEnPosicion(player, tipoSlot) {
+      if (!player || !tipoSlot) return false;
+      if (typeof puedeJugarEn === 'function') return puedeJugarEn(player, tipoSlot);
+      const posJ = getPosicionesJugador(player);
+      const alts = (typeof ALTS !== 'undefined' && ALTS[tipoSlot]) ? ALTS[tipoSlot] : [tipoSlot];
+      return posJ.some(p => alts.includes(p));
+    }
+
+    /** Bonus si la posición del slot está entre las del jugador (prioridad a la primera) */
+    function iaAfinidadPosicion(player, tipoSlot) {
+      const posJ = getPosicionesJugador(player);
+      if (!posJ.length) return 0;
+      if (posJ[0] === tipoSlot) return 3;
+      if (posJ.includes(tipoSlot)) return 1.5;
+      const alts = (typeof ALTS !== 'undefined' && ALTS[tipoSlot]) ? ALTS[tipoSlot] : [tipoSlot];
+      if (posJ.some(p => alts.includes(p))) return 0.5;
+      return 0;
+    }
+
+    /** Mejor rol del jugador acotado al tipo de slot y fase */
+    function iaMejorRolParaSlot(player, tipoSlot, fase) {
+      const tipoPos = fase === 'sin' ? 'sin' : 'con';
+      if (typeof mejorRolCompatible === 'function') {
+        const r = mejorRolCompatible(player, tipoSlot, tipoPos);
+        if (r) return { role: r.nombre, score: mediaEfectiva(player, r.nombre) };
+      }
+      // Fallback: roles del jugador que incluyan el tipo de slot
+      const alts = (typeof ALTS !== 'undefined' && ALTS[tipoSlot]) ? ALTS[tipoSlot] : [tipoSlot];
+      const rolesJ = (typeof obtenerRolesDelJugador === 'function' ? obtenerRolesDelJugador(player) : [])
+        .filter(r => {
+          if (typeof rolAplicableA === 'function' && !rolAplicableA(r, tipoPos) && (r.posesion || 'ambos') !== 'ambos') return false;
+          return (r.posiciones || []).some(p => alts.includes(p) || p === tipoSlot);
+        });
+      if (rolesJ.length) {
+        let best = rolesJ[0], bestS = mediaEfectiva(player, best.nombre);
+        rolesJ.forEach(r => {
+          const s = mediaEfectiva(player, r.nombre);
+          if (s > bestS) { bestS = s; best = r; }
+        });
+        return { role: best.nombre, score: bestS };
+      }
+      // Sin rol compatible: media general (sigue en posición válida)
+      return { role: '', score: mediaEfectiva(player, '') };
+    }
+
     function iaEvaluarFormacion(form, pool) {
-      // Greedy assignment maximizing mediaEfectiva with role
+      // Asignación greedy estricta: NUNCA fuera de posición
       const slots = form.slots.map((s, i) => ({
         id: 'ia_' + i,
         tipo: s.tipo,
@@ -5585,47 +5631,54 @@ function aplicarFormaTodos(campo, valor) {
       const used = new Set();
       const asign = [];
       let total = 0;
-      // Ordenar slots: primero los más restrictivos (menos jugadores compatibles)
-      const slotsOrd = slots.map(sl => {
-        const cand = pool.filter(p => !used.has(p.id) && puedeJugarEn(p, sl.tipo)).length;
-        return { sl, cand };
-      }).sort((a, b) => a.cand - b.cand);
 
-      for (const { sl } of slotsOrd) {
-        let bestP = null, bestScore = -1, bestRole = '';
+      // Varias pasadas reordenando por escasez de candidatos (recalcular tras cada asignación)
+      const pending = slots.slice();
+      while (pending.length) {
+        // Slot con menos candidatos libres compatibles primero
+        let bestIdx = 0;
+        let minCand = Infinity;
+        for (let i = 0; i < pending.length; i++) {
+          const sl = pending[i];
+          const n = pool.filter(p => !used.has(p.id) && iaJugadorEnPosicion(p, sl.tipo)).length;
+          if (n < minCand) { minCand = n; bestIdx = i; }
+        }
+        const sl = pending.splice(bestIdx, 1)[0];
+
+        let bestP = null, bestScore = -1e9, bestRole = '';
         for (const p of pool) {
           if (used.has(p.id)) continue;
-          if (!puedeJugarEn(p, sl.tipo)) continue;
-          const { role, score } = iaMejorRolPara(p, 'con');
-          // pequeña penalización si fuera de posición ideal: puedeJugarEn ya filtra
-          if (score > bestScore) {
-            bestScore = score;
+          if (!iaJugadorEnPosicion(p, sl.tipo)) continue;
+          const { role, score } = iaMejorRolParaSlot(p, sl.tipo, 'con');
+          const afin = iaAfinidadPosicion(p, sl.tipo);
+          const totalS = score + afin * 2; // priorizar posición natural
+          if (totalS > bestScore) {
+            bestScore = totalS;
             bestP = p;
             bestRole = role;
           }
         }
+        // Sin jugador compatible → esta formación no es viable
         if (!bestP) {
-          // forzar cualquier jugador libre
-          for (const p of pool) {
-            if (used.has(p.id)) continue;
-            const { role, score } = iaMejorRolPara(p, 'con');
-            if (score > bestScore) {
-              bestScore = score;
-              bestP = p;
-              bestRole = role;
-            }
-          }
+          return { score: -1, asign: [], slots, formNombre: form.nombre, invalida: true };
         }
-        if (!bestP) return { score: -1, asign: [], slots };
+        const realScore = iaMejorRolParaSlot(bestP, sl.tipo, 'con').score;
         used.add(bestP.id);
-        asign.push({ slot: sl, player: bestP, role: bestRole, score: bestScore });
-        total += bestScore;
+        asign.push({ slot: sl, player: bestP, role: bestRole, score: realScore });
+        total += realScore;
       }
-      return { score: total / 11, asign, slots, formNombre: form.nombre };
+      return { score: total / 11, asign, slots, formNombre: form.nombre, invalida: false };
     }
 
     function iaAplicarOnce(best) {
       if (!best || !best.asign || best.asign.length < 11) return false;
+      // Validación final: no aplicar si alguien está fuera de posición
+      for (const a of best.asign) {
+        if (!iaJugadorEnPosicion(a.player, a.slot.tipo)) {
+          console.warn('IA: se bloqueó asignación fuera de posición', a.player?.nombre, a.slot?.tipo);
+          return false;
+        }
+      }
       const newSlots = best.asign.map((a, i) => ({
         id: 's' + i,
         tipo: a.slot.tipo,
@@ -5639,8 +5692,8 @@ function aplicarFormaTodos(campo, valor) {
       lineupSin = {};
       best.asign.forEach((a, i) => {
         const id = 's' + i;
-        const roleCon = a.role || iaMejorRolPara(a.player, 'con').role;
-        const roleSin = iaMejorRolPara(a.player, 'sin').role || roleCon;
+        const roleCon = a.role || iaMejorRolParaSlot(a.player, a.slot.tipo, 'con').role;
+        const roleSin = iaMejorRolParaSlot(a.player, a.slot.tipo, 'sin').role || roleCon;
         lineupCon[id] = { playerId: a.player.id, role: roleCon };
         lineupSin[id] = { playerId: a.player.id, role: roleSin };
       });
@@ -5667,15 +5720,22 @@ function aplicarFormaTodos(campo, valor) {
       const formaciones = (typeof FORMACIONES_COHERENTES !== 'undefined') ? FORMACIONES_COHERENTES : [];
       formaciones.forEach(f => {
         const ev = iaEvaluarFormacion(f, pool);
+        if (ev.invalida || ev.score < 0) return;
         if (!best || ev.score > best.score) best = ev;
       });
 
       if (aplicarOnce) {
-        if (!best || best.score < 0) {
-          if (cont) cont.innerHTML = '<div class="empty-state">No se pudo armar un once válido con las formaciones disponibles.</div>';
+        if (!best || best.score < 0 || !best.asign || best.asign.length < 11) {
+          const msg = 'No se pudo armar un once <strong>sin sacar a nadie de posición</strong>. Prueba «Todo el club», revisa posiciones de los jugadores o el número de laterales/centrales disponibles.';
+          if (cont) cont.innerHTML = '<div class="empty-state">' + msg + '</div>';
+          alert('No hay formación viable con jugadores solo en sus posiciones. Revisa la plantilla o el alcance.');
           return;
         }
-        iaAplicarOnce(best);
+        const ok = iaAplicarOnce(best);
+        if (!ok) {
+          if (cont) cont.innerHTML = '<div class="empty-state">Se canceló la aplicación: había jugadores fuera de posición.</div>';
+          return;
+        }
       } else if (!best) {
         // solo instrucciones: intentar evaluar once actual
         best = { score: 0, asign: [], formNombre: '— (once no modificado)' };
