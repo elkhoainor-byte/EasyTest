@@ -578,6 +578,34 @@
 
       
       
+      
+      /* ===== IA TACTICA ===== */
+      .ia-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      @media (max-width: 1000px) { .ia-layout { grid-template-columns: 1fr; } }
+      .ia-card {
+        background: #1a1a1a; border: 1px solid var(--border); border-radius: 10px; padding: 16px;
+      }
+      .ia-card h3 {
+        font-size: 1rem; color: #7dd3fc; margin: 0 0 12px; padding-bottom: 8px;
+        border-bottom: 1px solid #333;
+      }
+      .ia-instr {
+        display: flex; justify-content: space-between; gap: 10px; padding: 8px 0;
+        border-bottom: 1px solid #2a2a2a; font-size: 0.9rem;
+      }
+      .ia-instr .lab { color: #aaa; }
+      .ia-instr .val { font-weight: 700; color: #fff; text-align: right; }
+      .ia-xi-row {
+        display: flex; justify-content: space-between; align-items: center; gap: 8px;
+        padding: 6px 0; border-bottom: 1px solid #2a2a2a; font-size: 0.88rem;
+      }
+      .ia-xi-row .pos { color: #7dd3fc; font-weight: 600; min-width: 90px; }
+      .ia-badge {
+        display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;
+        background: #1e3a5f; color: #7dd3fc; font-weight: 600;
+      }
+      .ia-reason { color: #bbb; font-size: 0.88rem; line-height: 1.5; margin-top: 10px; }
+
       /* ===== ENTRENAMIENTO ===== */
       .ent-grid {
         display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;
@@ -1010,6 +1038,7 @@
       <button class="nav-btn" onclick="mostrarTab('hacer-11')">Hacer 11</button>
       <button class="nav-btn" onclick="mostrarTab('ojeados')">Ojeados</button>
       <button class="nav-btn" onclick="mostrarTab('entrenamiento')">Entrenamiento</button>
+      <button class="nav-btn" onclick="mostrarTab('ia-tactica')">IA Táctica</button>
     </div>
 
     <div id="tab-equipo" class="tab-content active">
@@ -1254,6 +1283,7 @@
             <div class="actions">
               <div class="tooltip-wrap">
                 <button class="btn-success" onclick="autoOnce(true)">⚡ Once automático</button>
+                <button class="btn-primary" onclick="ejecutarIATactica(true); mostrarTab('ia-tactica');" title="IA: once + instrucciones tácticas">🧠 IA Táctica</button>
                 <div class="tooltip-text">
                   Elige la mejor formación y coloca los mismos 11 en ambos campos (Con / Sin posesión), optimizando roles de cada fase.
                 </div>
@@ -1473,6 +1503,44 @@
         </div>
 
         <div id="ent-plan-resultado" style="margin-top:24px;"></div>
+      </div>
+    </div>
+
+
+    <!-- ========== IA TACTICA ========== -->
+    <div id="tab-ia-tactica" class="tab-content">
+      <div class="form-section">
+        <h2 style="margin-top:0;">IA Táctica</h2>
+        <p style="color:#888;font-size:0.9rem;margin-bottom:16px;">
+          Analiza atributos, roles, forma e informe de tu plantilla para proponer el <strong>once más efectivo</strong>
+          y un bloque de <strong>instrucciones tácticas</strong> alineado con sus puntos fuertes.
+          Es una IA local (heurística): no usa APIs externas.
+        </p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:16px;">
+          <div>
+            <label style="display:block;font-size:0.8rem;color:#888;margin-bottom:4px;">Plantilla</label>
+            <select id="ia-plantilla" style="padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:#222;color:var(--text);">
+              <option value="primer">Solo primer equipo</option>
+              <option value="club">Todo el club</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:0.8rem;color:#888;margin-bottom:4px;">Estilo preferido (opcional)</label>
+            <select id="ia-estilo" style="padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:#222;color:var(--text);">
+              <option value="auto">Automático (según atributos)</option>
+              <option value="posesion">Priorizar posesión</option>
+              <option value="vertical">Priorizar vertical / contra</option>
+              <option value="presion">Priorizar presión alta</option>
+              <option value="solido">Priorizar solidez defensiva</option>
+            </select>
+          </div>
+          <button class="btn-primary" type="button" onclick="ejecutarIATactica(true)">🧠 Generar once + táctica</button>
+          <button class="btn-success" type="button" onclick="ejecutarIATactica(true); mostrarTab('hacer-11');">Aplicar y ver en Hacer 11</button>
+          <button class="btn-secondary" type="button" onclick="ejecutarIATactica(false)">Solo instrucciones (sin tocar once)</button>
+        </div>
+        <div id="ia-resultado">
+          <div class="empty-state">Pulsa «Generar once + táctica» con jugadores cargados en la partida.</div>
+        </div>
       </div>
     </div>
 
@@ -2412,7 +2480,7 @@ function setForma(id, campo, valor) {
   document.getElementById('tab-' + tabId).classList.add('active');
 
   const botones = document.querySelectorAll('.nav-btn');
-  const map = { 'equipo': 0, 'informe-equipo': 1, 'anadir-jugador': 2, 'anadir-rol': 3, 'hacer-11': 4, 'ojeados': 5, 'entrenamiento': 6 };
+  const map = { 'equipo': 0, 'informe-equipo': 1, 'anadir-jugador': 2, 'anadir-rol': 3, 'hacer-11': 4, 'ojeados': 5, 'entrenamiento': 6, 'ia-tactica': 7 };
   if (map[tabId] !== undefined) botones[map[tabId]].classList.add('active');
 
   if (tabId === 'equipo') {
@@ -2441,6 +2509,9 @@ function setForma(id, campo, valor) {
   }
   if (tabId === 'entrenamiento') {
     if (typeof renderFormularioEntrenamiento === 'function') renderFormularioEntrenamiento();
+  }
+  if (tabId === 'ia-tactica') {
+    /* resultado previo se mantiene */
   }
 }
 
@@ -5084,6 +5155,287 @@ function aplicarFormaTodos(campo, valor) {
       cont.innerHTML = html;
     }
     /* ===================== FIN ENTRENAMIENTO ===================== */
+
+
+    /* ===================== IA TACTICA ===================== */
+    function iaMediaAttr(lista, attrs) {
+      const vals = [];
+      lista.forEach(j => {
+        attrs.forEach(a => {
+          const n = Number(j[a]);
+          if (!isNaN(n) && n > 0) vals.push(n);
+        });
+      });
+      if (!vals.length) return 10;
+      return vals.reduce((s, n) => s + n, 0) / vals.length;
+    }
+
+    function iaPoolJugadores() {
+      const modo = document.getElementById('ia-plantilla')?.value || 'primer';
+      let lista = (jugadores || []).filter(j => !j.excluido);
+      if (modo === 'primer') {
+        lista = lista.filter(j => getPlantilla(j) === 'Primer equipo');
+      }
+      return lista;
+    }
+
+    function iaPerfilPlantilla(pool) {
+      const deCampo = pool.filter(j => !jugadorEsPortero(j));
+      const base = deCampo.length ? deCampo : pool;
+      const m = (attrs) => iaMediaAttr(base, attrs);
+      const perfil = {
+        pase: m(['pases', 'vision', 'tecnica', 'control', 'serenidad']),
+        vertical: m(['velocidad', 'aceleracion', 'remate', 'desmarques', 'anticipacion']),
+        presion: m(['sacrificio', 'resistencia', 'agresividad', 'valentia', 'entradas', 'determinacion']),
+        defensa: m(['colocacion', 'marcaje', 'entradas', 'cabeceo', 'fuerza', 'concentracion']),
+        creatividad: m(['vision', 'talento', 'tecnica', 'pases', 'decisiones']),
+        fisico: m(['velocidad', 'aceleracion', 'resistencia', 'fuerza', 'agilidad']),
+        n: base.length
+      };
+      // Normalizar sesgos 0-1 relativos a 10
+      const score = (v) => (v - 8) / 8; // ~0 en 8, positivo si >8
+      perfil.sesgoPosesion = score(perfil.pase) + 0.3 * score(perfil.creatividad) - 0.2 * score(perfil.vertical);
+      perfil.sesgoVertical = score(perfil.vertical) + 0.2 * score(perfil.fisico) - 0.15 * score(perfil.pase);
+      perfil.sesgoPresion = score(perfil.presion) + 0.15 * score(perfil.fisico);
+      perfil.sesgoSolidez = score(perfil.defensa) - 0.1 * score(perfil.vertical);
+      return perfil;
+    }
+
+    function iaEscalaInstr(valor, labels) {
+      // valor -1..1 -> índice en labels
+      const t = (valor + 1) / 2; // 0..1
+      const idx = Math.max(0, Math.min(labels.length - 1, Math.round(t * (labels.length - 1))));
+      return labels[idx];
+    }
+
+    function iaGenerarInstrucciones(perfil, estilo) {
+      let pose = perfil.sesgoPosesion;
+      let vert = perfil.sesgoVertical;
+      let pres = perfil.sesgoPresion;
+      let soli = perfil.sesgoSolidez;
+      if (estilo === 'posesion') { pose += 0.45; vert -= 0.2; }
+      if (estilo === 'vertical') { vert += 0.45; pose -= 0.2; }
+      if (estilo === 'presion') { pres += 0.5; }
+      if (estilo === 'solido') { soli += 0.45; pres -= 0.15; vert -= 0.1; }
+
+      const mentalidad = iaEscalaInstr(
+        (pose * 0.15 + vert * 0.45 + pres * 0.2 - soli * 0.15),
+        ['Muy defensiva', 'Defensiva', 'Equilibrada', 'Positiva', 'Muy ofensiva']
+      );
+      const ritmo = iaEscalaInstr(vert * 0.6 - pose * 0.3, ['Muy bajo', 'Bajo', 'Equilibrado', 'Alto', 'Muy alto']);
+      const amplitud = iaEscalaInstr(vert * 0.2 + pose * 0.2, ['Muy estrecho', 'Estrecho', 'Equilibrado', 'Amplio', 'Muy amplio']);
+      const pases = iaEscalaInstr(pose * 0.7 - vert * 0.4, ['Muy cortos', 'Cortos', 'Equilibrado', 'Más directos', 'Muy directos']);
+      const enfoque = pose > vert + 0.15 ? 'Construir desde atrás / posesión'
+        : (vert > pose + 0.15 ? 'Juego más directo / buscar profundidad' : 'Mixto: progresar y atacar espacios');
+      const contraataque = vert > 0.1 || estilo === 'vertical' ? 'Sí, a la recuperación' : 'Sólo si hay ventaja clara';
+      const contrapresion = iaEscalaInstr(pres, ['Mantener forma', 'A veces', 'Equilibrado', 'Contrapresión', 'Contrapresión intensa']);
+      const linea = iaEscalaInstr(pres * 0.4 + soli * 0.2 + pose * 0.15, ['Muy retrasada', 'Retrasada', 'Estándar', 'Alta', 'Muy alta']);
+      const intensidadPres = iaEscalaInstr(pres, ['Muy baja', 'Baja', 'Media', 'Alta', 'Extrema']);
+      const disparaPresion = pres > 0.2
+        ? 'Tras pérdida + balón en zona rival'
+        : (pres < -0.1 ? 'Sólo en zona propia' : 'En mitad de campo');
+      const marcaje = soli > 0.15 ? 'Más estricto en área' : 'Zonal / equilibrado';
+
+      const razones = [];
+      razones.push(`Media pase/técnica ~${perfil.pase.toFixed(1)}, verticalidad ~${perfil.vertical.toFixed(1)}, presión ~${perfil.presion.toFixed(1)}, defensa ~${perfil.defensa.toFixed(1)}.`);
+      if (pose >= vert && pose >= pres) razones.push('La plantilla destaca en pase/visión: conviene retener y progresar con criterio.');
+      if (vert > pose) razones.push('Hay punta de velocidad y desmarque: el juego vertical y las transiciones premiarán al once.');
+      if (pres > 0.15) razones.push('Work rate / stamina / agresividad permiten una presión más alta sin desmoronarse.');
+      if (soli > 0.15) razones.push('Buenos valores defensivos: se puede priorizar orden y no regalar espacios a la espalda.');
+      if (estilo && estilo !== 'auto') razones.push('Has forzado el estilo «' + estilo + '»: las instrucciones se sesgan en esa dirección.');
+
+      return {
+        mentalidad, ritmo, amplitud, pases, enfoque, contraataque, contrapresion,
+        linea, intensidadPres, disparaPresion, marcaje,
+        razones,
+        bloques: [
+          { grupo: 'General', items: [
+            ['Mentalidad', mentalidad],
+            ['Ritmo', ritmo],
+            ['Amplitud', amplitud]
+          ]},
+          { grupo: 'En posesión', items: [
+            ['Enfoque', enfoque],
+            ['Pases', pases],
+            ['Contraataque', contraataque]
+          ]},
+          { grupo: 'En transición', items: [
+            ['Al perder el balón', contrapresion],
+            ['Al recuperar', contraataque]
+          ]},
+          { grupo: 'Sin posesión', items: [
+            ['Línea defensiva', linea],
+            ['Intensidad de presión', intensidadPres],
+            ['Disparadores de presión', disparaPresion],
+            ['Marcaje', marcaje]
+          ]}
+        ]
+      };
+    }
+
+    function iaMejorRolPara(player, fase) {
+      const rolesJ = (typeof obtenerRolesDelJugador === 'function' ? obtenerRolesDelJugador(player) : [])
+        .filter(r => typeof rolAplicableA !== 'function' || rolAplicableA(r, fase === 'sin' ? 'sin' : 'con') || (r.posesion || 'ambos') === 'ambos');
+      if (!rolesJ.length) return { role: '', score: mediaEfectiva(player, '') };
+      // obtenerRolesDelJugador ya ordena por valoración; mediaEfectiva incluye forma/informe
+      let best = rolesJ[0];
+      let bestS = mediaEfectiva(player, best.nombre);
+      rolesJ.forEach(r => {
+        const s = mediaEfectiva(player, r.nombre);
+        if (s > bestS) { bestS = s; best = r; }
+      });
+      return { role: best.nombre, score: bestS };
+    }
+
+    function iaEvaluarFormacion(form, pool) {
+      // Greedy assignment maximizing mediaEfectiva with role
+      const slots = form.slots.map((s, i) => ({
+        id: 'ia_' + i,
+        tipo: s.tipo,
+        left: s.left,
+        top: s.top
+      }));
+      const used = new Set();
+      const asign = [];
+      let total = 0;
+      // Ordenar slots: primero los más restrictivos (menos jugadores compatibles)
+      const slotsOrd = slots.map(sl => {
+        const cand = pool.filter(p => !used.has(p.id) && puedeJugarEn(p, sl.tipo)).length;
+        return { sl, cand };
+      }).sort((a, b) => a.cand - b.cand);
+
+      for (const { sl } of slotsOrd) {
+        let bestP = null, bestScore = -1, bestRole = '';
+        for (const p of pool) {
+          if (used.has(p.id)) continue;
+          if (!puedeJugarEn(p, sl.tipo)) continue;
+          const { role, score } = iaMejorRolPara(p, 'con');
+          // pequeña penalización si fuera de posición ideal: puedeJugarEn ya filtra
+          if (score > bestScore) {
+            bestScore = score;
+            bestP = p;
+            bestRole = role;
+          }
+        }
+        if (!bestP) {
+          // forzar cualquier jugador libre
+          for (const p of pool) {
+            if (used.has(p.id)) continue;
+            const { role, score } = iaMejorRolPara(p, 'con');
+            if (score > bestScore) {
+              bestScore = score;
+              bestP = p;
+              bestRole = role;
+            }
+          }
+        }
+        if (!bestP) return { score: -1, asign: [], slots };
+        used.add(bestP.id);
+        asign.push({ slot: sl, player: bestP, role: bestRole, score: bestScore });
+        total += bestScore;
+      }
+      return { score: total / 11, asign, slots, formNombre: form.nombre };
+    }
+
+    function iaAplicarOnce(best) {
+      if (!best || !best.asign || best.asign.length < 11) return false;
+      const newSlots = best.asign.map((a, i) => ({
+        id: 's' + i,
+        tipo: a.slot.tipo,
+        left: a.slot.left,
+        top: a.slot.top,
+        desiredRole: a.role || ''
+      }));
+      slotsConfigCon = newSlots.map(s => ({ ...s }));
+      slotsConfigSin = newSlots.map(s => ({ ...s }));
+      lineupCon = {};
+      lineupSin = {};
+      best.asign.forEach((a, i) => {
+        const id = 's' + i;
+        const roleCon = a.role || iaMejorRolPara(a.player, 'con').role;
+        const roleSin = iaMejorRolPara(a.player, 'sin').role || roleCon;
+        lineupCon[id] = { playerId: a.player.id, role: roleCon };
+        lineupSin[id] = { playerId: a.player.id, role: roleSin };
+      });
+      lineup = lineupCon;
+      slotsConfig = slotsConfigCon;
+      if (typeof guardarLineup === 'function') guardarLineup();
+      if (typeof autoGuardarPartida === 'function') autoGuardarPartida();
+      return true;
+    }
+
+    function ejecutarIATactica(aplicarOnce) {
+      const cont = document.getElementById('ia-resultado');
+      const pool = iaPoolJugadores();
+      if (!pool || pool.length < 11) {
+        if (cont) cont.innerHTML = '<div class="empty-state">Necesitas al menos 11 jugadores no excluidos en el alcance elegido.</div>';
+        alert('Se necesitan al menos 11 jugadores disponibles.');
+        return;
+      }
+      const estilo = document.getElementById('ia-estilo')?.value || 'auto';
+      const perfil = iaPerfilPlantilla(pool);
+      const instr = iaGenerarInstrucciones(perfil, estilo);
+
+      let best = null;
+      const formaciones = (typeof FORMACIONES_COHERENTES !== 'undefined') ? FORMACIONES_COHERENTES : [];
+      formaciones.forEach(f => {
+        const ev = iaEvaluarFormacion(f, pool);
+        if (!best || ev.score > best.score) best = ev;
+      });
+
+      if (aplicarOnce) {
+        if (!best || best.score < 0) {
+          if (cont) cont.innerHTML = '<div class="empty-state">No se pudo armar un once válido con las formaciones disponibles.</div>';
+          return;
+        }
+        iaAplicarOnce(best);
+      } else if (!best) {
+        // solo instrucciones: intentar evaluar once actual
+        best = { score: 0, asign: [], formNombre: '— (once no modificado)' };
+      }
+
+      // HTML resultado
+      let html = '<div class="ia-layout">';
+      html += '<div class="ia-card"><h3>Once propuesto' + (best.formNombre ? ' · ' + best.formNombre : '') + '</h3>';
+      if (best.asign && best.asign.length) {
+        html += `<div style="margin-bottom:10px;">Media estimada del once: <strong class="ia-badge">${best.score.toFixed(1)}</strong></div>`;
+        best.asign
+          .slice()
+          .sort((a, b) => (a.slot.top || 0) - (b.slot.top || 0) || (a.slot.left || 0) - (b.slot.left || 0))
+          .forEach(a => {
+            const pos = a.slot.tipo;
+            const med = a.score.toFixed(1);
+            html += `<div class="ia-xi-row">
+              <span class="pos">${pos}</span>
+              <span style="flex:1;">${(a.player.nombre || '—')}</span>
+              <span style="color:#888;font-size:0.8rem;">${a.role || '—'}</span>
+              <span class="ia-badge">${med}</span>
+            </div>`;
+          });
+        if (aplicarOnce) {
+          html += `<p class="ia-reason" style="margin-top:12px;">Once aplicado en <strong>Hacer 11</strong> (Con y Sin posesión, con roles por fase).</p>`;
+        }
+      } else {
+        html += '<p style="color:#888;">Once no recalculado. Solo se generaron instrucciones.</p>';
+      }
+      html += '</div>';
+
+      html += '<div class="ia-card"><h3>Instrucciones tácticas</h3>';
+      instr.bloques.forEach(b => {
+        html += `<div style="margin-top:12px;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:#888;">${b.grupo}</div>`;
+        b.items.forEach(([lab, val]) => {
+          html += `<div class="ia-instr"><span class="lab">${lab}</span><span class="val">${val}</span></div>`;
+        });
+      });
+      html += `<div class="ia-reason"><strong>Por qué:</strong> ${instr.razones.join(' ')}</div>`;
+      html += '</div></div>';
+
+      if (cont) cont.innerHTML = html;
+      if (typeof actualizarBadgeMediaOnce === 'function') actualizarBadgeMediaOnce();
+    }
+    /* ===================== FIN IA TACTICA ===================== */
+
+
 
 
 
